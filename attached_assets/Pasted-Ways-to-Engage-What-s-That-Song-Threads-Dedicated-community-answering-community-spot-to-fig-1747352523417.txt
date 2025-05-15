@@ -1,0 +1,53 @@
+Ways to Engage
+- What’s That Song Threads?
+    - Dedicated community answering community spot to figure this use case out in a hurry?
+- Artists Key Threads: Values — Artist Name, Real Name(s)?, First Discovered In, First Album Release Date, Sample, What Went Into The Writing?, Totals?, Thread Types (below), Streaming Platforms (links), Ranking (might be based on a series of interactions), Genre(s),
+    - Records/Albums
+    - Live Performances
+        - Needs: Date, Show, Ticket, Picture or Video, Reactions, Thread (feedback and opinions)
+    - Features
+    - Samples?
+- Songs Key Threads: Values — Title, Artist, Features, Sample, What Went Into The Writing?, Dialects, Thread Types (below), Streaming Platforms (links), Ranking (might be based on a series of interactions), Genre, Sub Genre(s), 
+    - Playlists — Is this its own? I don’t think so because with playlists you discover songs, but it might be better for experience and architecture since then any playlist creates a series of Songs.. I feel like playlists are key in the early days (Title, Curator, Links to streaming platform(s), Genres, Number of Songs, Length)
+        - 
+    - New Unknowns?
+    - Classics
+    - YouTube Sets
+    - Trending Social? (I don’t love this but it would attract ppl)
+        - How to display songs: Top User Generated Recommendations? (Something that calculates the most voted by category? — so playlists, new unknowns, and similar? — This probably becomes one of the core ways to display info on each page (votes in last 7-30-alltime) — DISCUSS THIS…
+    - Need help here from the music heads
+- Places to Listen (needs a better name)
+    - Top Bars by Genre
+    - Upcoming Concerts
+- Stories? UGC that’s basically a blog… I think it’s a bit too much to add that level of engagement at this time even though people might use it. Something nice about making it about small consistent actions and insights or opinions and encouraging the feedback loop, rather than making long reads and needs to write long articles or thought pieces. I think that happens overtime when we have the first 100+ A&R type characters using this consistently
+
+Profiles — Don’t want to go too far too soon. Will be fairly straightforward…
+- username
+- Password (cached) — login options from google, twitter, etc
+- Favourite songs
+- Favourite genres
+- Favourite sub-genres
+- Favourite countries 
+- Comment thread/contribution history (they can hide it if they want or something — only visible to friends too)
+- Followable — if you follow someone who follows you, you become friends?
+
+Profile Badges
+Lots of interesting stuff here and I feel like Alex, Ivan, Chris and a few others could cook on this: https://chatgpt.com/share/6826716c-9694-8006-8cdc-4c2bf5801a94 
+- Live Performances (The Witness)
+    - Levels:
+- Listener
+    - Levels:
+- Tastemaker
+- Threadstarter
+- Critic
+    - Levels:
+- Contributor
+    - Levels:
+- The Crate Diger
+- Sample Sniper
+- The Early One
+    - Levels: 
+- Lifer
+- No Sleep
+- Artist
+- Playlist Curator
