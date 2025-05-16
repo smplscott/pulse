@@ -65,15 +65,15 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
               </div>
             )}
             <button 
-              className="text-sm font-medium text-[#E51D3E] flex items-center"
+              className="px-4 py-1.5 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 window.location.href = `/thread/venue_${venue.id}`;
               }}
             >
-              <MessageCircleIcon className="h-3 w-3 mr-1" />
-              Join Discussion
+              <MessageCircleIcon className="h-4 w-4 mr-1" />
+              Drop In
             </button>
           </div>
         </div>
