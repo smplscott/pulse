@@ -60,31 +60,120 @@ export default function Artists() {
     }
   ];
 
+  // Artist content type tabs
+  const [artistContentTab, setArtistContentTab] = useState("all");
+  
+  const artistContentTabs = [
+    { id: "all", label: "All" },
+    { id: "live", label: "Live Performances" },
+    { id: "records", label: "Records" },
+    { id: "albums", label: "Albums" },
+    { id: "features", label: "Features" }
+  ];
+  
   const renderCategoryContent = () => {
     if (activeCategory === "artists") {
       if (isLoadingArtists) {
         return (
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-56 w-full" />
-            ))}
-          </div>
+          <>
+            {/* Artist content type tabs */}
+            <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+              {artistContentTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
+                    artistContentTab === tab.id
+                      ? "bg-[#E51D3E] text-white"
+                      : "bg-[#181818] text-[#B3B3B3]"
+                  )}
+                  onClick={() => setArtistContentTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-56 w-full" />
+              ))}
+            </div>
+          </>
         );
       } else if (filteredArtists && filteredArtists.length > 0) {
+        // Filter artists based on content type
+        // For now, we'll just show all artists regardless of tab
+        // In a real implementation, we would filter based on the tab
+        
         return (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredArtists.map((artist) => (
-              <ArtistCard key={artist.id} artist={artist} />
-            ))}
-          </div>
+          <>
+            {/* Artist content type tabs */}
+            <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+              {artistContentTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
+                    artistContentTab === tab.id
+                      ? "bg-[#E51D3E] text-white"
+                      : "bg-[#181818] text-[#B3B3B3]"
+                  )}
+                  onClick={() => setArtistContentTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            
+            {artistContentTab === "all" ? (
+              <div className="grid grid-cols-2 gap-3">
+                {filteredArtists.map((artist) => (
+                  <ArtistCard key={artist.id} artist={artist} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-[#B3B3B3]">
+                  No content available in the {artistContentTab} category yet.
+                </p>
+                <p className="text-xs text-[#B3B3B3] mt-2">
+                  {artistContentTab === "live" && "Artist live performances and concerts"}
+                  {artistContentTab === "records" && "Studio recorded singles and EPs"}
+                  {artistContentTab === "albums" && "Full-length album releases"}
+                  {artistContentTab === "features" && "Collaborations and featured appearances"}
+                </p>
+              </div>
+            )}
+          </>
         );
       } else {
         return (
-          <div className="text-center py-10">
-            <p className="text-[#B3B3B3]">
-              {searchQuery ? "No artists found matching your search" : "No artists available"}
-            </p>
-          </div>
+          <>
+            {/* Artist content type tabs */}
+            <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+              {artistContentTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
+                    artistContentTab === tab.id
+                      ? "bg-[#E51D3E] text-white"
+                      : "bg-[#181818] text-[#B3B3B3]"
+                  )}
+                  onClick={() => setArtistContentTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            
+            <div className="text-center py-10">
+              <p className="text-[#B3B3B3]">
+                {searchQuery ? "No artists found matching your search" : "No artists available"}
+              </p>
+            </div>
+          </>
         );
       }
     } else {
