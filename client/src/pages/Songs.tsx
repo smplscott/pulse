@@ -5,9 +5,10 @@ import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic } from "lucide-react";
+import { SearchIcon, Music2, ListMusic, Heart, MessageCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 type SongCategoryTab = {
   id: string;
@@ -17,6 +18,7 @@ type SongCategoryTab = {
 export default function Songs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("your-list");
+  const { toast } = useToast();
 
   const { data: songs, isLoading: isLoadingSongs } = useQuery<Song[]>({
     queryKey: ["/api/songs"],
@@ -35,6 +37,26 @@ export default function Songs() {
     )) ||
     (song.genre && song.genre.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+  
+  // For handling reactions
+  const handleReaction = (e: React.MouseEvent, songId: number, title: string) => {
+    e.stopPropagation(); // Prevent row click event
+    // In a real app, this would call an API to add reaction
+    toast({
+      title: "Reaction Added",
+      description: `You liked "${title}"`
+    });
+  };
+  
+  // For handling comments
+  const handleComment = (e: React.MouseEvent, songId: number, title: string) => {
+    e.stopPropagation(); // Prevent row click event
+    // In a real app, this would open a comment modal or navigate to comments
+    toast({
+      title: "Comment",
+      description: `Add a comment to "${title}"`
+    });
+  };
 
   const songCategories: SongCategoryTab[] = [
     { id: "your-list", label: "Your List" },
@@ -95,9 +117,28 @@ export default function Songs() {
                   : song.artist}
               </p>
             </div>
-            <div className="text-xs text-[#B3B3B3] ml-2 flex-shrink-0">
-              {/* Duration is shown if available, otherwise empty string */}
-              {song.releaseDate ? new Date(song.releaseDate).getFullYear() : ""}
+            
+            {/* Right side actions: year, reactions, comments */}
+            <div className="flex items-center space-x-3 ml-2">
+              <div className="text-xs text-[#B3B3B3] flex-shrink-0">
+                {song.releaseDate ? new Date(song.releaseDate).getFullYear() : ""}
+              </div>
+              
+              {/* Reaction button */}
+              <button 
+                className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                onClick={(e) => handleReaction(e, song.id, song.title)}
+              >
+                <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
+              </button>
+              
+              {/* Comment button */}
+              <button 
+                className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                onClick={(e) => handleComment(e, song.id, song.title)}
+              >
+                <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+              </button>
             </div>
           </div>
         ))}
