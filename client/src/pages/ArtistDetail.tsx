@@ -98,7 +98,7 @@ export default function ArtistDetail() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
               <div className="absolute bottom-4 left-4 right-4">
                 {artist.verified && (
-                  <Badge variant="status" className="bg-[#1DB954] text-xs mb-2">
+                  <Badge variant="status" className="bg-[#c1ff72] text-black text-xs mb-2">
                     Verified Artist
                   </Badge>
                 )}

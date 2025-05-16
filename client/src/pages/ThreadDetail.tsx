@@ -285,7 +285,7 @@ export default function ThreadDetail() {
                         className={cn(
                           "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                           artistContentTab === tab.id
-                            ? "bg-[#E51D3E] text-white"
+                            ? "bg-[#E51D3E] text-black"
                             : "bg-[#181818] text-[#B3B3B3]"
                         )}
                         onClick={() => setArtistContentTab(tab.id)}
@@ -347,14 +347,14 @@ export default function ThreadDetail() {
                 >
                   <Heart className={`h-5 w-5 ${(thread.upvotes || 0) > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
                 </button>
-                <button className="flex items-center text-[#B3B3B3] hover:text-white">
+                <button className="flex items-center text-[#B3B3B3] hover:text-black">
                   <MessageCircle className="h-5 w-5" />
                 </button>
-                <button className="flex items-center text-[#B3B3B3] hover:text-white">
+                <button className="flex items-center text-[#B3B3B3] hover:text-black">
                   <Repeat className="h-5 w-5" />
                 </button>
                 <button 
-                  className="flex items-center text-[#B3B3B3] hover:text-white"
+                  className="flex items-center text-[#B3B3B3] hover:text-black"
                   onClick={handleShare}
                 >
                   <Share2 className="h-5 w-5" />
@@ -362,7 +362,7 @@ export default function ThreadDetail() {
               </div>
               
               <div className="mt-3 text-[#A0A0A0] text-sm">
-                <span className="font-semibold text-white">{formatNumber(thread.upvotes || 0)}</span> likes • <span className="font-semibold text-white">{formatNumber(thread.commentsCount || 0)}</span> replies
+                <span className="font-semibold text-black">{formatNumber(thread.upvotes || 0)}</span> likes • <span className="font-semibold text-black">{formatNumber(thread.commentsCount || 0)}</span> replies
               </div>
             </div>
             
@@ -393,7 +393,7 @@ export default function ThreadDetail() {
               ) : isSongRequest ? (
                 <div className="bg-[#181818] rounded-lg p-4 text-center mb-6">
                   <p className="text-[#B3B3B3]">No song suggestions yet</p>
-                  <button className="mt-2 bg-[#E51D3E] text-white py-1.5 px-4 rounded-full text-sm font-medium">
+                  <button className="mt-2 bg-[#E51D3E] text-black py-1.5 px-4 rounded-full text-sm font-medium">
                     Suggest a Song
                   </button>
                 </div>
@@ -446,7 +446,7 @@ export default function ThreadDetail() {
           <div className="text-center py-10">
             <p className="text-[#B3B3B3]">Thread not found</p>
             <Link href="/">
-              <button className="mt-4 bg-[#282828] hover:bg-[#3E3E3E] text-white py-2 px-4 rounded-full text-sm font-medium">
+              <button className="mt-4 bg-[#282828] hover:bg-[#3E3E3E] text-black py-2 px-4 rounded-full text-sm font-medium">
                 Back to Home
               </button>
             </Link>
@@ -462,7 +462,7 @@ export default function ThreadDetail() {
               <input
                 type="text"
                 placeholder="Message the group..."
-                className="w-full bg-[#121212] border border-[#333333] rounded-full py-2.5 pl-4 pr-10 outline-none text-white placeholder:text-[#707070]"
+                className="w-full bg-[#121212] border border-[#333333] rounded-full py-2.5 pl-4 pr-10 outline-none text-black placeholder:text-[#707070]"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
               />
@@ -524,7 +524,7 @@ function CommentCard({ comment }: { comment: Comment }) {
           <div 
             className={`rounded-2xl py-2 px-3 mb-1 max-w-[85%] ${
               isCurrentUser 
-                ? 'bg-[#E51D3E] text-white rounded-tr-sm' 
+                ? 'bg-[#E51D3E] text-black rounded-tr-sm' 
                 : 'bg-[#262626] rounded-tl-sm'
             }`}
           >
@@ -537,7 +537,7 @@ function CommentCard({ comment }: { comment: Comment }) {
             <button className="flex items-center hover:text-[#E51D3E]">
               <Heart className={`h-3.5 w-3.5 ${(comment.upvotes || 0) > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
               {(comment.upvotes || 0) > 0 && (
-                <span className="ml-1 text-white">{comment.upvotes}</span>
+                <span className="ml-1 text-black">{comment.upvotes}</span>
               )}
             </button>
           </div>
@@ -616,10 +616,10 @@ function SongRecommendationCard({ recommendation, solved }: { recommendation: So
           </p>
         </div>
         <button 
-          className="w-8 h-8 rounded-full bg-[#1DB954] flex items-center justify-center"
+          className="w-8 h-8 rounded-full bg-[#c1ff72] flex items-center justify-center"
           onClick={() => playSong(song)}
         >
-          <Play className="h-4 w-4 text-white" />
+          <Play className="h-4 w-4 text-black" />
         </button>
       </div>
       
@@ -628,7 +628,7 @@ function SongRecommendationCard({ recommendation, solved }: { recommendation: So
       )}
       
       <div className="flex items-center ml-11 mt-2">
-        <button className="flex items-center text-[#B3B3B3] hover:text-white text-xs">
+        <button className="flex items-center text-[#B3B3B3] hover:text-black text-xs">
           <ArrowUp className="h-3.5 w-3.5 mr-1" />
           <span>{recommendation.upvotes}</span>
         </button>
@@ -647,9 +647,9 @@ function SolvedSongDisplay({ recommendationId, songId }: { recommendationId: num
   if (!song) return null;
 
   return (
-    <div className="bg-[#1DB954]/10 border border-[#1DB954] rounded-lg p-4 mb-4">
+    <div className="bg-[#c1ff72]/10 border border-[#c1ff72] rounded-lg p-4 mb-4">
       <div className="flex items-center mb-2">
-        <CheckCircle className="h-5 w-5 text-[#1DB954] mr-2" />
+        <CheckCircle className="h-5 w-5 text-[#c1ff72] mr-2" />
         <p className="font-medium">Track Identified!</p>
       </div>
       
@@ -670,10 +670,10 @@ function SolvedSongDisplay({ recommendationId, songId }: { recommendationId: num
           </p>
         </div>
         <button 
-          className="w-8 h-8 rounded-full bg-[#1DB954] flex items-center justify-center"
+          className="w-8 h-8 rounded-full bg-[#c1ff72] flex items-center justify-center"
           onClick={() => playSong(song)}
         >
-          <Play className="h-4 w-4 text-white" />
+          <Play className="h-4 w-4 text-black" />
         </button>
       </div>
     </div>
