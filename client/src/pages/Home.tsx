@@ -182,59 +182,26 @@ export default function Home() {
             
             {activeDiscussionFilter === "new" && (
               <>
-                <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
-                  <div className="mr-3 text-[#FFD700]">
-                    <Trophy size={16} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Just Released: Best Electronic Albums of May</p>
-                    <p className="text-xs text-[#B3B3B3]">287 comments • 3h ago</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <Heart size={14} className="text-[#B3B3B3]" />
-                    </button>
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <MessageCircle size={14} className="text-[#B3B3B3]" />
-                    </button>
-                  </div>
-                </div>
+                <DiscussionItem 
+                  id={10}
+                  title="Just Released: Best Electronic Albums of May"
+                  comments={287}
+                  timeAgo="3h ago"
+                />
                 
-                <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
-                  <div className="mr-3 text-[#FFD700]">
-                    <Trophy size={16} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Emerging Artists With Groundbreaking Sound</p>
-                    <p className="text-xs text-[#B3B3B3]">168 comments • 6h ago</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <Heart size={14} className="text-[#B3B3B3]" />
-                    </button>
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <MessageCircle size={14} className="text-[#B3B3B3]" />
-                    </button>
-                  </div>
-                </div>
+                <DiscussionItem 
+                  id={11}
+                  title="Emerging Artists With Groundbreaking Sound"
+                  comments={168}
+                  timeAgo="6h ago"
+                />
                 
-                <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
-                  <div className="mr-3 text-[#FFD700]">
-                    <Trophy size={16} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Fresh Releases From Berlin Underground</p>
-                    <p className="text-xs text-[#B3B3B3]">132 comments • 10h ago</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <Heart size={14} className="text-[#B3B3B3]" />
-                    </button>
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <MessageCircle size={14} className="text-[#B3B3B3]" />
-                    </button>
-                  </div>
-                </div>
+                <DiscussionItem 
+                  id={12}
+                  title="Fresh Releases From Berlin Underground"
+                  comments={132}
+                  timeAgo="10h ago"
+                />
               </>
             )}
           </div>
