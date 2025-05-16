@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { HomeIcon, SearchIcon, Music2Icon, UserIcon, PlusIcon } from "lucide-react";
+import { HomeIcon, MapPinIcon, Music2Icon, UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNav() {
@@ -7,10 +7,9 @@ export default function BottomNav() {
 
   const navItems = [
     { icon: HomeIcon, label: "Home", path: "/" },
-    { icon: SearchIcon, label: "Discover", path: "/discover" },
-    { icon: PlusIcon, label: "Create", path: "/create-thread", isSpecial: true },
-    { icon: Music2Icon, label: "Library", path: "/library" },
-    { icon: UserIcon, label: "Profile", path: "/profile" },
+    { icon: MapPinIcon, label: "Places", path: "/venues" },
+    { icon: Music2Icon, label: "Songs", path: "/discover" },
+    { icon: UserIcon, label: "Artists", path: "/artists" },
   ];
 
   return (
@@ -23,16 +22,8 @@ export default function BottomNav() {
               location === item.path ? "text-[#E51D3E]" : "text-[#B3B3B3]"
             )}
           >
-            {item.isSpecial ? (
-              <div className="w-10 h-10 rounded-full bg-[#E51D3E] flex items-center justify-center text-white">
-                <item.icon className="h-5 w-5" />
-              </div>
-            ) : (
-              <>
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.label}</span>
-              </>
-            )}
+            <item.icon className="h-5 w-5" />
+            <span className="text-xs mt-1">{item.label}</span>
           </button>
         </Link>
       ))}
