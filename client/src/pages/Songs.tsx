@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
 import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List } from "lucide-react";
@@ -298,7 +297,6 @@ export default function Songs() {
         {renderSongsList()}
       </main>
       
-      <MusicPlayer />
       <BottomNav />
     </div>
   );
