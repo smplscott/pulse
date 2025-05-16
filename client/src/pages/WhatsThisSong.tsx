@@ -46,19 +46,21 @@ export default function WhatsThisSong() {
             <TabsTrigger value="solved" className="flex-1">Solved</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="active" className="mt-4 space-y-4">
+          <TabsContent value="active" className="mt-4">
             {isLoadingActive ? (
-              <>
+              <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-40 w-full" />
                 ))}
-              </>
+              </div>
             ) : activeThreads && activeThreads.length > 0 ? (
-              activeThreads
-                .filter(thread => thread.status !== "solved")
-                .map((thread) => (
-                  <SongIdentificationCard key={thread.id} thread={thread} />
-                ))
+              <div className="grid gap-4">
+                {activeThreads
+                  .filter(thread => thread.status !== "solved")
+                  .map((thread) => (
+                    <SongIdentificationCard key={thread.id} thread={thread} />
+                  ))}
+              </div>
             ) : (
               <div className="text-center py-10">
                 <p className="text-[#B3B3B3]">No active song identification requests</p>
@@ -71,19 +73,21 @@ export default function WhatsThisSong() {
             )}
           </TabsContent>
           
-          <TabsContent value="solved" className="mt-4 space-y-4">
+          <TabsContent value="solved" className="mt-4">
             {isLoadingSolved ? (
-              <>
+              <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-40 w-full" />
                 ))}
-              </>
+              </div>
             ) : solvedThreads && solvedThreads.length > 0 ? (
-              solvedThreads
-                .filter(thread => thread.status === "solved")
-                .map((thread) => (
-                  <SongIdentificationCard key={thread.id} thread={thread} />
-                ))
+              <div className="grid gap-4">
+                {solvedThreads
+                  .filter(thread => thread.status === "solved")
+                  .map((thread) => (
+                    <SongIdentificationCard key={thread.id} thread={thread} />
+                  ))}
+              </div>
             ) : (
               <div className="text-center py-10">
                 <p className="text-[#B3B3B3]">No solved song identification requests yet</p>
