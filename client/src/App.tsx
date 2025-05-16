@@ -1,0 +1,56 @@
+import { Switch, Route } from "wouter";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { MusicPlayerProvider } from "@/context/MusicPlayerContext";
+
+import Home from "@/pages/Home";
+import Discover from "@/pages/Discover";
+import WhatsThisSong from "@/pages/WhatsThisSong";
+import Venues from "@/pages/Venues";
+import Library from "@/pages/Library";
+import Profile from "@/pages/Profile";
+import ArtistDetail from "@/pages/ArtistDetail";
+import SongDetail from "@/pages/SongDetail";
+import ThreadDetail from "@/pages/ThreadDetail";
+import VenueDetail from "@/pages/VenueDetail";
+import CreateThread from "@/pages/CreateThread";
+import CreateSongRequest from "@/pages/CreateSongRequest";
+import NotFound from "@/pages/not-found";
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/discover" component={Discover} />
+      <Route path="/whats-this-song" component={WhatsThisSong} />
+      <Route path="/venues" component={Venues} />
+      <Route path="/library" component={Library} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/artist/:id" component={ArtistDetail} />
+      <Route path="/song/:id" component={SongDetail} />
+      <Route path="/thread/:id" component={ThreadDetail} />
+      <Route path="/venue/:id" component={VenueDetail} />
+      <Route path="/create-thread" component={CreateThread} />
+      <Route path="/create-song-request" component={CreateSongRequest} />
+      {/* Fallback to 404 */}
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <MusicPlayerProvider>
+          <Toaster />
+          <Router />
+        </MusicPlayerProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
