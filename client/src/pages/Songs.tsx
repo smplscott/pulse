@@ -293,6 +293,14 @@ export default function Songs() {
           </button>
         </div>
         
+        {/* Add Song CTA button */}
+        <Link href="/add-song">
+          <button className="w-full bg-[#E51D3E] hover:bg-[#d41a39] text-white rounded-lg py-3 mb-4 flex items-center justify-center">
+            <Music2 className="h-5 w-5 mr-2" />
+            Add a Song
+          </button>
+        </Link>
+        
         {/* Song list based on selected category */}
         {renderSongsList()}
       </main>
