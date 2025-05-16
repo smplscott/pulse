@@ -1,20 +1,8 @@
-import { useContext } from "react";
-import { MusicPlayerContext } from "@/context/MusicPlayerContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Song } from "@shared/schema";
 
 export function useMusic() {
-  const { 
-    currentSong, 
-    isPlaying, 
-    playSong, 
-    pauseSong, 
-    togglePlay, 
-    nextSong, 
-    previousSong 
-  } = useContext(MusicPlayerContext);
-  
   const { toast } = useToast();
 
   /**
@@ -81,13 +69,6 @@ export function useMusic() {
   };
 
   return {
-    currentSong,
-    isPlaying,
-    playSong,
-    pauseSong,
-    togglePlay,
-    nextSong,
-    previousSong,
     upvoteSong,
     addToFavorites,
     addToPlaylist
