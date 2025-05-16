@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { StarIcon } from "lucide-react";
+import { StarIcon, MessageCircleIcon } from "lucide-react";
 import { Venue } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -16,7 +16,7 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
   const isTonight = firstEvent && new Date(firstEvent.date).toDateString() === new Date().toDateString();
   
   return (
-    <Link href={`/venue/${venue.id}`}>
+    <Link href={`/thread/venue_${venue.id}`}>
       <div className={cn("bg-[#181818] rounded-lg overflow-hidden cursor-pointer", className)}>
         <div className="relative h-48">
           {venue.image && (
@@ -64,7 +64,10 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
                 <span className="text-xs ml-2">DJ Tonight: {venue.currentDj}</span>
               </div>
             )}
-            <button className="text-sm font-medium text-[#E51D3E]">Details</button>
+            <button className="text-sm font-medium text-[#E51D3E] flex items-center">
+              <MessageCircleIcon className="h-3 w-3 mr-1" />
+              Join Discussion
+            </button>
           </div>
         </div>
       </div>
