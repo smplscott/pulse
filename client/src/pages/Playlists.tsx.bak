@@ -35,7 +35,6 @@ export default function Playlists() {
   // For handling reactions
   const handleReaction = (e: React.MouseEvent, playlistId: number, title: string) => {
     e.stopPropagation(); // Prevent row click event
-    e.preventDefault(); // Prevent navigation
     // In a real app, this would call an API to add reaction
     toast({
       title: "Playlist Liked",
@@ -46,9 +45,11 @@ export default function Playlists() {
   // For handling comments
   const handleComment = (e: React.MouseEvent, playlistId: number, title: string) => {
     e.stopPropagation(); // Prevent row click event
-    e.preventDefault(); // Prevent navigation
-    // Navigate directly to the thread page
-    window.location.href = `/thread/playlist_${playlistId}`;
+    // In a real app, this would open a comment modal or navigate to comments
+    toast({
+      title: "Comment",
+      description: `Add a comment to "${title}"`
+    });
   };
   
   // Toggle display mode between grid and list
@@ -98,54 +99,53 @@ export default function Playlists() {
               href={`/thread/playlist_${playlist.id}`}
             >
               <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
-                <div className="w-10 h-10 bg-[#282828] rounded overflow-hidden mr-3 flex-shrink-0">
-                  {playlist.image ? (
-                    <img src={playlist.image} alt={playlist.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
-                      <ListMusic className="h-5 w-5 text-[#B3B3B3]" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{playlist.title}</p>
-                  <p className="text-xs text-[#B3B3B3] truncate">
-                    {Array.isArray(playlist.songs) ? playlist.songs.length : 0} tracks • {playlist.curator}
-                  </p>
-                </div>
-                
-                {/* Right side actions: reactions, comments */}
-                <div className="flex items-center space-x-3 ml-2">
-                  {/* Play button */}
-                  <button 
-                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      toast({ title: "Playing", description: `Playing ${playlist.title}` });
-                    }}
-                  >
-                    <Play className="h-4 w-4 text-[#B3B3B3] hover:text-white ml-0.5" />
-                  </button>
-                  
-                  {/* Reaction button */}
-                  <button 
-                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                    onClick={(e) => handleReaction(e, playlist.id, playlist.title)}
-                  >
-                    <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
-                  </button>
-                  
-                  {/* Comment button */}
-                  <button 
-                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                    onClick={(e) => handleComment(e, playlist.id, playlist.title)}
-                  >
-                    <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-                  </button>
-                </div>
+            
+              <div className="w-10 h-10 bg-[#282828] rounded overflow-hidden mr-3 flex-shrink-0">
+                {playlist.image ? (
+                  <img src={playlist.image} alt={playlist.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
+                    <ListMusic className="h-5 w-5 text-[#B3B3B3]" />
+                  </div>
+                )}
               </div>
-            </Link>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">{playlist.title}</p>
+                <p className="text-xs text-[#B3B3B3] truncate">
+                  {Array.isArray(playlist.songs) ? playlist.songs.length : 0} tracks • {playlist.curator}
+                </p>
+              </div>
+              
+              {/* Right side actions: reactions, comments */}
+              <div className="flex items-center space-x-3 ml-2">
+                {/* Play button */}
+                <button 
+                  className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toast({ title: "Playing", description: `Playing ${playlist.title}` });
+                  }}
+                >
+                  <Play className="h-4 w-4 text-[#B3B3B3] hover:text-white ml-0.5" />
+                </button>
+                
+                {/* Reaction button */}
+                <button 
+                  className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                  onClick={(e) => handleReaction(e, playlist.id, playlist.title)}
+                >
+                  <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
+                </button>
+                
+                {/* Comment button */}
+                <button 
+                  className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                  onClick={(e) => handleComment(e, playlist.id, playlist.title)}
+                >
+                  <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       );
@@ -154,55 +154,53 @@ export default function Playlists() {
       return (
         <div className="grid grid-cols-2 gap-3">
           {filteredPlaylists.map((playlist) => (
-            <Link
+            <div 
               key={playlist.id}
-              href={`/thread/playlist_${playlist.id}`}
+              className="bg-[#181818] hover:bg-[#282828] rounded-md overflow-hidden cursor-pointer transition flex flex-col"
+              onClick={() => toast({ title: "Playlist Selected", description: `Opening ${playlist.title}` })}
             >
-              <div className="bg-[#181818] hover:bg-[#282828] rounded-md overflow-hidden cursor-pointer transition flex flex-col">
-                <div className="w-full aspect-square bg-[#282828] relative">
-                  {playlist.image ? (
-                    <img src={playlist.image} alt={playlist.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
-                      <ListMusic className="h-10 w-10 text-[#B3B3B3]" />
-                    </div>
-                  )}
-                  
-                  {/* Overlay buttons */}
-                  <div className="absolute bottom-2 right-2 flex space-x-2">
-                    <button 
-                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        toast({ title: "Playing", description: `Playing ${playlist.title}` });
-                      }}
-                    >
-                      <Play className="h-4 w-4 text-white ml-0.5" />
-                    </button>
-                    <button 
-                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
-                      onClick={(e) => handleReaction(e, playlist.id, playlist.title)}
-                    >
-                      <Heart className="h-4 w-4 text-white" />
-                    </button>
-                    <button 
-                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
-                      onClick={(e) => handleComment(e, playlist.id, playlist.title)}
-                    >
-                      <MessageCircle className="h-4 w-4 text-white" />
-                    </button>
+              <div className="w-full aspect-square bg-[#282828] relative">
+                {playlist.image ? (
+                  <img src={playlist.image} alt={playlist.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
+                    <ListMusic className="h-10 w-10 text-[#B3B3B3]" />
                   </div>
-                </div>
+                )}
                 
-                <div className="p-3">
-                  <p className="font-medium text-sm truncate">{playlist.title}</p>
-                  <p className="text-xs text-[#B3B3B3] truncate">
-                    {Array.isArray(playlist.songs) ? playlist.songs.length : 0} tracks • {playlist.curator}
-                  </p>
+                {/* Overlay buttons */}
+                <div className="absolute bottom-2 right-2 flex space-x-2">
+                  <button 
+                    className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast({ title: "Playing", description: `Playing ${playlist.title}` });
+                    }}
+                  >
+                    <Play className="h-4 w-4 text-white ml-0.5" />
+                  </button>
+                  <button 
+                    className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                    onClick={(e) => handleReaction(e, playlist.id, playlist.title)}
+                  >
+                    <Heart className="h-4 w-4 text-white" />
+                  </button>
+                  <button 
+                    className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                    onClick={(e) => handleComment(e, playlist.id, playlist.title)}
+                  >
+                    <MessageCircle className="h-4 w-4 text-white" />
+                  </button>
                 </div>
               </div>
-            </Link>
+              
+              <div className="p-3">
+                <p className="font-medium text-sm truncate">{playlist.title}</p>
+                <p className="text-xs text-[#B3B3B3] truncate">
+                  {Array.isArray(playlist.songs) ? playlist.songs.length : 0} tracks • {playlist.curator}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
       );
