@@ -13,6 +13,7 @@ import Library from "@/pages/Library";
 import Profile from "@/pages/Profile";
 import Artists from "@/pages/Artists";
 import Songs from "@/pages/Songs";
+import Playlists from "@/pages/Playlists";
 import ArtistDetail from "@/pages/ArtistDetail";
 import SongDetail from "@/pages/SongDetail";
 import ThreadDetail from "@/pages/ThreadDetail";
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/artists" component={Artists} />
       <Route path="/songs" component={Songs} />
+      <Route path="/playlists" component={Playlists} />
       <Route path="/artist/:id" component={ArtistDetail} />
       <Route path="/song/:id" component={SongDetail} />
       <Route path="/thread/:id" component={ThreadDetail} />
