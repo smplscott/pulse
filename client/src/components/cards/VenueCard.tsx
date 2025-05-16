@@ -54,10 +54,10 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
           </div>
           <p className="text-sm mb-4">{venue.description}</p>
           
-          {/* Drop In Button - more prominent and centered */}
-          <div className="flex justify-center">
+          {/* Drop In Button - full width to match content above */}
+          <div className="w-full">
             <button 
-              className="px-6 py-2 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors flex items-center"
+              className="w-full px-6 py-2 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors flex items-center justify-center"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
