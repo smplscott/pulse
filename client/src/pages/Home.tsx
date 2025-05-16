@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import TabNavigator from "@/components/layout/TabNavigator";
 import BottomNav from "@/components/layout/BottomNav";
@@ -105,41 +106,79 @@ export default function Home() {
             {/* Sample discussion rows with trophies */}
             {activeDiscussionFilter === "artists" && (
               <>
-                <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
-                  <div className="mr-3 text-[#FFD700]">
-                    <Trophy size={16} />
+                <Link href="/thread/1">
+                  <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
+                    <div className="mr-3 text-[#FFD700]">
+                      <Trophy size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Most Innovative Electronic Artists of 2025</p>
+                      <p className="text-xs text-[#B3B3B3]">243 comments • 4h ago</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Like functionality
+                          toast({ 
+                            description: "Added to your liked discussions" 
+                          });
+                        }}
+                      >
+                        <Heart size={14} className="text-[#B3B3B3]" />
+                      </button>
+                      <button 
+                        className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.location.href = "/thread/1";
+                        }}
+                      >
+                        <MessageCircle size={14} className="text-[#B3B3B3]" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Most Innovative Electronic Artists of 2025</p>
-                    <p className="text-xs text-[#B3B3B3]">243 comments • 4h ago</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <Heart size={14} className="text-[#B3B3B3]" />
-                    </button>
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <MessageCircle size={14} className="text-[#B3B3B3]" />
-                    </button>
-                  </div>
-                </div>
+                </Link>
                 
-                <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
-                  <div className="mr-3 text-[#FFD700]">
-                    <Trophy size={16} />
+                <Link href="/thread/2">
+                  <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
+                    <div className="mr-3 text-[#FFD700]">
+                      <Trophy size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Techno DJs That Define Berlin's Sound</p>
+                      <p className="text-xs text-[#B3B3B3]">192 comments • 8h ago</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Like functionality
+                          toast({ 
+                            description: "Added to your liked discussions" 
+                          });
+                        }}
+                      >
+                        <Heart size={14} className="text-[#B3B3B3]" />
+                      </button>
+                      <button 
+                        className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.location.href = "/thread/2";
+                        }}
+                      >
+                        <MessageCircle size={14} className="text-[#B3B3B3]" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Techno DJs That Define Berlin's Sound</p>
-                    <p className="text-xs text-[#B3B3B3]">192 comments • 8h ago</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <Heart size={14} className="text-[#B3B3B3]" />
-                    </button>
-                    <button className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]">
-                      <MessageCircle size={14} className="text-[#B3B3B3]" />
-                    </button>
-                  </div>
-                </div>
+                </Link>
                 
                 <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
                   <div className="mr-3 text-[#FFD700]">
