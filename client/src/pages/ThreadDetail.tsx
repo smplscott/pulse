@@ -21,7 +21,7 @@ import { useMusic } from "@/hooks/useMusic";
 export default function ThreadDetail() {
   const params = useParams<{ id: string }>();
   const { toast } = useToast();
-  const { playSong } = useMusic();
+  const { upvoteSong } = useMusic();
   const [commentText, setCommentText] = useState("");
 
   // Handle different content types in thread ID format (e.g., "artist_1", "venue_2")

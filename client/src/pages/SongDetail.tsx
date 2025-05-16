@@ -24,14 +24,16 @@ export default function SongDetail() {
     enabled: !!song?.artist,
   });
 
-  // Handler for playing the song
-  const handlePlaySong = () => {
+  // Handler for upvoting the song
+  const handleUpvoteSong = async () => {
     if (song) {
-      playSong(song);
-      toast({
-        title: "Now Playing",
-        description: `${song.title} by ${song.artist}`,
-      });
+      const success = await upvoteSong(song.id);
+      if (success) {
+        toast({
+          title: "Upvoted!",
+          description: `You upvoted ${song.title} by ${song.artist}`,
+        });
+      }
     }
   };
 
@@ -130,10 +132,10 @@ export default function SongDetail() {
             <div className="flex items-center mb-8 space-x-4 justify-center">
               <button 
                 className="bg-[#E51D3E] text-white py-2 px-6 rounded-full text-sm font-medium flex items-center justify-center"
-                onClick={isCurrentSong ? togglePlay : handlePlaySong}
+                onClick={handleUpvoteSong}
               >
-                <PlayCircle className="h-4 w-4 mr-2" />
-                {isCurrentSong ? (isPlaying ? "Pause" : "Resume") : "Play"}
+                <Heart className="h-4 w-4 mr-2" />
+                Upvote
               </button>
               <button 
                 className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center"
@@ -211,7 +213,6 @@ export default function SongDetail() {
         </div>
       )}
       
-      <MusicPlayer />
       <BottomNav />
     </div>
   );
