@@ -11,6 +11,7 @@ import WhatsThisSong from "@/pages/WhatsThisSong";
 import Venues from "@/pages/Venues";
 import Library from "@/pages/Library";
 import Profile from "@/pages/Profile";
+import Artists from "@/pages/Artists";
 import ArtistDetail from "@/pages/ArtistDetail";
 import SongDetail from "@/pages/SongDetail";
 import ThreadDetail from "@/pages/ThreadDetail";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/venues" component={Venues} />
       <Route path="/library" component={Library} />
       <Route path="/profile" component={Profile} />
+      <Route path="/artists" component={Artists} />
       <Route path="/artist/:id" component={ArtistDetail} />
       <Route path="/song/:id" component={SongDetail} />
       <Route path="/thread/:id" component={ThreadDetail} />
