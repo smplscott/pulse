@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Input } from "@/components/ui/input";
 import { Artist, Song } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
@@ -361,7 +360,6 @@ export default function Artists() {
         {renderCategoryContent()}
       </main>
       
-      <MusicPlayer />
       <BottomNav />
     </div>
   );

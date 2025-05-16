@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import TabNavigator from "@/components/layout/TabNavigator";
 import BottomNav from "@/components/layout/BottomNav";
-import MusicPlayer from "@/components/layout/MusicPlayer";
 import FeaturedArtists from "@/components/sections/FeaturedArtists";
 import WhatsThisSong from "@/components/sections/WhatsThisSong";
 import TrackIDs from "@/components/sections/TrackIDs";
@@ -231,7 +230,6 @@ export default function Home() {
         <Venues />
       </main>
       
-      <MusicPlayer />
       <BottomNav />
     </div>
   );
