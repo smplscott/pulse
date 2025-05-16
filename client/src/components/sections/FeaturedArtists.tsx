@@ -46,7 +46,7 @@ export default function FeaturedArtists() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="font-bold text-xl">Featured Artists</h2>
         <Link href="/discover">
-          <button className="text-[#E51D3E] text-sm font-medium">View All</button>
+          <button className="text-[#5271ff] text-sm font-medium">View All</button>
         </Link>
       </div>
       <div className="grid grid-cols-2 gap-3">

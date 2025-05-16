@@ -14,7 +14,7 @@ export default function Header({ username, profileImage }: HeaderProps) {
         <Link href="/">
           <h1 className="font-bold text-xl cursor-pointer">PULSE</h1>
         </Link>
-        <span className="bg-[#E51D3E] text-white text-xs px-2 py-0.5 rounded-full">BETA</span>
+        <span className="bg-[#5271ff] text-white text-xs px-2 py-0.5 rounded-full">BETA</span>
       </div>
       <div className="flex items-center space-x-4">
         <button className="text-[#B3B3B3] hover:text-white">
