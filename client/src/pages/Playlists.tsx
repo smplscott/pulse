@@ -99,8 +99,8 @@ export default function Playlists() {
               onClick={() => toast({ title: "Playlist Selected", description: `Opening ${playlist.title}` })}
             >
               <div className="w-10 h-10 bg-[#282828] rounded overflow-hidden mr-3 flex-shrink-0">
-                {playlist.coverImage ? (
-                  <img src={playlist.coverImage} alt={playlist.title} className="w-full h-full object-cover" />
+                {playlist.image ? (
+                  <img src={playlist.image} alt={playlist.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
                     <ListMusic className="h-5 w-5 text-[#B3B3B3]" />
@@ -110,7 +110,7 @@ export default function Playlists() {
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{playlist.title}</p>
                 <p className="text-xs text-[#B3B3B3] truncate">
-                  {playlist.songCount} tracks • {playlist.creator || "Unknown creator"}
+                  {Array.isArray(playlist.songs) ? playlist.songs.length : 0} tracks • {playlist.curator}
                 </p>
               </div>
               
@@ -158,8 +158,8 @@ export default function Playlists() {
               onClick={() => toast({ title: "Playlist Selected", description: `Opening ${playlist.title}` })}
             >
               <div className="w-full aspect-square bg-[#282828] relative">
-                {playlist.coverImage ? (
-                  <img src={playlist.coverImage} alt={playlist.title} className="w-full h-full object-cover" />
+                {playlist.image ? (
+                  <img src={playlist.image} alt={playlist.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
                     <ListMusic className="h-10 w-10 text-[#B3B3B3]" />
@@ -195,7 +195,7 @@ export default function Playlists() {
               <div className="p-3">
                 <p className="font-medium text-sm truncate">{playlist.title}</p>
                 <p className="text-xs text-[#B3B3B3] truncate">
-                  {playlist.songCount} tracks • {playlist.creator || "Unknown creator"}
+                  {Array.isArray(playlist.songs) ? playlist.songs.length : 0} tracks • {playlist.curator}
                 </p>
               </div>
             </div>
