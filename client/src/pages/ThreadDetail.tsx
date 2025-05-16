@@ -248,28 +248,6 @@ export default function ThreadDetail() {
                 </div>
               ) : null}
               
-              <h2 className="text-lg font-semibold mb-3">Comments</h2>
-              
-              {/* Comment form */}
-              <form onSubmit={handleCommentSubmit} className="mb-6">
-                <Textarea
-                  placeholder="Add a comment..."
-                  className="bg-[#282828] border-[#3E3E3E] placeholder:text-[#B3B3B3] mb-2"
-                  rows={3}
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                />
-                <div className="flex justify-end">
-                  <Button 
-                    type="submit"
-                    className="bg-[#E51D3E] hover:bg-[#c21835] text-white"
-                    disabled={!commentText.trim() || addCommentMutation.isPending}
-                  >
-                    {addCommentMutation.isPending ? "Posting..." : "Post Comment"}
-                  </Button>
-                </div>
-              </form>
-              
               <h2 className="text-sm font-semibold mb-3 text-[#A0A0A0]">Replies</h2>
               
               {/* Comments list */}
@@ -381,10 +359,10 @@ function CommentCard({ comment }: { comment: Comment }) {
           
           <div className="flex items-center space-x-4 mb-1">
             <button className="flex items-center text-[#707070] hover:text-[#E51D3E]">
-              <Heart className={`h-4 w-4 ${comment.upvotes > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
+              <Heart className={`h-4 w-4 ${(comment.upvotes || 0) > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
             </button>
             <p className="text-xs text-[#707070]">
-              {comment.upvotes > 0 && <span className="text-white">{comment.upvotes}</span>}
+              {(comment.upvotes || 0) > 0 && <span className="text-white">{comment.upvotes}</span>}
             </p>
           </div>
         </div>
@@ -445,9 +423,7 @@ function SongRecommendationCard({ recommendation, solved }: { recommendation: So
         <div className="flex-1">
           <p className="font-medium text-sm">{song.title}</p>
           <p className="text-xs text-[#B3B3B3]">
-            {song.features && song.features.length > 0
-              ? `${song.artist}, ${song.features.join(", ")}`
-              : song.artist}
+            {song.artist}
           </p>
         </div>
         <button 
@@ -501,9 +477,7 @@ function SolvedSongDisplay({ recommendationId, songId }: { recommendationId: num
         <div className="flex-1">
           <p className="font-medium text-sm">{song.title}</p>
           <p className="text-xs text-[#B3B3B3]">
-            {song.features && song.features.length > 0
-              ? `${song.artist}, ${song.features.join(", ")}`
-              : song.artist}
+            {song.artist}
           </p>
         </div>
         <button 
