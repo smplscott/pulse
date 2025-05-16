@@ -53,17 +53,21 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
             </div>
           </div>
           <p className="text-sm mb-3">{venue.description}</p>
-          <div className="flex justify-between items-center">
-            {venue.currentDj && (
-              <div className="flex items-center">
-                <Avatar className="w-6 h-6">
-                  <AvatarFallback className="bg-[#3E3E3E] text-xs">
-                    {venue.currentDj.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-xs ml-2">DJ Tonight: {venue.currentDj}</span>
-              </div>
-            )}
+          
+          {/* DJ Info */}
+          {venue.currentDj && (
+            <div className="flex items-center mb-3">
+              <Avatar className="w-6 h-6 flex-shrink-0">
+                <AvatarFallback className="bg-[#3E3E3E] text-xs">
+                  {venue.currentDj.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs ml-2 truncate max-w-[150px]">DJ Tonight: {venue.currentDj}</span>
+            </div>
+          )}
+          
+          {/* Drop In Button - always at the bottom right */}
+          <div className="flex justify-end">
             <button 
               className="px-4 py-1.5 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors flex items-center"
               onClick={(e) => {
