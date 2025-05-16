@@ -59,21 +59,14 @@ export default function Home() {
               </button>
             </div>
           </div>
-          
-          {/* Main CTA - Start a Thread */}
-          <button 
-            className="w-full bg-[#E51D3E] hover:bg-[#c01733] text-white py-3 rounded-md font-medium mb-6"
-            onClick={() => toast({ title: "Create Thread", description: "Thread creation coming soon!" })}
-          >
-            Start a Thread
-          </button>
         </div>
+        
+        <FeaturedArtists />
         
         {/* Featured Discussions Section with filter buttons */}
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Featured Discussions</h2>
-            <a href="/discover" className="text-sm text-[#B3B3B3] hover:text-white">See All</a>
           </div>
           
           {/* Filter buttons */}
@@ -94,88 +87,25 @@ export default function Home() {
             ))}
           </div>
           
-          {/* Example threads in reddit-style layout */}
-          <div className="space-y-2 mb-6">
-            <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 cursor-pointer transition">
-              <div className="flex items-start">
-                <div className="flex flex-col items-center mr-3">
-                  <button className="text-[#B3B3B3] hover:text-white">▲</button>
-                  <span className="text-sm text-white">24</span>
-                  <button className="text-[#B3B3B3] hover:text-white">▼</button>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium">"Hypercolour" - What makes this Bicep track so special?</h3>
-                  <p className="text-xs text-[#B3B3B3] mt-1">
-                    Posted by @musiclover · 2h ago · 12 comments
-                  </p>
-                  <div className="flex items-center mt-2 space-x-3">
-                    <button className="flex items-center text-xs text-[#B3B3B3] hover:text-white">
-                      <MessageCircle size={14} className="mr-1" /> Comments
-                    </button>
-                    <button className="flex items-center text-xs text-[#B3B3B3] hover:text-white">
-                      <Heart size={14} className="mr-1" /> Save
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 cursor-pointer transition">
-              <div className="flex items-start">
-                <div className="flex flex-col items-center mr-3">
-                  <button className="text-[#B3B3B3] hover:text-white">▲</button>
-                  <span className="text-sm text-white">42</span>
-                  <button className="text-[#B3B3B3] hover:text-white">▼</button>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium">Best underground techno clubs in Berlin this summer?</h3>
-                  <p className="text-xs text-[#B3B3B3] mt-1">
-                    Posted by @brlnrave · 8h ago · 31 comments
-                  </p>
-                  <div className="flex items-center mt-2 space-x-3">
-                    <button className="flex items-center text-xs text-[#B3B3B3] hover:text-white">
-                      <MessageCircle size={14} className="mr-1" /> Comments
-                    </button>
-                    <button className="flex items-center text-xs text-[#B3B3B3] hover:text-white">
-                      <Heart size={14} className="mr-1" /> Save
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 cursor-pointer transition">
-              <div className="flex items-start">
-                <div className="flex flex-col items-center mr-3">
-                  <button className="text-[#B3B3B3] hover:text-white">▲</button>
-                  <span className="text-sm text-white">17</span>
-                  <button className="text-[#B3B3B3] hover:text-white">▼</button>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium">Found a rare WhoMadeWho track from 2008 - check this out!</h3>
-                  <p className="text-xs text-[#B3B3B3] mt-1">
-                    Posted by @deeptechhead · 1d ago · 7 comments
-                  </p>
-                  <div className="flex items-center mt-2 space-x-3">
-                    <button className="flex items-center text-xs text-[#B3B3B3] hover:text-white">
-                      <MessageCircle size={14} className="mr-1" /> Comments
-                    </button>
-                    <button className="flex items-center text-xs text-[#B3B3B3] hover:text-white">
-                      <Heart size={14} className="mr-1" /> Save
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="bg-[#181818] rounded-lg p-4 mb-6">
+            <p className="text-sm text-[#B3B3B3] mb-2">
+              Join conversations about your favorite {activeDiscussionFilter}
+            </p>
+            <button
+              className="text-sm text-white bg-[#282828] hover:bg-[#3E3E3E] rounded-md px-3 py-1"
+              onClick={() => toast({ title: "Coming Soon", description: `${activeDiscussionFilter.charAt(0).toUpperCase() + activeDiscussionFilter.slice(1)} discussions will be available soon!` })}
+            >
+              See All
+            </button>
           </div>
         </div>
         
         <WhatsThisSong />
         
-        {/* Shortened to "Songs You Might Like" */}
+        {/* Renamed from "Popular Track IDs" to "Talked About Songs in Genres You Love" */}
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Songs You Might Like</h2>
+            <h2 className="text-xl font-bold">Talked About Songs in Genres You Love</h2>
             <a href="/songs" className="text-sm text-[#B3B3B3] hover:text-white">See All</a>
           </div>
           
