@@ -51,18 +51,12 @@ export default function SongIdentificationCard({ thread, className }: SongIdenti
           )}
           
           <div className="mt-3 flex justify-between items-center">
-            <div className="flex space-x-4">
-              <div className="flex items-center">
-                <MessageCircleIcon className="h-3 w-3 text-[#B3B3B3] mr-1" />
-                <span className="text-xs text-[#B3B3B3]">{thread.commentsCount} replies</span>
-              </div>
-              <div className="flex items-center">
-                <HeadphonesIcon className="h-3 w-3 text-[#B3B3B3] mr-1" />
-                <span className="text-xs text-[#B3B3B3]">{thread.recommendationsCount} suggestions</span>
-              </div>
+            <div className="flex items-center">
+              <HeadphonesIcon className="h-3 w-3 text-[#B3B3B3] mr-1" />
+              <span className="text-xs text-[#B3B3B3]">{thread.recommendationsCount} suggestions</span>
             </div>
             <Link href={`/thread/${thread.id}`}>
-              <button className="text-sm font-medium text-[#E51D3E]">
+              <button className="px-4 py-1.5 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors">
                 {solved ? "View Solution" : "Help Identify"}
               </button>
             </Link>
