@@ -40,7 +40,7 @@ export default function SongIdentificationCard({ thread, className }: SongIdenti
               </div>
               <Badge 
                 variant={solved ? "solved" : "active"} 
-                className="text-xs px-2 py-0.5 rounded-full h-fit"
+                className="text-xs px-2 py-0.5 rounded-sm h-fit uppercase"
               >
                 {solved ? "Solved" : "Active"}
               </Badge>
