@@ -155,6 +155,17 @@ export default function ThreadDetail() {
   const isPlaylistThread = contentType === 'playlist' && !!playlistContent;
   const isSongThread = contentType === 'song' && !!songContent;
   
+  // Artist content subfilter tabs (for Artist threads)
+  const [artistContentTab, setArtistContentTab] = useState("all");
+  
+  const artistContentTabs = [
+    { id: "all", label: "All" },
+    { id: "live", label: "Live Performances" },
+    { id: "records", label: "Records" },
+    { id: "albums", label: "Albums" },
+    { id: "features", label: "Features" }
+  ];
+  
   // Helper to get the correct thread title based on content type
   const getContentTitle = () => {
     if (isArtistThread) return artistContent!.name;
@@ -265,6 +276,26 @@ export default function ThreadDetail() {
                     </div>
                   </div>
                 </div>
+                
+                {/* Artist content type tabs - only shown for artist threads */}
+                {isArtistThread && (
+                  <div className="mt-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+                    {artistContentTabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        className={cn(
+                          "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
+                          artistContentTab === tab.id
+                            ? "bg-[#E51D3E] text-white"
+                            : "bg-[#181818] text-[#B3B3B3]"
+                        )}
+                        onClick={() => setArtistContentTab(tab.id)}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             
