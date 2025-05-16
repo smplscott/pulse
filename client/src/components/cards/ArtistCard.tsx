@@ -50,10 +50,17 @@ export default function ArtistCard({ artist, className }: ArtistCardProps) {
               <Music2Icon className="h-3 w-3 mr-1 text-[#E51D3E]" />
               <span>{Math.floor(Math.random() * 50) + 10} tracks</span>
             </div>
-            <div className="flex items-center text-sm font-medium text-[#E51D3E]">
+            <button 
+              className="flex items-center text-sm font-medium text-[#E51D3E]"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/thread/artist_${artist.id}`;
+              }}
+            >
               <MessageCircleIcon className="h-3 w-3 mr-1" />
               <span>Join Discussion</span>
-            </div>
+            </button>
           </div>
         </div>
       </div>

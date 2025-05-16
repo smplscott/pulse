@@ -64,7 +64,14 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
                 <span className="text-xs ml-2">DJ Tonight: {venue.currentDj}</span>
               </div>
             )}
-            <button className="text-sm font-medium text-[#E51D3E] flex items-center">
+            <button 
+              className="text-sm font-medium text-[#E51D3E] flex items-center"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/thread/venue_${venue.id}`;
+              }}
+            >
               <MessageCircleIcon className="h-3 w-3 mr-1" />
               Join Discussion
             </button>

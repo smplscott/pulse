@@ -231,8 +231,8 @@ export default function ThreadDetail() {
                     {isPlaylistThread && playlistContent?.image && (
                       <img src={playlistContent.image} alt={playlistContent.title} className="w-full h-full object-cover" />
                     )}
-                    {isSongThread && songContent?.coverArt && (
-                      <img src={songContent.coverArt} alt={songContent.title} className="w-full h-full object-cover" />
+                    {isSongThread && songContent?.albumArt && (
+                      <img src={songContent.albumArt} alt={songContent.title} className="w-full h-full object-cover" />
                     )}
                   </div>
                   

@@ -24,46 +24,52 @@ export default function SongIdentificationCard({ thread, className }: SongIdenti
   const createdAt = thread.createdAt ? new Date(thread.createdAt) : new Date();
 
   return (
-    <div className={cn("bg-[#282828] rounded-lg p-4", className)}>
-      <div className="flex items-start space-x-3">
-        <div className={`w-10 h-10 rounded-full ${solved ? "bg-[#1DB954]" : "bg-[#E51D3E]"} flex items-center justify-center flex-shrink-0`}>
-          {solved ? <CheckIcon className="h-5 w-5 text-white" /> : <HelpCircleIcon className="h-5 w-5 text-white" />}
-        </div>
-        <div className="flex-1">
-          <div className="flex justify-between">
-            <div>
-              <p className="font-medium">{solved ? "Track identified!" : "Help identify this track"}</p>
-              <p className="text-sm text-[#B3B3B3]">
-                Posted by @{user?.username || "user"} • {formatRelativeTime(createdAt)}
-              </p>
-            </div>
-            <Badge 
-              variant={solved ? "solved" : "active"} 
-              className="text-xs px-2 py-0.5 rounded-full h-fit"
-            >
-              {solved ? "Solved" : "Active"}
-            </Badge>
+    <Link href={`/thread/${thread.id}`}>
+      <div className={cn("bg-[#282828] rounded-lg p-4 cursor-pointer hover:bg-[#303030] transition-colors", className)}>
+        <div className="flex items-start space-x-3">
+          <div className={`w-10 h-10 rounded-full ${solved ? "bg-[#1DB954]" : "bg-[#E51D3E]"} flex items-center justify-center flex-shrink-0`}>
+            {solved ? <CheckIcon className="h-5 w-5 text-white" /> : <HelpCircleIcon className="h-5 w-5 text-white" />}
           </div>
-          <p className="mt-2 text-sm">{truncateText(thread.content, 120)}</p>
-          
-          {solved && recommendations && recommendations.length > 0 && (
-            <SolvedSongDisplay recommendationId={recommendations[0].id} songId={recommendations[0].songId} />
-          )}
-          
-          <div className="mt-3 flex justify-between items-center">
-            <div className="flex items-center">
-              <HeadphonesIcon className="h-3 w-3 text-[#B3B3B3] mr-1" />
-              <span className="text-xs text-[#B3B3B3]">{thread.recommendationsCount} suggestions</span>
+          <div className="flex-1">
+            <div className="flex justify-between">
+              <div>
+                <p className="font-medium">{solved ? "Track identified!" : "Help identify this track"}</p>
+                <p className="text-sm text-[#B3B3B3]">
+                  Posted by @{user?.username || "user"} • {formatRelativeTime(createdAt)}
+                </p>
+              </div>
+              <Badge 
+                variant={solved ? "solved" : "active"} 
+                className="text-xs px-2 py-0.5 rounded-full h-fit"
+              >
+                {solved ? "Solved" : "Active"}
+              </Badge>
             </div>
-            <Link href={`/thread/${thread.id}`}>
-              <button className="px-4 py-1.5 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors">
+            <p className="mt-2 text-sm">{truncateText(thread.content, 120)}</p>
+            
+            {solved && recommendations && recommendations.length > 0 && (
+              <SolvedSongDisplay recommendationId={recommendations[0].id} songId={recommendations[0].songId} />
+            )}
+            
+            <div className="mt-3 flex justify-between items-center">
+              <div className="flex items-center">
+                <HeadphonesIcon className="h-3 w-3 text-[#B3B3B3] mr-1" />
+                <span className="text-xs text-[#B3B3B3]">{thread.recommendationsCount} suggestions</span>
+              </div>
+              <button 
+                className="px-4 py-1.5 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = `/thread/${thread.id}`;
+                }}
+              >
                 {solved ? "View Solution" : "Help Identify"}
               </button>
-            </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
