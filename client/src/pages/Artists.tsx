@@ -356,6 +356,14 @@ export default function Artists() {
           </button>
         </div>
         
+        {/* Add Artist CTA button */}
+        <Link href="/add-artist">
+          <button className="w-full bg-[#E51D3E] hover:bg-[#d41a39] text-white rounded-lg py-3 mb-4 flex items-center justify-center">
+            <User className="h-5 w-5 mr-2" />
+            Add an Artist
+          </button>
+        </Link>
+        
         {/* Dynamic content based on selected category */}
         {renderCategoryContent()}
       </main>

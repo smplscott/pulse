@@ -269,6 +269,14 @@ export default function Playlists() {
           </button>
         </div>
         
+        {/* Add Playlist CTA button */}
+        <Link href="/add-playlist">
+          <button className="w-full bg-[#E51D3E] hover:bg-[#d41a39] text-white rounded-lg py-3 mb-4 flex items-center justify-center">
+            <ListMusic className="h-5 w-5 mr-2" />
+            Add a Playlist
+          </button>
+        </Link>
+        
         {/* Playlist list based on selected category */}
         {renderPlaylistsList()}
       </main>
