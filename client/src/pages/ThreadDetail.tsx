@@ -9,10 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Thread, User, Comment, SongRecommendation, Song } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ArrowUp, MessageCircle, Share2, Play, Music2, CheckCircle } from "lucide-react";
+import { 
+  ChevronLeft, ArrowUp, MessageCircle, Share2, Play, Music2, 
+  CheckCircle, MoreHorizontal, Heart, Repeat, Send, ThumbsUp
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, formatNumber } from "@/lib/utils";
 import { useState } from "react";
 import { useMusic } from "@/hooks/useMusic";
 
@@ -51,13 +54,11 @@ export default function ThreadDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/threads/${threadId}`] });
       toast({
-        title: "Upvoted",
         description: "Thread has been upvoted",
       });
     },
     onError: () => {
       toast({
-        title: "Error",
         description: "Failed to upvote thread",
         variant: "destructive",
       });
@@ -73,13 +74,11 @@ export default function ThreadDetail() {
       queryClient.invalidateQueries({ queryKey: [`/api/threads/${threadId}`] });
       setCommentText("");
       toast({
-        title: "Comment Added",
         description: "Your comment has been posted",
       });
     },
     onError: () => {
       toast({
-        title: "Error",
         description: "Failed to post comment",
         variant: "destructive",
       });
@@ -94,7 +93,7 @@ export default function ThreadDetail() {
     }
   };
 
-  // Handle upvote
+  // Handle upvote/like
   const handleUpvote = () => {
     upvoteThreadMutation.mutate();
   };
@@ -103,42 +102,54 @@ export default function ThreadDetail() {
   const handleShare = () => {
     // In a real app, this would use the Web Share API or similar
     toast({
-      title: "Share Link",
       description: "Thread link copied to clipboard",
     });
   };
 
   const isSongRequest = thread?.type === "song_request";
   const isSolved = thread?.status === "solved";
+  const threadViewCount = thread?.upvotes ? thread.upvotes * 5 : 0; // Simulated view count
 
   return (
-    <div className="min-h-screen pb-32">
-      <Header />
+    <div className="min-h-screen pb-32 bg-black">
+      <header className="border-b border-[#222222] sticky top-0 z-10 bg-black">
+        <div className="flex items-center justify-between px-4 py-3">
+          <Link href={isSongRequest ? "/whats-this-song" : "/"}>
+            <div className="flex items-center cursor-pointer">
+              <ChevronLeft className="h-5 w-5 mr-2" />
+            </div>
+          </Link>
+          <h1 className="text-base font-semibold">
+            {isSongRequest ? "What's This Song" : "Thread"}
+          </h1>
+          <button className="text-[#E51D3E]">
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
+        </div>
+      </header>
       
-      <main className="pt-4 px-4">
-        <Link href={isSongRequest ? "/whats-this-song" : "/discover"}>
-          <div className="flex items-center mb-4 cursor-pointer">
-            <ChevronLeft className="h-6 w-6 mr-2" />
-            <span className="text-lg font-medium">
-              {isSongRequest ? "What's This Song" : "Thread"}
-            </span>
-          </div>
-        </Link>
-        
+      <main className="px-4">
         {isLoadingThread || isLoadingUser ? (
           <>
-            <Skeleton className="h-6 w-3/4 mb-2" />
-            <Skeleton className="h-4 w-1/2 mb-4" />
-            <Skeleton className="h-32 w-full mb-4" />
-            <div className="flex justify-between mb-6">
-              <Skeleton className="h-8 w-24" />
-              <Skeleton className="h-8 w-24" />
+            <div className="py-4 border-b border-[#222222]">
+              <div className="flex items-start space-x-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex-1">
+                  <Skeleton className="h-5 w-40 mb-2" />
+                  <Skeleton className="h-4 w-24 mb-3" />
+                  <Skeleton className="h-20 w-full mb-4" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-6 w-24" />
+              </div>
             </div>
           </>
         ) : thread && user ? (
           <>
-            <div className="mb-6">
-              <div className="flex items-start space-x-3 mb-4">
+            <div className="py-4 border-b border-[#222222]">
+              <div className="flex items-start space-x-3">
                 <Avatar className="w-10 h-10">
                   {user.profilePicture ? (
                     <AvatarImage src={user.profilePicture} alt={user.username} />
@@ -148,49 +159,59 @@ export default function ThreadDetail() {
                     </AvatarFallback>
                   )}
                 </Avatar>
-                <div>
-                  <p className="font-medium">{user.displayName || user.username}</p>
-                  <p className="text-xs text-[#B3B3B3]">
-                    @{user.username} • {formatRelativeTime(new Date(thread.createdAt))}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold">{user.displayName || user.username}</p>
+                    <Badge 
+                      variant={isSolved ? "solved" : (thread.upvotes || 0) > 100 ? "hot" : "status"} 
+                      className="text-xs px-2 py-0.5 rounded-full"
+                    >
+                      {isSolved ? "Solved" : (thread.upvotes || 0) > 100 ? "Hot" : "Active"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-[#A0A0A0] mb-1">
+                    @{user.username}
                   </p>
-                </div>
-                
-                <div className="ml-auto">
-                  <Badge 
-                    variant={isSolved ? "solved" : thread.upvotes > 100 ? "hot" : "status"} 
-                    className="text-xs px-2 py-0.5 rounded-full"
-                  >
-                    {isSolved ? "Solved" : thread.upvotes > 100 ? "Hot" : "Active"}
-                  </Badge>
+
+                  {thread.title && (
+                    <h2 className="text-lg font-bold mb-2">{thread.title}</h2>
+                  )}
+                  <p className="text-[#E5E5E5] mb-4">{thread.content}</p>
+
+                  {/* Song Request Status */}
+                  {isSongRequest && isSolved && recommendations && recommendations.length > 0 && (
+                    <SolvedSongDisplay recommendationId={recommendations[0].id} songId={recommendations[0].songId} />
+                  )}
+                  
+                  <div className="text-xs text-[#A0A0A0] mt-2 flex items-center">
+                    {formatRelativeTime(new Date(thread.createdAt || new Date()))} • {formatNumber(threadViewCount)} views
+                  </div>
                 </div>
               </div>
               
-              <h1 className="text-xl font-bold mb-3">{thread.title}</h1>
-              <p className="text-[#E5E5E5] mb-4">{thread.content}</p>
-              
-              {/* Song Request Status */}
-              {isSongRequest && isSolved && recommendations && recommendations.length > 0 && (
-                <SolvedSongDisplay recommendationId={recommendations[0].id} songId={recommendations[0].songId} />
-              )}
-              
-              <div className="flex items-center space-x-6 mt-4">
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#222222]">
                 <button 
-                  className="flex items-center text-[#B3B3B3] hover:text-white"
+                  className="flex items-center text-[#B3B3B3] hover:text-[#E51D3E]"
                   onClick={handleUpvote}
                 >
-                  <ArrowUp className="h-5 w-5 mr-1" />
-                  <span>{thread.upvotes}</span>
+                  <Heart className={`h-5 w-5 ${(thread.upvotes || 0) > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
                 </button>
                 <button className="flex items-center text-[#B3B3B3] hover:text-white">
-                  <MessageCircle className="h-5 w-5 mr-1" />
-                  <span>{thread.commentsCount}</span>
+                  <MessageCircle className="h-5 w-5" />
+                </button>
+                <button className="flex items-center text-[#B3B3B3] hover:text-white">
+                  <Repeat className="h-5 w-5" />
                 </button>
                 <button 
-                  className="flex items-center text-[#B3B3B3] hover:text-white ml-auto"
+                  className="flex items-center text-[#B3B3B3] hover:text-white"
                   onClick={handleShare}
                 >
                   <Share2 className="h-5 w-5" />
                 </button>
+              </div>
+              
+              <div className="mt-3 text-[#A0A0A0] text-sm">
+                <span className="font-semibold text-white">{formatNumber(thread.upvotes || 0)}</span> likes • <span className="font-semibold text-white">{formatNumber(thread.commentsCount || 0)}</span> replies
               </div>
             </div>
             
@@ -249,21 +270,37 @@ export default function ThreadDetail() {
                 </div>
               </form>
               
+              <h2 className="text-sm font-semibold mb-3 text-[#A0A0A0]">Replies</h2>
+              
               {/* Comments list */}
               {isLoadingComments ? (
                 <>
-                  <Skeleton className="h-24 w-full mb-4" />
-                  <Skeleton className="h-24 w-full mb-4" />
+                  <div className="space-y-5">
+                    <div className="flex items-start space-x-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <div className="flex-1">
+                        <Skeleton className="h-4 w-32 mb-2" />
+                        <Skeleton className="h-16 w-full" />
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <div className="flex-1">
+                        <Skeleton className="h-4 w-32 mb-2" />
+                        <Skeleton className="h-16 w-full" />
+                      </div>
+                    </div>
+                  </div>
                 </>
               ) : comments && comments.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {comments.map((comment) => (
                     <CommentCard key={comment.id} comment={comment} />
                   ))}
                 </div>
               ) : (
-                <div className="bg-[#181818] rounded-lg p-4 text-center">
-                  <p className="text-[#B3B3B3]">No comments yet. Be the first to comment!</p>
+                <div className="text-center py-5">
+                  <p className="text-[#A0A0A0]">No replies yet</p>
                 </div>
               )}
             </div>
@@ -272,7 +309,7 @@ export default function ThreadDetail() {
           <div className="text-center py-10">
             <p className="text-[#B3B3B3]">Thread not found</p>
             <Link href="/">
-              <button className="mt-4 bg-[#282828] hover:bg-[#3E3E3E] text-white py-2 px-6 rounded-lg text-sm font-medium">
+              <button className="mt-4 bg-[#282828] hover:bg-[#3E3E3E] text-white py-2 px-4 rounded-full text-sm font-medium">
                 Back to Home
               </button>
             </Link>
@@ -280,8 +317,36 @@ export default function ThreadDetail() {
         )}
       </main>
       
-      <MusicPlayer />
-      <BottomNav />
+      {/* Comment input fixed at bottom */}
+      {thread && (
+        <div className="fixed bottom-0 left-0 right-0 border-t border-[#222222] bg-black px-4 py-3">
+          <form onSubmit={handleCommentSubmit} className="flex items-center space-x-3">
+            <Avatar className="w-8 h-8">
+              <AvatarFallback className="bg-[#3E3E3E]">
+                {"U"}
+              </AvatarFallback>
+            </Avatar>
+            <input
+              type="text"
+              placeholder="Add a reply..."
+              className="flex-1 bg-transparent border-none outline-none text-[#B3B3B3] placeholder:text-[#707070]"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+            />
+            <button 
+              type="submit"
+              className={`text-[#E51D3E] ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={!commentText.trim() || addCommentMutation.isPending}
+            >
+              {addCommentMutation.isPending ? (
+                <div className="h-5 w-5 border-2 border-t-transparent border-[#E51D3E] rounded-full animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
@@ -291,11 +356,12 @@ function CommentCard({ comment }: { comment: Comment }) {
     queryKey: [`/api/users/${comment.userId}`],
   });
 
-  const createdAt = new Date(comment.createdAt);
+  // Safely handle date conversion
+  const createdAt = comment.createdAt ? new Date(comment.createdAt) : new Date();
   
   return (
-    <div className="bg-[#181818] rounded-lg p-4">
-      <div className="flex items-start space-x-3 mb-2">
+    <div className="py-1 border-b border-[#1A1A1A]">
+      <div className="flex items-start space-x-3">
         <Avatar className="w-8 h-8">
           {user?.profilePicture ? (
             <AvatarImage src={user.profilePicture} alt={user.username} />
@@ -305,16 +371,24 @@ function CommentCard({ comment }: { comment: Comment }) {
             </AvatarFallback>
           )}
         </Avatar>
-        <div>
-          <p className="font-medium text-sm">{user?.displayName || user?.username || "User"}</p>
-          <p className="text-xs text-[#B3B3B3]">{formatRelativeTime(createdAt)}</p>
+        <div className="flex-1">
+          <div className="flex items-center">
+            <p className="font-semibold text-sm">{user?.displayName || user?.username || "User"}</p>
+            <p className="text-xs text-[#707070] ml-1">@{user?.username || "user"}</p>
+            <p className="text-xs text-[#707070] ml-auto">{formatRelativeTime(createdAt)}</p>
+          </div>
+          <p className="text-sm mt-1 mb-2">{comment.content}</p>
+          
+          <div className="flex items-center space-x-4 mb-1">
+            <button className="flex items-center text-[#707070] hover:text-[#E51D3E]">
+              <Heart className={`h-4 w-4 ${comment.upvotes > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
+            </button>
+            <p className="text-xs text-[#707070]">
+              {comment.upvotes > 0 && <span className="text-white">{comment.upvotes}</span>}
+            </p>
+          </div>
         </div>
-        <button className="ml-auto flex items-center text-[#B3B3B3] hover:text-white">
-          <ArrowUp className="h-4 w-4 mr-1" />
-          <span className="text-xs">{comment.upvotes}</span>
-        </button>
       </div>
-      <p className="text-sm ml-11">{comment.content}</p>
     </div>
   );
 }
