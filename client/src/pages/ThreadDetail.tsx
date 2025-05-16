@@ -400,37 +400,45 @@ export default function ThreadDetail() {
                 </div>
               ) : null}
               
-              <h2 className="text-sm font-semibold mb-3 text-[#A0A0A0]">Replies</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-[#A0A0A0]">Conversation</h2>
+                <p className="text-xs text-[#707070]">
+                  {comments && comments.length > 0 ? `${comments.length} messages` : 'Start chatting'}
+                </p>
+              </div>
               
-              {/* Comments list */}
+              {/* Chat-style comments list */}
               {isLoadingComments ? (
                 <>
-                  <div className="space-y-5">
-                    <div className="flex items-start space-x-3">
-                      <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="space-y-3 bg-[#121212] rounded-xl p-3">
+                    <div className="flex items-start">
+                      <Skeleton className="h-8 w-8 rounded-full mr-2" />
                       <div className="flex-1">
-                        <Skeleton className="h-4 w-32 mb-2" />
-                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-3 w-20 mb-1" />
+                        <Skeleton className="h-10 w-3/4 rounded-2xl" />
+                        <Skeleton className="h-2 w-16 mt-1 ml-1" />
                       </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <div className="flex-1">
-                        <Skeleton className="h-4 w-32 mb-2" />
-                        <Skeleton className="h-16 w-full" />
+                    <div className="flex items-start justify-end">
+                      <div className="flex-1 flex flex-col items-end">
+                        <Skeleton className="h-3 w-20 mb-1" />
+                        <Skeleton className="h-10 w-2/3 rounded-2xl" />
+                        <Skeleton className="h-2 w-16 mt-1 mr-1" />
                       </div>
+                      <Skeleton className="h-8 w-8 rounded-full ml-2" />
                     </div>
                   </div>
                 </>
               ) : comments && comments.length > 0 ? (
-                <div className="space-y-5">
+                <div className="bg-[#121212] rounded-xl p-2 max-h-[calc(70vh-180px)] overflow-y-auto">
                   {comments.map((comment) => (
                     <CommentCard key={comment.id} comment={comment} />
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-5">
-                  <p className="text-[#A0A0A0]">No replies yet</p>
+                <div className="text-center py-8 bg-[#121212] rounded-xl">
+                  <p className="text-[#909090]">No messages yet</p>
+                  <p className="text-xs text-[#707070] mt-1">Be the first to join the conversation</p>
                 </div>
               )}
             </div>
@@ -447,25 +455,22 @@ export default function ThreadDetail() {
         )}
       </main>
       
-      {/* Comment input fixed at bottom */}
+      {/* Chat input fixed at bottom */}
       {thread && (
         <div className="fixed bottom-0 left-0 right-0 border-t border-[#222222] bg-black px-4 py-3">
           <form onSubmit={handleCommentSubmit} className="flex items-center space-x-3">
-            <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-[#3E3E3E]">
-                {"U"}
-              </AvatarFallback>
-            </Avatar>
-            <input
-              type="text"
-              placeholder="Add a reply..."
-              className="flex-1 bg-transparent border-none outline-none text-[#B3B3B3] placeholder:text-[#707070]"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-            />
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Message the group..."
+                className="w-full bg-[#121212] border border-[#333333] rounded-full py-2.5 pl-4 pr-10 outline-none text-white placeholder:text-[#707070]"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+            </div>
             <button 
               type="submit"
-              className={`text-[#E51D3E] ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-10 h-10 flex items-center justify-center bg-[#E51D3E] rounded-full ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#c01733]'}`}
               disabled={!commentText.trim() || addCommentMutation.isPending}
             >
               {addCommentMutation.isPending ? (
@@ -489,35 +494,68 @@ function CommentCard({ comment }: { comment: Comment }) {
   // Safely handle date conversion
   const createdAt = comment.createdAt ? new Date(comment.createdAt) : new Date();
   
+  // Determine if this is a comment from the logged-in user (mockup)
+  const isCurrentUser = comment.userId === 1; // Mock user ID for example
+  
   return (
-    <div className="py-1 border-b border-[#1A1A1A]">
-      <div className="flex items-start space-x-3">
-        <Avatar className="w-8 h-8">
-          {user?.profilePicture ? (
-            <AvatarImage src={user.profilePicture} alt={user.username} />
-          ) : (
-            <AvatarFallback className="bg-[#3E3E3E] text-xs">
-              {user?.username?.substring(0, 2).toUpperCase() || "U"}
-            </AvatarFallback>
-          )}
-        </Avatar>
-        <div className="flex-1">
-          <div className="flex items-center">
-            <p className="font-semibold text-sm">{user?.displayName || user?.username || "User"}</p>
-            <p className="text-xs text-[#707070] ml-1">@{user?.username || "user"}</p>
-            <p className="text-xs text-[#707070] ml-auto">{formatRelativeTime(createdAt)}</p>
-          </div>
-          <p className="text-sm mt-1 mb-2">{comment.content}</p>
-          
-          <div className="flex items-center space-x-4 mb-1">
-            <button className="flex items-center text-[#707070] hover:text-[#E51D3E]">
-              <Heart className={`h-4 w-4 ${(comment.upvotes || 0) > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
-            </button>
-            <p className="text-xs text-[#707070]">
-              {(comment.upvotes || 0) > 0 && <span className="text-white">{comment.upvotes}</span>}
+    <div className={`py-2 ${isCurrentUser ? 'pl-12 pr-2' : 'pr-12 pl-2'}`}>
+      <div className={`flex items-start ${isCurrentUser ? 'justify-end' : ''}`}>
+        {/* Only show avatar for other users' messages */}
+        {!isCurrentUser && (
+          <Avatar className="w-8 h-8 mr-2 flex-shrink-0">
+            {user?.profilePicture ? (
+              <AvatarImage src={user.profilePicture} alt={user.username} />
+            ) : (
+              <AvatarFallback className="bg-[#3E3E3E] text-xs">
+                {user?.username?.substring(0, 2).toUpperCase() || "U"}
+              </AvatarFallback>
+            )}
+          </Avatar>
+        )}
+        
+        <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
+          {/* Username display */}
+          <div className="mb-1">
+            <p className="text-xs text-[#909090]">
+              {isCurrentUser ? 'You' : user?.displayName || user?.username || "User"}
             </p>
           </div>
+          
+          {/* Message bubble */}
+          <div 
+            className={`rounded-2xl py-2 px-3 mb-1 max-w-[85%] ${
+              isCurrentUser 
+                ? 'bg-[#E51D3E] text-white rounded-tr-sm' 
+                : 'bg-[#262626] rounded-tl-sm'
+            }`}
+          >
+            <p className="text-sm">{comment.content}</p>
+          </div>
+          
+          {/* Time and interactions */}
+          <div className="flex items-center gap-2 text-xs text-[#707070]">
+            <span>{formatRelativeTime(createdAt)}</span>
+            <button className="flex items-center hover:text-[#E51D3E]">
+              <Heart className={`h-3.5 w-3.5 ${(comment.upvotes || 0) > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
+              {(comment.upvotes || 0) > 0 && (
+                <span className="ml-1 text-white">{comment.upvotes}</span>
+              )}
+            </button>
+          </div>
         </div>
+        
+        {/* Only show avatar for current user's messages */}
+        {isCurrentUser && (
+          <Avatar className="w-8 h-8 ml-2 flex-shrink-0">
+            {user?.profilePicture ? (
+              <AvatarImage src={user.profilePicture} alt={user.username} />
+            ) : (
+              <AvatarFallback className="bg-[#3E3E3E] text-xs">
+                {user?.username?.substring(0, 2).toUpperCase() || "U"}
+              </AvatarFallback>
+            )}
+          </Avatar>
+        )}
       </div>
     </div>
   );
