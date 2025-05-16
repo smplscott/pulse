@@ -134,17 +134,17 @@ export default function Venues() {
             </div>
             
             {/* Venue category filter buttons (artist sub-filter style) */}
-            <div className="mb-6 overflow-x-auto scrollbar-hide">
+            <div className="mb-4 overflow-x-auto scrollbar-hide">
               <div className="flex space-x-2 pb-2">
                 {venueCategories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => setVenueCategory(category.id)}
                     className={cn(
-                      "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap",
+                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                       venueCategory === category.id
                         ? "bg-[#E51D3E] text-white"
-                        : "bg-[#282828] text-[#B3B3B3]"
+                        : "bg-[#181818] text-[#B3B3B3]"
                     )}
                   >
                     {category.label}
