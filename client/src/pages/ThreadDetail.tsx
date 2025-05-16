@@ -574,7 +574,7 @@ function SongRecommendationCard({ recommendation, solved }: { recommendation: So
   if (!song) return null;
   
   return (
-    <div className={`bg-[#181818] rounded-lg p-4 ${solved ? 'border-2 border-[#1DB954]' : ''}`}>
+    <div className={`bg-[#181818] rounded-lg p-4 ${solved ? 'border-2 border-[#c1ff72]' : ''}`}>
       <div className="flex items-start space-x-3 mb-3">
         <Avatar className="w-8 h-8">
           {user?.profilePicture ? (
@@ -591,7 +591,7 @@ function SongRecommendationCard({ recommendation, solved }: { recommendation: So
         </div>
         {solved && (
           <div className="ml-auto">
-            <Badge variant="active" className="bg-[#1DB954] text-xs">
+            <Badge variant="active" className="bg-[#c1ff72] text-black text-xs">
               <CheckCircle className="h-3 w-3 mr-1" />
               Correct
             </Badge>
