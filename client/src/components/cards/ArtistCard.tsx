@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Artist } from "@shared/schema";
-import { Music2Icon } from "lucide-react";
+import { Music2Icon, MessageCircleIcon } from "lucide-react";
 
 type ArtistCardProps = {
   artist: Artist;
@@ -11,7 +11,7 @@ type ArtistCardProps = {
 
 export default function ArtistCard({ artist, className }: ArtistCardProps) {
   return (
-    <Link href={`/artist/${artist.id}`}>
+    <Link href={`/thread/artist_${artist.id}`}>
       <div className={cn("bg-[#181818] rounded-lg overflow-hidden cursor-pointer", className)}>
         <div className="relative h-36">
           {artist.profilePicture && (
@@ -45,9 +45,15 @@ export default function ArtistCard({ artist, className }: ArtistCardProps) {
               </Badge>
             )}
           </div>
-          <div className="flex items-center text-sm">
-            <Music2Icon className="h-3 w-3 mr-1 text-[#E51D3E]" />
-            <span>{Math.floor(Math.random() * 50) + 10} tracks</span>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm">
+              <Music2Icon className="h-3 w-3 mr-1 text-[#E51D3E]" />
+              <span>{Math.floor(Math.random() * 50) + 10} tracks</span>
+            </div>
+            <div className="flex items-center text-sm font-medium text-[#E51D3E]">
+              <MessageCircleIcon className="h-3 w-3 mr-1" />
+              <span>Join Discussion</span>
+            </div>
           </div>
         </div>
       </div>

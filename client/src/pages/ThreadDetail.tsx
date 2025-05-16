@@ -21,11 +21,27 @@ import { useMusic } from "@/hooks/useMusic";
 
 export default function ThreadDetail() {
   const params = useParams<{ id: string }>();
-  const threadId = parseInt(params.id);
   const { toast } = useToast();
   const { playSong } = useMusic();
   const [commentText, setCommentText] = useState("");
 
+  // Handle different content types in thread ID format (e.g., "artist_1", "venue_2")
+  const threadIdParam = params.id;
+  let threadId: number;
+  let contentType: string | null = null;
+  let contentId: number | null = null;
+  
+  if (threadIdParam.includes('_')) {
+    // Format is "type_id" (e.g., "artist_1", "venue_2")
+    const [type, id] = threadIdParam.split('_');
+    contentType = type;
+    contentId = parseInt(id);
+    threadId = parseInt(id); // Use the same ID temporarily, we'll fetch related thread
+  } else {
+    // Regular thread ID
+    threadId = parseInt(threadIdParam);
+  }
+  
   // Mock user ID - in a real app this would come from auth context
   const userId = 1;
 

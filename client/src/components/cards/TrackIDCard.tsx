@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { cn, formatNumber } from "@/lib/utils";
 import { Playlist } from "@shared/schema";
+import { MessageCircleIcon } from "lucide-react";
 
 type TrackIDCardProps = {
   playlist: Playlist;
@@ -9,7 +10,7 @@ type TrackIDCardProps = {
 
 export default function TrackIDCard({ playlist, className }: TrackIDCardProps) {
   return (
-    <Link href={`/playlist/${playlist.id}`}>
+    <Link href={`/thread/playlist_${playlist.id}`}>
       <div className={cn("flex-shrink-0 w-40 bg-[#181818] rounded-lg overflow-hidden cursor-pointer", className)}>
         <div className="relative">
           {playlist.image && (
@@ -34,7 +35,12 @@ export default function TrackIDCard({ playlist, className }: TrackIDCardProps) {
         </div>
         <div className="p-3">
           <p className="font-semibold text-sm truncate">{playlist.title}</p>
-          <p className="text-xs text-[#B3B3B3]">{formatNumber(playlist.saves)} saves</p>
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-xs text-[#B3B3B3]">{formatNumber(playlist.saves)} saves</p>
+            <div className="flex items-center text-xs text-[#E51D3E]">
+              <MessageCircleIcon className="h-3 w-3 mr-1" />
+            </div>
+          </div>
         </div>
       </div>
     </Link>
