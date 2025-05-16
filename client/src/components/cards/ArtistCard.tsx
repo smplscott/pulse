@@ -47,11 +47,11 @@ export default function ArtistCard({ artist, className }: ArtistCardProps) {
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center text-sm">
-              <Music2Icon className="h-3 w-3 mr-1 text-[#E51D3E]" />
+              <Music2Icon className="h-3 w-3 mr-1 text-[#5271ff]" />
               <span>{Math.floor(Math.random() * 50) + 10} tracks</span>
             </div>
             <button 
-              className="flex items-center text-sm font-medium text-[#E51D3E]"
+              className="flex items-center text-sm font-medium text-[#5271ff]"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

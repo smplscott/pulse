@@ -48,7 +48,7 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
               ))}
             </div>
             <div className="flex items-center">
-              <StarIcon className="h-3 w-3 text-[#E51D3E] mr-1" />
+              <StarIcon className="h-3 w-3 text-[#5271ff] mr-1" />
               <span className="text-sm">{(venue.rating / 10).toFixed(1)}</span>
             </div>
           </div>
@@ -57,7 +57,7 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
           {/* Drop In Button - full width to match content above */}
           <div className="w-full">
             <button 
-              className="w-full px-6 py-2 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors flex items-center justify-center"
+              className="w-full px-6 py-2 rounded-full bg-[#5271ff] hover:bg-[#4261ef] text-white text-sm font-medium transition-colors flex items-center justify-center"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
