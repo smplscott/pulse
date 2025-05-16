@@ -45,7 +45,7 @@ export default function Profile() {
         ) : user ? (
           <div className="bg-gradient-to-b from-[#3E3E3E] to-[#121212] pt-6 px-4 pb-4">
             <div className="flex flex-col items-center">
-              <div className="w-20 h-20 rounded-full bg-[#282828] overflow-hidden mb-4 border-2 border-[#E51D3E]">
+              <div className="w-20 h-20 rounded-full bg-[#282828] overflow-hidden mb-4 border-2 border-[#5271ff]">
                 {user.profilePicture ? (
                   <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover" />
                 ) : (
@@ -138,7 +138,7 @@ export default function Profile() {
                 <p className="text-lg font-medium">No threads yet</p>
                 <p className="text-sm text-[#B3B3B3] mt-2 mb-4">Start a conversation or share your music thoughts</p>
                 <Link href="/create-thread">
-                  <button className="bg-[#E51D3E] text-white py-2 px-6 rounded-full font-medium text-sm">
+                  <button className="bg-[#5271ff] text-white py-2 px-6 rounded-full font-medium text-sm">
                     Create Thread
                   </button>
                 </Link>
@@ -177,7 +177,7 @@ export default function Profile() {
                 <Music className="h-12 w-12 text-[#B3B3B3] mx-auto mb-3" />
                 <p className="text-lg font-medium">No playlists yet</p>
                 <p className="text-sm text-[#B3B3B3] mt-2 mb-4">Create your first playlist to share your music taste</p>
-                <button className="bg-[#E51D3E] text-white py-2 px-6 rounded-full font-medium text-sm">
+                <button className="bg-[#5271ff] text-white py-2 px-6 rounded-full font-medium text-sm">
                   Create Playlist
                 </button>
               </div>

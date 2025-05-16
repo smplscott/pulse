@@ -57,7 +57,7 @@ export default function SongIdentificationCard({ thread, className }: SongIdenti
                 <span className="text-xs text-[#B3B3B3]">{thread.recommendationsCount} suggestions</span>
               </div>
               <button 
-                className="px-4 py-1.5 rounded-full bg-[#E51D3E] hover:bg-[#c01733] text-white text-sm font-medium transition-colors"
+                className="px-4 py-1.5 rounded-full bg-[#5271ff] hover:bg-[#3a5bea] text-white text-sm font-medium transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
                   window.location.href = `/thread/${thread.id}`;

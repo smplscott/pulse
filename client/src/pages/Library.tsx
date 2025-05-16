@@ -61,7 +61,7 @@ export default function Library() {
               
               <Link href="/library?section=recent">
                 <div className="bg-[#181818] rounded-lg p-4 flex items-center space-x-3 cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E51D3E] to-[#f88379] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5271ff] to-[#f88379] flex items-center justify-center">
                     <Clock className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -147,7 +147,7 @@ export default function Library() {
               <>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-semibold text-lg">Your Playlists</h2>
-                  <button className="text-[#E51D3E] text-sm font-medium">Create New</button>
+                  <button className="text-[#5271ff] text-sm font-medium">Create New</button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {playlists.map((playlist) => (

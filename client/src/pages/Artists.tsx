@@ -127,7 +127,7 @@ export default function Artists() {
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                     artistContentTab === tab.id
-                      ? "bg-[#E51D3E] text-white"
+                      ? "bg-[#5271ff] text-white"
                       : "bg-[#181818] text-[#B3B3B3]"
                   )}
                   onClick={() => setArtistContentTab(tab.id)}
@@ -159,7 +159,7 @@ export default function Artists() {
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                     artistContentTab === tab.id
-                      ? "bg-[#E51D3E] text-white"
+                      ? "bg-[#5271ff] text-white"
                       : "bg-[#181818] text-[#B3B3B3]"
                   )}
                   onClick={() => setArtistContentTab(tab.id)}
@@ -213,7 +213,7 @@ export default function Artists() {
                               handleReaction(e, artist.id, artist.name);
                             }}
                           >
-                            <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
+                            <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#5271ff]" />
                           </button>
                           
                           {/* Comment button */}
@@ -260,7 +260,7 @@ export default function Artists() {
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                     artistContentTab === tab.id
-                      ? "bg-[#E51D3E] text-white"
+                      ? "bg-[#5271ff] text-white"
                       : "bg-[#181818] text-[#B3B3B3]"
                   )}
                   onClick={() => setArtistContentTab(tab.id)}

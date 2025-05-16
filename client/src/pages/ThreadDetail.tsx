@@ -200,7 +200,7 @@ export default function ThreadDetail() {
              isSongThread ? "Song Thread" :
              isSongRequest ? "What's This Song" : "Thread"}
           </h1>
-          <button className="text-[#E51D3E]">
+          <button className="text-[#5271ff]">
             <MoreHorizontal className="h-5 w-5" />
           </button>
         </div>
@@ -285,7 +285,7 @@ export default function ThreadDetail() {
                         className={cn(
                           "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                           artistContentTab === tab.id
-                            ? "bg-[#E51D3E] text-black"
+                            ? "bg-[#5271ff] text-black"
                             : "bg-[#181818] text-[#B3B3B3]"
                         )}
                         onClick={() => setArtistContentTab(tab.id)}
@@ -342,10 +342,10 @@ export default function ThreadDetail() {
               
               <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#222222]">
                 <button 
-                  className="flex items-center text-[#B3B3B3] hover:text-[#E51D3E]"
+                  className="flex items-center text-[#B3B3B3] hover:text-[#5271ff]"
                   onClick={handleUpvote}
                 >
-                  <Heart className={`h-5 w-5 ${(thread.upvotes || 0) > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
+                  <Heart className={`h-5 w-5 ${(thread.upvotes || 0) > 0 ? "text-[#5271ff] fill-[#5271ff]" : ""}`} />
                 </button>
                 <button className="flex items-center text-[#B3B3B3] hover:text-black">
                   <MessageCircle className="h-5 w-5" />
@@ -393,7 +393,7 @@ export default function ThreadDetail() {
               ) : isSongRequest ? (
                 <div className="bg-[#181818] rounded-lg p-4 text-center mb-6">
                   <p className="text-[#B3B3B3]">No song suggestions yet</p>
-                  <button className="mt-2 bg-[#E51D3E] text-black py-1.5 px-4 rounded-full text-sm font-medium">
+                  <button className="mt-2 bg-[#5271ff] text-black py-1.5 px-4 rounded-full text-sm font-medium">
                     Suggest a Song
                   </button>
                 </div>
@@ -469,11 +469,11 @@ export default function ThreadDetail() {
             </div>
             <button 
               type="submit"
-              className={`w-10 h-10 flex items-center justify-center bg-[#E51D3E] rounded-full ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#c01733]'}`}
+              className={`w-10 h-10 flex items-center justify-center bg-[#5271ff] rounded-full ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#3a5bea]'}`}
               disabled={!commentText.trim() || addCommentMutation.isPending}
             >
               {addCommentMutation.isPending ? (
-                <div className="h-5 w-5 border-2 border-t-transparent border-[#E51D3E] rounded-full animate-spin" />
+                <div className="h-5 w-5 border-2 border-t-transparent border-[#5271ff] rounded-full animate-spin" />
               ) : (
                 <Send className="h-5 w-5" />
               )}
@@ -524,7 +524,7 @@ function CommentCard({ comment }: { comment: Comment }) {
           <div 
             className={`rounded-2xl py-2 px-3 mb-1 max-w-[85%] ${
               isCurrentUser 
-                ? 'bg-[#E51D3E] text-black rounded-tr-sm' 
+                ? 'bg-[#5271ff] text-black rounded-tr-sm' 
                 : 'bg-[#262626] rounded-tl-sm'
             }`}
           >
@@ -534,8 +534,8 @@ function CommentCard({ comment }: { comment: Comment }) {
           {/* Time and interactions */}
           <div className="flex items-center gap-2 text-xs text-[#707070]">
             <span>{formatRelativeTime(createdAt)}</span>
-            <button className="flex items-center hover:text-[#E51D3E]">
-              <Heart className={`h-3.5 w-3.5 ${(comment.upvotes || 0) > 0 ? "text-[#E51D3E] fill-[#E51D3E]" : ""}`} />
+            <button className="flex items-center hover:text-[#5271ff]">
+              <Heart className={`h-3.5 w-3.5 ${(comment.upvotes || 0) > 0 ? "text-[#5271ff] fill-[#5271ff]" : ""}`} />
               {(comment.upvotes || 0) > 0 && (
                 <span className="ml-1 text-black">{comment.upvotes}</span>
               )}

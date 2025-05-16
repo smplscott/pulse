@@ -121,14 +121,14 @@ export default function VenueDetail() {
                 ))}
               </div>
               <div className="flex items-center">
-                <Star className="h-4 w-4 text-[#E51D3E] mr-1" />
+                <Star className="h-4 w-4 text-[#5271ff] mr-1" />
                 <span className="text-sm">{(venue.rating / 10).toFixed(1)}</span>
               </div>
             </div>
             
             <div className="flex space-x-4 mb-8">
               <button 
-                className="flex-1 bg-[#E51D3E] text-white py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center"
+                className="flex-1 bg-[#5271ff] text-white py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center"
                 onClick={handleSaveVenue}
               >
                 <Calendar className="h-4 w-4 mr-2" />
@@ -232,7 +232,7 @@ export default function VenueDetail() {
                   <p className="text-sm text-[#B3B3B3]">DJ Set</p>
                 </div>
                 <div className="ml-auto">
-                  <Badge className="bg-[#1DB954] text-xs">LIVE NOW</Badge>
+                  <Badge className="bg-[#c1ff72] text-black text-xs">LIVE NOW</Badge>
                 </div>
               </div>
             </div>

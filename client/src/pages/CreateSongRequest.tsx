@@ -121,7 +121,7 @@ export default function CreateSongRequest() {
           </div>
         </Link>
         
-        <div className="bg-gradient-to-r from-[#E51D3E]/20 to-[#3E3E3E]/20 rounded-lg p-4 mb-6">
+        <div className="bg-gradient-to-r from-[#5271ff]/20 to-[#3E3E3E]/20 rounded-lg p-4 mb-6">
           <h1 className="text-xl font-bold mb-2">Create Song Identification Request</h1>
           <p className="text-sm text-[#B3B3B3]">
             Need help identifying a song? Provide as many details as possible and our community 
@@ -232,7 +232,7 @@ export default function CreateSongRequest() {
             <div className="pt-4 flex justify-end">
               <Button
                 type="submit"
-                className="bg-[#E51D3E] hover:bg-[#c21835] text-white"
+                className="bg-[#5271ff] hover:bg-[#3a5bea] text-white"
                 disabled={createThreadMutation.isPending}
               >
                 {createThreadMutation.isPending ? (

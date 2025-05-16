@@ -63,7 +63,7 @@ export default function Home() {
           
           {/* Talk Music CTA button */}
           <button 
-            className="w-full bg-[#E51D3E] hover:bg-[#c01733] text-white py-3 rounded-md font-medium mb-6 flex items-center justify-center"
+            className="w-full bg-[#5271ff] hover:bg-[#3a5bea] text-white py-3 rounded-md font-medium mb-6 flex items-center justify-center"
             onClick={() => {
               toast({
                 title: "Let's Talk Music",
@@ -91,7 +91,7 @@ export default function Home() {
                 className={cn(
                   "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                   activeDiscussionFilter === filter.id
-                    ? "bg-[#E51D3E] text-white"
+                    ? "bg-[#5271ff] text-white"
                     : "bg-[#181818] text-[#B3B3B3]"
                 )}
                 onClick={() => setActiveDiscussionFilter(filter.id)}

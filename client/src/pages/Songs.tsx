@@ -147,7 +147,7 @@ export default function Songs() {
                       handleReaction(e, song.id, song.title);
                     }}
                   >
-                    <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
+                    <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#5271ff]" />
                   </button>
                   
                   {/* Comment button */}

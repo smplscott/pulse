@@ -206,7 +206,7 @@ export default function CreateThread() {
             <div className="pt-4 flex justify-end">
               <Button
                 type="submit"
-                className="bg-[#E51D3E] hover:bg-[#c21835] text-white"
+                className="bg-[#5271ff] hover:bg-[#3a5bea] text-white"
                 disabled={createThreadMutation.isPending}
               >
                 {createThreadMutation.isPending ? (

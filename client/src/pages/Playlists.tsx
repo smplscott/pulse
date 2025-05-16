@@ -132,7 +132,7 @@ export default function Playlists() {
                     className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
                     onClick={(e) => handleReaction(e, playlist.id, playlist.title)}
                   >
-                    <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
+                    <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#5271ff]" />
                   </button>
                   
                   {/* Comment button */}

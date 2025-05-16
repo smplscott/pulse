@@ -143,7 +143,7 @@ export default function Venues() {
                     className={cn(
                       "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                       venueCategory === category.id
-                        ? "bg-[#E51D3E] text-white"
+                        ? "bg-[#5271ff] text-white"
                         : "bg-[#181818] text-[#B3B3B3]"
                     )}
                   >
@@ -196,7 +196,7 @@ export default function Venues() {
             />
             <div className="flex justify-end">
               <button 
-                className="bg-[#E51D3E] hover:bg-[#c01733] text-white px-4 py-2 rounded-full text-sm font-medium"
+                className="bg-[#5271ff] hover:bg-[#3a5bea] text-white px-4 py-2 rounded-full text-sm font-medium"
                 onClick={() => toast({ title: "Coming Soon", description: "Review submission will be available soon!" })}
               >
                 Submit Review

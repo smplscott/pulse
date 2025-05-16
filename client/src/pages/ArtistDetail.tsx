@@ -113,7 +113,7 @@ export default function ArtistDetail() {
             
             <div className="flex items-center mb-6 space-x-4">
               <button 
-                className="flex-1 bg-[#E51D3E] text-white py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center"
+                className="flex-1 bg-[#5271ff] text-white py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center"
                 onClick={handlePlayAll}
               >
                 <PlayCircle className="h-4 w-4 mr-2" />
