@@ -4,11 +4,13 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Input } from "@/components/ui/input";
-import { Artist } from "@shared/schema";
+import { Artist, Song } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
-import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon } from "lucide-react";
+import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon, Heart, MessageCircle, Filter, SlidersHorizontal, List } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type CategoryTab = {
   id: string;
@@ -20,10 +22,27 @@ type CategoryTab = {
 export default function Artists() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("artists");
+  const [displayMode, setDisplayMode] = useState<"grid" | "list">("grid");
+  const { toast } = useToast();
 
   const { data: artists, isLoading: isLoadingArtists } = useQuery<Artist[]>({
     queryKey: ["/api/artists"],
   });
+
+  // Get songs to count songs by artist
+  const { data: songs } = useQuery<Song[]>({
+    queryKey: ["/api/songs"],
+  });
+
+  // Count songs by artist
+  const getSongCountByArtist = (artistName: string): number => {
+    if (!songs) return 0;
+    return songs.filter(song => 
+      song.artist.toLowerCase() === artistName.toLowerCase() ||
+      (song.features && Array.isArray(song.features) && 
+       song.features.some(feature => feature.toLowerCase() === artistName.toLowerCase()))
+    ).length;
+  };
 
   // Filter artists based on search query
   const filteredArtists = artists?.filter(artist => 
@@ -32,6 +51,29 @@ export default function Artists() {
       genre.toLowerCase().includes(searchQuery.toLowerCase())
     ))
   );
+  
+  // For handling reactions
+  const handleReaction = (e: React.MouseEvent, artistId: number, artistName: string) => {
+    e.stopPropagation(); // Prevent row click event
+    toast({
+      title: "Reaction Added",
+      description: `You liked ${artistName}`
+    });
+  };
+  
+  // For handling comments
+  const handleComment = (e: React.MouseEvent, artistId: number, artistName: string) => {
+    e.stopPropagation(); // Prevent row click event
+    toast({
+      title: "Comment",
+      description: `Add a comment about ${artistName}`
+    });
+  };
+  
+  // Toggle display mode between grid and list
+  const toggleDisplayMode = () => {
+    setDisplayMode(prev => prev === "grid" ? "list" : "grid");
+  };
 
   const categoryTabs: CategoryTab[] = [
     {
@@ -127,11 +169,66 @@ export default function Artists() {
             </div>
             
             {artistContentTab === "all" ? (
-              <div className="grid grid-cols-2 gap-3">
-                {filteredArtists.map((artist) => (
-                  <ArtistCard key={artist.id} artist={artist} />
-                ))}
-              </div>
+              displayMode === "grid" ? (
+                // Grid view
+                <div className="grid grid-cols-2 gap-3">
+                  {filteredArtists.map((artist) => (
+                    <ArtistCard key={artist.id} artist={artist} />
+                  ))}
+                </div>
+              ) : (
+                // List view with reaction and comment CTAs
+                <div className="space-y-2">
+                  {filteredArtists.map((artist) => (
+                    <div 
+                      key={artist.id}
+                      className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition"
+                      onClick={() => toast({ title: "Artist Details", description: `View details for ${artist.name}` })}
+                    >
+                      <div className="w-10 h-10 bg-[#282828] rounded-full overflow-hidden mr-3 flex-shrink-0">
+                        {artist.profilePicture ? (
+                          <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
+                            <User className="h-5 w-5 text-[#B3B3B3]" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{artist.name}</p>
+                        <p className="text-xs text-[#B3B3B3] truncate">
+                          {getSongCountByArtist(artist.name)} Tracks
+                        </p>
+                      </div>
+                      
+                      {/* Right side actions: genre badge, reactions, comments */}
+                      <div className="flex items-center space-x-3 ml-2">
+                        {artist.genres && Array.isArray(artist.genres) && artist.genres.length > 0 && (
+                          <span className="text-xs px-2 py-1 bg-[#282828] rounded-full text-[#B3B3B3]">
+                            {artist.genres[0]}
+                          </span>
+                        )}
+                        
+                        {/* Reaction button */}
+                        <button 
+                          className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                          onClick={(e) => handleReaction(e, artist.id, artist.name)}
+                        >
+                          <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
+                        </button>
+                        
+                        {/* Comment button */}
+                        <button 
+                          className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                          onClick={(e) => handleComment(e, artist.id, artist.name)}
+                        >
+                          <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
               <div className="text-center py-10">
                 <p className="text-[#B3B3B3]">
@@ -221,15 +318,37 @@ export default function Artists() {
       </div>
       
       <main className="px-4 py-4">
-        <div className="relative mb-6">
-          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
-          <Input
-            type="text"
-            placeholder="Search music professionals..."
-            className="pl-9 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="relative mb-6 flex items-center">
+          <div className="relative flex-1">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
+            <Input
+              type="text"
+              placeholder="Search music professionals..."
+              className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button 
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
+              onClick={() => toast({ title: "Filters", description: "Advanced filters coming soon" })}
+            >
+              <SlidersHorizontal size={18} />
+            </button>
+          </div>
+          <button 
+            className="ml-2 w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
+            onClick={toggleDisplayMode}
+          >
+            {displayMode === "grid" ? 
+              <List size={18} className="text-[#B3B3B3]" /> : 
+              <div className="grid grid-cols-2 gap-1">
+                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+              </div>
+            }
+          </button>
         </div>
         
         {/* Dynamic content based on selected category */}
