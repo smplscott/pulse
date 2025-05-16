@@ -28,7 +28,7 @@ export default function SongIdentificationCard({ thread, className }: SongIdenti
       <div className={cn("bg-[#282828] rounded-lg p-4 cursor-pointer hover:bg-[#303030] transition-colors", className)}>
         <div className="flex items-start space-x-3">
           <div className={`w-10 h-10 rounded-full ${solved ? "bg-[#c1ff72]" : "bg-[#5271ff]"} flex items-center justify-center flex-shrink-0`}>
-            {solved ? <CheckIcon className="h-5 w-5 text-white" /> : <HelpCircleIcon className="h-5 w-5 text-white" />}
+            {solved ? <CheckIcon className="h-5 w-5 text-black" /> : <HelpCircleIcon className="h-5 w-5 text-white" />}
           </div>
           <div className="flex-1">
             <div className="flex justify-between">

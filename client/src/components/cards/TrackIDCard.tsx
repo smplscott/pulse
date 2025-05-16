@@ -28,7 +28,7 @@ export default function TrackIDCard({ playlist, className }: TrackIDCardProps) {
                 className="w-5 h-5"
               />
             </div>
-            <span className="text-xs bg-[#E51D3E] text-white px-2 py-0.5 rounded-sm font-medium">
+            <span className="text-xs bg-[#5271ff] text-white px-2 py-0.5 rounded-sm font-medium">
               track IDs
             </span>
           </div>
@@ -38,7 +38,7 @@ export default function TrackIDCard({ playlist, className }: TrackIDCardProps) {
           <div className="flex justify-between items-center mt-1">
             <p className="text-xs text-[#B3B3B3]">{formatNumber(playlist.saves || 0)} saves</p>
             <button 
-              className="flex items-center text-xs text-[#E51D3E]"
+              className="flex items-center text-xs text-[#5271ff]"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

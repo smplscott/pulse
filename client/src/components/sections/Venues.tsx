@@ -14,7 +14,7 @@ export default function Venues() {
       <section className="px-4 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-semibold text-lg">Places to Listen</h2>
-          <button className="text-[#E51D3E] text-sm font-medium">View All</button>
+          <button className="text-[#5271ff] text-sm font-medium">View All</button>
         </div>
         <div className="space-y-4">
           {[1, 2].map((i) => (
@@ -31,7 +31,7 @@ export default function Venues() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-semibold text-lg">Places to Listen</h2>
           <Link href="/venues">
-            <button className="text-[#E51D3E] text-sm font-medium">View All</button>
+            <button className="text-[#5271ff] text-sm font-medium">View All</button>
           </Link>
         </div>
         <div className="bg-[#181818] rounded-lg p-4 text-center">
