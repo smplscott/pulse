@@ -209,10 +209,10 @@ export default function Home() {
         
         <WhatsThisSong />
         
-        {/* Renamed from "Popular Track IDs" to "Talked About Songs in Genres You Love" */}
+        {/* Renamed from "Talked About Songs in Genres You Love" to "Trending Songs on Pulse" */}
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Talked About Songs in Genres You Love</h2>
+            <h2 className="text-xl font-bold">Trending Songs on Pulse</h2>
             <a href="/songs" className="text-sm text-[#B3B3B3] hover:text-white">See All</a>
           </div>
           
