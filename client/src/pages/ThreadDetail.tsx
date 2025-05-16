@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { formatRelativeTime, formatNumber } from "@/lib/utils";
+import { formatRelativeTime, formatNumber, cn } from "@/lib/utils";
 import { useState } from "react";
 import { useMusic } from "@/hooks/useMusic";
 
