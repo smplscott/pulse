@@ -16,6 +16,7 @@ export default function Venues() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeOption, setActiveOption] = useState("search");
   const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
+  const [venueCategory, setVenueCategory] = useState("all");
   const { toast } = useToast();
   
   const tabs = [
@@ -32,6 +33,18 @@ export default function Venues() {
     { id: "review", label: "Review a Live Performance", icon: <Star className="h-4 w-4 mr-2" /> },
   ];
   
+  // Venue type categories
+  const venueCategories = [
+    { id: "all", label: "All" },
+    { id: "bars", label: "Bars" },
+    { id: "live", label: "Live Performances" },
+    { id: "records", label: "Record Stores" },
+    { id: "coffee", label: "Coffee Shops" },
+    { id: "listening", label: "Listening Parties" },
+    { id: "popups", label: "Pop-Ups" },
+    { id: "restaurants", label: "Restaurants" },
+  ];
+  
   // Toggle display mode between grid and list
   const toggleDisplayMode = () => {
     setDisplayMode(prev => prev === "grid" ? "list" : "grid");
@@ -41,15 +54,22 @@ export default function Venues() {
     queryKey: ["/api/venues"],
   });
 
-  // Filter venues based on search query
+  // Filter venues based on search query and selected category
   const filteredVenues = venues?.filter(
-    (venue) => 
-      venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (venue.description && venue.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (venue.genres && Array.isArray(venue.genres) && venue.genres.some((genre: string) => 
-        genre.toLowerCase().includes(searchQuery.toLowerCase())
-      ))
+    (venue) => {
+      const matchesSearch = searchQuery === "" ||
+        venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (venue.description && venue.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (venue.genres && venue.genres.some(genre => 
+          genre.toLowerCase().includes(searchQuery.toLowerCase())
+        ));
+      
+      const matchesCategory = venueCategory === "all" || 
+        (venue.venueType && venue.venueType.toLowerCase() === venueCategory);
+      
+      return matchesSearch && (venueCategory === "all" || matchesCategory);
+    }
   );
 
   return (
@@ -80,38 +100,60 @@ export default function Venues() {
         </div>
         
         {activeOption === "search" && (
-          <div className="relative mb-6 flex items-center">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
-              <Input
-                type="text"
-                placeholder="Search venues, locations, genres..."
-                className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          <>
+            <div className="relative mb-4 flex items-center">
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
+                <Input
+                  type="text"
+                  placeholder="Search venues, locations, genres..."
+                  className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button 
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
+                  onClick={() => toast({ title: "Filters", description: "Advanced filters coming soon" })}
+                >
+                  <SlidersHorizontal size={18} />
+                </button>
+              </div>
               <button 
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
-                onClick={() => toast({ title: "Filters", description: "Advanced filters coming soon" })}
+                className="ml-2 w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
+                onClick={toggleDisplayMode}
               >
-                <SlidersHorizontal size={18} />
+                {displayMode === "grid" ? 
+                  <List size={18} className="text-[#B3B3B3]" /> : 
+                  <div className="grid grid-cols-2 gap-1">
+                    <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                    <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                    <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                    <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                  </div>
+                }
               </button>
             </div>
-            <button 
-              className="ml-2 w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
-              onClick={toggleDisplayMode}
-            >
-              {displayMode === "grid" ? 
-                <List size={18} className="text-[#B3B3B3]" /> : 
-                <div className="grid grid-cols-2 gap-1">
-                  <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                  <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                  <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                  <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                </div>
-              }
-            </button>
-          </div>
+            
+            {/* Venue category filter buttons (artist sub-filter style) */}
+            <div className="mb-6 overflow-x-auto scrollbar-hide">
+              <div className="flex space-x-2 pb-2">
+                {venueCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setVenueCategory(category.id)}
+                    className={cn(
+                      "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap",
+                      venueCategory === category.id
+                        ? "bg-[#E51D3E] text-white"
+                        : "bg-[#282828] text-[#B3B3B3]"
+                    )}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
         )}
         
         {activeOption === "maps" && (
@@ -121,77 +163,70 @@ export default function Venues() {
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
                 <Input
                   type="text"
-                  placeholder="Search for venues on map..."
-                  className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Enter a location..."
+                  className="pl-9 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
                 />
               </div>
             </div>
-            <div className="w-full h-64 bg-[#282828] rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-10 w-10 text-[#B3B3B3] mx-auto mb-2" />
-                <p className="text-[#B3B3B3] text-sm">Map integration coming soon</p>
-                <p className="text-[#B3B3B3] text-xs mt-1">Find venues near you or search by location</p>
-              </div>
+            <div className="aspect-w-16 aspect-h-9 bg-[#282828] rounded-md flex items-center justify-center h-64">
+              <p className="text-[#B3B3B3]">Map view coming soon</p>
             </div>
           </div>
         )}
         
         {activeOption === "review" && (
-          <div className="mb-6 bg-[#181818] rounded-lg p-4">
-            <h2 className="text-lg font-medium mb-4">Review a Live Performance</h2>
-            <p className="text-[#B3B3B3] text-sm mb-4">Share your experience at a venue or live performance</p>
-            <div className="space-y-4">
-              <Input
-                type="text"
-                placeholder="Venue name"
-                className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-              />
-              <Input
-                type="text" 
-                placeholder="Artist/DJ name"
-                className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-              />
-              <Input
-                type="date"
-                className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-              />
-              <textarea 
-                placeholder="Share your experience..."
-                className="w-full bg-[#282828] border border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] rounded-md p-3 min-h-[100px]"
-              />
-              <div className="flex justify-end">
-                <button 
-                  className="bg-[#E51D3E] hover:bg-[#c01733] text-white px-4 py-2 rounded-full text-sm font-medium"
-                  onClick={() => toast({ title: "Coming Soon", description: "Review submission will be available soon!" })}
-                >
-                  Submit Review
-                </button>
-              </div>
+          <div className="mb-6 bg-[#181818] rounded-lg p-4 space-y-4">
+            <h3 className="font-semibold">Review a Live Performance</h3>
+            <Input
+              type="text" 
+              placeholder="Venue name"
+              className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+            />
+            <Input
+              type="text" 
+              placeholder="Artist/DJ name"
+              className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+            />
+            <Input
+              type="date"
+              className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+            />
+            <textarea 
+              placeholder="Share your experience..."
+              className="w-full bg-[#282828] border border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] rounded-md p-3 min-h-[100px]"
+            />
+            <div className="flex justify-end">
+              <button 
+                className="bg-[#E51D3E] hover:bg-[#c01733] text-white px-4 py-2 rounded-full text-sm font-medium"
+                onClick={() => toast({ title: "Coming Soon", description: "Review submission will be available soon!" })}
+              >
+                Submit Review
+              </button>
             </div>
           </div>
         )}
         
-        <div className="space-y-6">
-          {isLoading ? (
-            <>
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-64 w-full" />
-              ))}
-            </>
-          ) : filteredVenues && filteredVenues.length > 0 ? (
-            filteredVenues.map((venue) => (
-              <VenueCard key={venue.id} venue={venue} />
-            ))
-          ) : (
-            <div className="text-center py-10">
-              <p className="text-[#B3B3B3]">
-                {searchQuery ? "No venues found matching your search" : "No venues available"}
-              </p>
-            </div>
-          )}
-        </div>
+        {activeOption === "search" && (
+          <div className="space-y-6">
+            {isLoading ? (
+              <>
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-64 w-full" />
+                ))}
+              </>
+            ) : filteredVenues && filteredVenues.length > 0 ? (
+              filteredVenues.map((venue) => (
+                <VenueCard key={venue.id} venue={venue} />
+              ))
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-[#B3B3B3]">
+                  {searchQuery ? "No venues found matching your search" : "No venues available"}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </main>
       
       <MusicPlayer />

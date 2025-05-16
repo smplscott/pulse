@@ -21,7 +21,7 @@ export default function SongIdentificationCard({ thread, className }: SongIdenti
   });
 
   const solved = thread.status === "solved";
-  const createdAt = new Date(thread.createdAt);
+  const createdAt = thread.createdAt ? new Date(thread.createdAt) : new Date();
 
   return (
     <div className={cn("bg-[#282828] rounded-lg p-4", className)}>
@@ -79,9 +79,7 @@ function SolvedSongDisplay({ recommendationId, songId }: { recommendationId: num
       <div className="flex-1">
         <p className="font-medium text-sm">{song.title}</p>
         <p className="text-xs text-[#B3B3B3]">
-          {song.features && song.features.length > 0
-            ? `${song.artist}, ${song.features.join(", ")}`
-            : song.artist}
+          {song.artist}
         </p>
       </div>
       <button className="w-8 h-8 rounded-full bg-[#1DB954] flex items-center justify-center">
