@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
@@ -9,6 +10,7 @@ import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal,
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useMusic } from "@/hooks/useMusic";
 
 type SongCategoryTab = {
   id: string;
@@ -20,6 +22,7 @@ export default function Songs() {
   const [activeCategory, setActiveCategory] = useState("your-list");
   const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
   const { toast } = useToast();
+  const { playSong } = useMusic();
 
   const { data: songs, isLoading: isLoadingSongs } = useQuery<Song[]>({
     queryKey: ["/api/songs"],
@@ -104,52 +107,65 @@ export default function Songs() {
       return (
         <div className="space-y-2">
           {filteredSongs.map((song) => (
-            <div 
-              key={song.id} 
-              className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition"
-              onClick={() => toast({ title: "Song Selected", description: `Playing ${song.title}` })}
-            >
-              <div className="w-10 h-10 bg-[#282828] rounded overflow-hidden mr-3 flex-shrink-0">
-                {song.albumArt ? (
-                  <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
-                    <Music2 className="h-5 w-5 text-[#B3B3B3]" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{song.title}</p>
-                <p className="text-xs text-[#B3B3B3] truncate">
-                  {song.features && Array.isArray(song.features) && song.features.length > 0
-                    ? `${song.artist}, ${song.features.join(", ")}`
-                    : song.artist}
-                </p>
-              </div>
-              
-              {/* Right side actions: year, reactions, comments */}
-              <div className="flex items-center space-x-3 ml-2">
-                <div className="text-xs text-[#B3B3B3] flex-shrink-0">
-                  {song.releaseDate ? new Date(song.releaseDate).getFullYear() : ""}
+            <Link key={song.id} href={`/thread/song_${song.id}`}>
+              <div 
+                className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition"
+                onClick={(e) => {
+                  // If they click the row, open the thread but also allow play functionality
+                  playSong(song);
+                }}
+              >
+                <div className="w-10 h-10 bg-[#282828] rounded overflow-hidden mr-3 flex-shrink-0">
+                  {song.albumArt ? (
+                    <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
+                      <Music2 className="h-5 w-5 text-[#B3B3B3]" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{song.title}</p>
+                  <p className="text-xs text-[#B3B3B3] truncate">
+                    {song.features && Array.isArray(song.features) && song.features.length > 0
+                      ? `${song.artist}, ${song.features.join(", ")}`
+                      : song.artist}
+                  </p>
                 </div>
                 
-                {/* Reaction button */}
-                <button 
-                  className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                  onClick={(e) => handleReaction(e, song.id, song.title)}
-                >
-                  <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
-                </button>
-                
-                {/* Comment button */}
-                <button 
-                  className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                  onClick={(e) => handleComment(e, song.id, song.title)}
-                >
-                  <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-                </button>
+                {/* Right side actions: year, reactions, comments */}
+                <div className="flex items-center space-x-3 ml-2">
+                  <div className="text-xs text-[#B3B3B3] flex-shrink-0">
+                    {song.releaseDate ? new Date(song.releaseDate).getFullYear() : ""}
+                  </div>
+                  
+                  {/* Reaction button */}
+                  <button 
+                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent navigation
+                      e.stopPropagation(); // Prevent row click
+                      handleReaction(e, song.id, song.title);
+                    }}
+                  >
+                    <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
+                  </button>
+                  
+                  {/* Comment button */}
+                  <button 
+                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                    onClick={(e) => {
+                      e.preventDefault(); // Stop navigation
+                      e.stopPropagation(); // Stop row click
+                      // Navigate directly to thread page
+                      window.location.href = `/thread/song_${song.id}`;
+                    }}
+                  >
+                    <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                  </button>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       );
@@ -158,46 +174,59 @@ export default function Songs() {
       return (
         <div className="grid grid-cols-2 gap-3">
           {filteredSongs.map((song) => (
-            <div 
-              key={song.id}
-              className="bg-[#181818] hover:bg-[#282828] rounded-md overflow-hidden cursor-pointer transition flex flex-col"
-              onClick={() => toast({ title: "Song Selected", description: `Playing ${song.title}` })}
-            >
-              <div className="w-full aspect-square bg-[#282828] relative">
-                {song.albumArt ? (
-                  <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
-                    <Music2 className="h-10 w-10 text-[#B3B3B3]" />
+            <Link key={song.id} href={`/thread/song_${song.id}`}>
+              <div 
+                className="bg-[#181818] hover:bg-[#282828] rounded-md overflow-hidden cursor-pointer transition flex flex-col"
+                onClick={(e) => {
+                  // If they click the card, open the thread but also allow play functionality
+                  playSong(song);
+                }}
+              >
+                <div className="w-full aspect-square bg-[#282828] relative">
+                  {song.albumArt ? (
+                    <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
+                      <Music2 className="h-10 w-10 text-[#B3B3B3]" />
+                    </div>
+                  )}
+                  
+                  {/* Overlay buttons */}
+                  <div className="absolute bottom-2 right-2 flex space-x-2">
+                    <button 
+                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                      onClick={(e) => {
+                        e.preventDefault(); // Stop navigation
+                        e.stopPropagation(); // Stop card click
+                        handleReaction(e, song.id, song.title);
+                      }}
+                    >
+                      <Heart className="h-4 w-4 text-white" />
+                    </button>
+                    <button 
+                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                      onClick={(e) => {
+                        e.preventDefault(); // Stop navigation
+                        e.stopPropagation(); // Stop card click
+                        // Navigate directly to thread page
+                        window.location.href = `/thread/song_${song.id}`;
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 text-white" />
+                    </button>
                   </div>
-                )}
+                </div>
                 
-                {/* Overlay buttons */}
-                <div className="absolute bottom-2 right-2 flex space-x-2">
-                  <button 
-                    className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
-                    onClick={(e) => handleReaction(e, song.id, song.title)}
-                  >
-                    <Heart className="h-4 w-4 text-white" />
-                  </button>
-                  <button 
-                    className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
-                    onClick={(e) => handleComment(e, song.id, song.title)}
-                  >
-                    <MessageCircle className="h-4 w-4 text-white" />
-                  </button>
+                <div className="p-3">
+                  <p className="font-medium text-sm truncate">{song.title}</p>
+                  <p className="text-xs text-[#B3B3B3] truncate">
+                    {song.features && Array.isArray(song.features) && song.features.length > 0
+                      ? `${song.artist}, ${song.features.join(", ")}`
+                      : song.artist}
+                  </p>
                 </div>
               </div>
-              
-              <div className="p-3">
-                <p className="font-medium text-sm truncate">{song.title}</p>
-                <p className="text-xs text-[#B3B3B3] truncate">
-                  {song.features && Array.isArray(song.features) && song.features.length > 0
-                    ? `${song.artist}, ${song.features.join(", ")}`
-                    : song.artist}
-                </p>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       );
