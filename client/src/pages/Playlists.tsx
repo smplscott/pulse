@@ -6,7 +6,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Input } from "@/components/ui/input";
 import { Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Play } from "lucide-react";
+import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -116,16 +116,16 @@ export default function Playlists() {
                 
                 {/* Right side actions: reactions, comments */}
                 <div className="flex items-center space-x-3 ml-2">
-                  {/* Play button */}
+                  {/* External link button */}
                   <button 
                     className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      toast({ title: "Playing", description: `Playing ${playlist.title}` });
+                      toast({ title: "Opening", description: `Opening ${playlist.title} on streaming platform` });
                     }}
                   >
-                    <Play className="h-4 w-4 text-[#B3B3B3] hover:text-white ml-0.5" />
+                    <ExternalLink className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                   </button>
                   
                   {/* Reaction button */}
@@ -175,10 +175,10 @@ export default function Playlists() {
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        toast({ title: "Playing", description: `Playing ${playlist.title}` });
+                        toast({ title: "Opening", description: `Opening ${playlist.title} on streaming platform` });
                       }}
                     >
-                      <Play className="h-4 w-4 text-white ml-0.5" />
+                      <ExternalLink className="h-4 w-4 text-white" />
                     </button>
                     <button 
                       className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
