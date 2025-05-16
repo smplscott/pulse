@@ -7,16 +7,27 @@ type DiscussionItemProps = {
   title: string;
   comments: number;
   timeAgo: string;
+  rank?: number;
   onLike?: () => void;
 }
 
-export default function DiscussionItem({ id, title, comments, timeAgo, onLike }: DiscussionItemProps) {
+export default function DiscussionItem({ id, title, comments, timeAgo, rank = 1, onLike }: DiscussionItemProps) {
   const { toast } = useToast();
+  
+  // Define trophy colors based on rank
+  const getTrophyColor = () => {
+    switch(rank) {
+      case 1: return "text-[#FFD700]"; // Gold
+      case 2: return "text-[#C0C0C0]"; // Silver
+      case 3: return "text-[#CD7F32]"; // Bronze
+      default: return "text-[#FFD700]"; // Default to gold
+    }
+  };
   
   return (
     <Link href={`/thread/${id}`}>
       <div className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition">
-        <div className="mr-3 text-[#FFD700]">
+        <div className={`mr-3 ${getTrophyColor()}`}>
           <Trophy size={16} />
         </div>
         <div className="flex-1">

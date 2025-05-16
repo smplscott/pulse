@@ -112,6 +112,7 @@ export default function Home() {
                   title="Most Innovative Electronic Artists of 2025"
                   comments={243}
                   timeAgo="4h ago"
+                  rank={1}
                 />
                 
                 <DiscussionItem 
@@ -119,6 +120,7 @@ export default function Home() {
                   title="Techno DJs That Define Berlin's Sound"
                   comments={192}
                   timeAgo="8h ago"
+                  rank={2}
                 />
                 
                 <DiscussionItem 
@@ -126,6 +128,7 @@ export default function Home() {
                   title="Artists Who Master Both Production & Vocals"
                   comments={122}
                   timeAgo="12h ago"
+                  rank={3}
                 />
               </>
             )}
@@ -137,6 +140,7 @@ export default function Home() {
                   title="Tracks That Define The Berlin Underground"
                   comments={318}
                   timeAgo="2h ago"
+                  rank={1}
                 />
                 
                 <DiscussionItem 
@@ -144,6 +148,7 @@ export default function Home() {
                   title="Songs With The Most Innovative Sound Design"
                   comments={205}
                   timeAgo="6h ago"
+                  rank={2}
                 />
                 
                 <DiscussionItem 
@@ -151,6 +156,7 @@ export default function Home() {
                   title="Most Sampled Breaks In Electronic Music"
                   comments={173}
                   timeAgo="9h ago"
+                  rank={3}
                 />
               </>
             )}
@@ -162,6 +168,7 @@ export default function Home() {
                   title="Watergate Closing Sets That Made History"
                   comments={198}
                   timeAgo="5h ago"
+                  rank={1}
                 />
                 
                 <DiscussionItem 
@@ -169,6 +176,7 @@ export default function Home() {
                   title="Essential Berghain Sound Playlists"
                   comments={241}
                   timeAgo="7h ago"
+                  rank={2}
                 />
                 
                 <DiscussionItem 
@@ -176,6 +184,7 @@ export default function Home() {
                   title="Track IDs From Top Festival Sets of 2025"
                   comments={152}
                   timeAgo="11h ago"
+                  rank={3}
                 />
               </>
             )}
