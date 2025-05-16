@@ -22,7 +22,7 @@ type CategoryTab = {
 export default function Artists() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("artists");
-  const [displayMode, setDisplayMode] = useState<"grid" | "list">("grid");
+  const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
   const { toast } = useToast();
 
   const { data: artists, isLoading: isLoadingArtists } = useQuery<Artist[]>({
@@ -201,11 +201,8 @@ export default function Artists() {
                         </p>
                       </div>
                       
-                      {/* Right side actions: genre badge, reactions, comments */}
+                      {/* Right side actions: reactions, comments */}
                       <div className="flex items-center space-x-3 ml-2">
-                        <span className="text-xs px-2 py-1 bg-[#282828] rounded-full text-[#B3B3B3]">
-                          {artist.name.includes('DJ') ? 'DJ' : 'Artist'}
-                        </span>
                         
                         {/* Reaction button */}
                         <button 

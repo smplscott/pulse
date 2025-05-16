@@ -5,7 +5,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle } from "lucide-react";
+import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,7 @@ type SongCategoryTab = {
 export default function Songs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("your-list");
+  const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
   const { toast } = useToast();
 
   const { data: songs, isLoading: isLoadingSongs } = useQuery<Song[]>({
@@ -56,6 +57,11 @@ export default function Songs() {
       title: "Comment",
       description: `Add a comment to "${title}"`
     });
+  };
+  
+  // Toggle display mode between grid and list
+  const toggleDisplayMode = () => {
+    setDisplayMode(prev => prev === "grid" ? "list" : "grid");
   };
 
   const songCategories: SongCategoryTab[] = [
