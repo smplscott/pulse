@@ -55,7 +55,7 @@ export default function Venues() {
   return (
     <div className="min-h-screen pb-32">
       <Header />
-      <TabNavigator tabs={tabs} />
+      {/* Removed TabNavigator as requested */}
       
       <main className="px-4 py-4">
         <h1 className="text-2xl font-bold mb-4">Places to Listen</h1>

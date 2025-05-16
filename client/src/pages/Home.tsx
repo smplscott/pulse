@@ -9,7 +9,7 @@ import TrackIDs from "@/components/sections/TrackIDs";
 import Threads from "@/components/sections/Threads";
 import Venues from "@/components/sections/Venues";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, SlidersHorizontal } from "lucide-react";
+import { SearchIcon, SlidersHorizontal, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
