@@ -2,19 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Song, Artist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, PlayCircle, Link as LinkIcon, Share2, Heart, PlusCircle, Music2 } from "lucide-react";
+import { ChevronLeft, Link as LinkIcon, Share2, Heart, PlusCircle, Music2 } from "lucide-react";
 import { useMusic } from "@/hooks/useMusic";
 
 export default function SongDetail() {
   const params = useParams<{ id: string }>();
   const songId = parseInt(params.id);
   const { toast } = useToast();
-  const { playSong, isPlaying, togglePlay, currentSong } = useMusic();
+  const { upvoteSong } = useMusic();
 
   const { data: song, isLoading: isLoadingSong } = useQuery<Song>({
     queryKey: [`/api/songs/${songId}`],
@@ -24,9 +23,6 @@ export default function SongDetail() {
     queryKey: [`/api/artists/name/${song?.artist}`],
     enabled: !!song?.artist,
   });
-
-  // Check if this is the currently playing song
-  const isCurrentSong = currentSong && currentSong.id === songId;
 
   // Handler for playing the song
   const handlePlaySong = () => {

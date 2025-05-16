@@ -21,7 +21,7 @@ export default function Songs() {
   const [activeCategory, setActiveCategory] = useState("your-list");
   const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
   const { toast } = useToast();
-  const { playSong } = useMusic();
+  const { upvoteSong } = useMusic();
 
   const { data: songs, isLoading: isLoadingSongs } = useQuery<Song[]>({
     queryKey: ["/api/songs"],
@@ -110,8 +110,8 @@ export default function Songs() {
               <div 
                 className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition"
                 onClick={(e) => {
-                  // If they click the row, open the thread but also allow play functionality
-                  playSong(song);
+                  // If they click the row, navigate to song detail page
+                  window.location.href = `/song/${song.id}`;
                 }}
               >
                 <div className="w-10 h-10 bg-[#282828] rounded overflow-hidden mr-3 flex-shrink-0">
@@ -177,8 +177,8 @@ export default function Songs() {
               <div 
                 className="bg-[#181818] hover:bg-[#282828] rounded-md overflow-hidden cursor-pointer transition flex flex-col"
                 onClick={(e) => {
-                  // If they click the card, open the thread but also allow play functionality
-                  playSong(song);
+                  // If they click the card, navigate to song detail page
+                  window.location.href = `/song/${song.id}`;
                 }}
               >
                 <div className="w-full aspect-square bg-[#282828] relative">
