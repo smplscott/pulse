@@ -203,11 +203,9 @@ export default function Artists() {
                       
                       {/* Right side actions: genre badge, reactions, comments */}
                       <div className="flex items-center space-x-3 ml-2">
-                        {artist.genres && Array.isArray(artist.genres) && artist.genres.length > 0 && (
-                          <span className="text-xs px-2 py-1 bg-[#282828] rounded-full text-[#B3B3B3]">
-                            {artist.genres[0]}
-                          </span>
-                        )}
+                        <span className="text-xs px-2 py-1 bg-[#282828] rounded-full text-[#B3B3B3]">
+                          {artist.name.includes('DJ') ? 'DJ' : 'Artist'}
+                        </span>
                         
                         {/* Reaction button */}
                         <button 
