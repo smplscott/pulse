@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Thread, User, Comment, SongRecommendation, Song } from "@shared/schema";
+import { Thread, User, Comment, SongRecommendation, Song, Artist, Venue, Playlist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ChevronLeft, ArrowUp, MessageCircle, Share2, Play, Music2, 
@@ -45,13 +45,35 @@ export default function ThreadDetail() {
   // Mock user ID - in a real app this would come from auth context
   const userId = 1;
 
+  // Fetch content based on type if this is a content-specific thread
+  const { data: artistContent } = useQuery<Artist>({
+    queryKey: [`/api/artists/${contentId}`],
+    enabled: !!contentId && contentType === 'artist',
+  });
+  
+  const { data: venueContent } = useQuery<Venue>({
+    queryKey: [`/api/venues/${contentId}`],
+    enabled: !!contentId && contentType === 'venue',
+  });
+  
+  const { data: playlistContent } = useQuery<Playlist>({
+    queryKey: [`/api/playlists/${contentId}`],
+    enabled: !!contentId && contentType === 'playlist',
+  });
+  
+  const { data: songContent } = useQuery<Song>({
+    queryKey: [`/api/songs/${contentId}`],
+    enabled: !!contentId && contentType === 'song',
+  });
+
+  // Determine content-specific thread or regular thread
   const { data: thread, isLoading: isLoadingThread } = useQuery<Thread>({
     queryKey: [`/api/threads/${threadId}`],
   });
 
   const { data: user, isLoading: isLoadingUser } = useQuery<User>({
-    queryKey: [`/api/users/${thread?.userId}`],
-    enabled: !!thread?.userId,
+    queryKey: [`/api/users/${thread?.userId || 1}`],
+    enabled: !!thread?.userId || true,
   });
 
   const { data: comments, isLoading: isLoadingComments } = useQuery<Comment[]>({
@@ -122,21 +144,51 @@ export default function ThreadDetail() {
     });
   };
 
+  // Content-specific flags
   const isSongRequest = thread?.type === "song_request";
   const isSolved = thread?.status === "solved";
   const threadViewCount = thread?.upvotes ? thread.upvotes * 5 : 0; // Simulated view count
+
+  // Determine if we're showing content-specific thread
+  const isArtistThread = contentType === 'artist' && !!artistContent;
+  const isVenueThread = contentType === 'venue' && !!venueContent;
+  const isPlaylistThread = contentType === 'playlist' && !!playlistContent;
+  const isSongThread = contentType === 'song' && !!songContent;
+  
+  // Helper to get the correct thread title based on content type
+  const getContentTitle = () => {
+    if (isArtistThread) return artistContent!.name;
+    if (isVenueThread) return venueContent!.name;
+    if (isPlaylistThread) return playlistContent!.title;
+    if (isSongThread) return songContent!.title;
+    return thread?.title || "Thread";
+  }
+  
+  // Helper to get back link based on content type  
+  const getBackLink = () => {
+    if (isArtistThread) return "/artists";
+    if (isVenueThread) return "/venues";
+    if (isPlaylistThread) return "/playlists";
+    if (isSongThread) return "/songs";
+    if (isSongRequest) return "/whats-this-song";
+    return "/";
+  }
 
   return (
     <div className="min-h-screen pb-32 bg-black">
       <header className="border-b border-[#222222] sticky top-0 z-10 bg-black">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link href={isSongRequest ? "/whats-this-song" : "/"}>
+          <Link href={getBackLink()}>
             <div className="flex items-center cursor-pointer">
               <ChevronLeft className="h-5 w-5 mr-2" />
             </div>
           </Link>
-          <h1 className="text-base font-semibold">
-            {isSongRequest ? "What's This Song" : "Thread"}
+          <h1 className="text-base font-semibold truncate max-w-[200px]">
+            {isArtistThread ? "Artist Thread" : 
+             isVenueThread ? "Venue Thread" : 
+             isPlaylistThread ? "Playlist Thread" : 
+             isSongThread ? "Song Thread" :
+             isSongRequest ? "What's This Song" : "Thread"}
           </h1>
           <button className="text-[#E51D3E]">
             <MoreHorizontal className="h-5 w-5" />
@@ -164,6 +216,58 @@ export default function ThreadDetail() {
           </>
         ) : thread && user ? (
           <>
+            {/* Content-specific header for artist/venue/playlist/song threads */}
+            {(isArtistThread || isVenueThread || isPlaylistThread || isSongThread) && (
+              <div className="py-4 border-b border-[#333333] bg-[#1A1A1A] -mx-4 px-4 mb-4">
+                <div className="flex items-center space-x-3">
+                  {/* Image for the content */}
+                  <div className="w-16 h-16 rounded-md overflow-hidden bg-[#282828] flex-shrink-0">
+                    {isArtistThread && artistContent?.profilePicture && (
+                      <img src={artistContent.profilePicture} alt={artistContent.name} className="w-full h-full object-cover" />
+                    )}
+                    {isVenueThread && venueContent?.image && (
+                      <img src={venueContent.image} alt={venueContent.name} className="w-full h-full object-cover" />
+                    )}
+                    {isPlaylistThread && playlistContent?.image && (
+                      <img src={playlistContent.image} alt={playlistContent.title} className="w-full h-full object-cover" />
+                    )}
+                    {isSongThread && songContent?.coverArt && (
+                      <img src={songContent.coverArt} alt={songContent.title} className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  
+                  {/* Content details */}
+                  <div className="flex-1">
+                    <h2 className="font-bold text-xl">{getContentTitle()}</h2>
+                    <div className="text-sm text-[#B3B3B3] flex items-center">
+                      {isArtistThread && (
+                        <span>{artistContent?.genres?.slice(0, 2).join(' / ') || 'Artist'}</span>
+                      )}
+                      {isVenueThread && (
+                        <span>{venueContent?.location || 'Venue'}</span>
+                      )}
+                      {isPlaylistThread && (
+                        <span>{playlistContent?.description || 'Playlist'}</span>
+                      )}
+                      {isSongThread && (
+                        <span>{songContent?.artist || 'Song'}</span>
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <Badge
+                        variant="default"
+                        className="text-xs px-2 py-0.5 rounded-sm"
+                      >
+                        {isArtistThread ? 'Artist' : 
+                         isVenueThread ? 'Venue' : 
+                         isPlaylistThread ? 'Playlist' : 'Song'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="py-4 border-b border-[#222222]">
               <div className="flex items-start space-x-3">
                 <Avatar className="w-10 h-10">
@@ -189,10 +293,11 @@ export default function ThreadDetail() {
                     @{user.username}
                   </p>
 
-                  {thread.title && (
+                  {thread?.title && !(isArtistThread || isVenueThread || isPlaylistThread || isSongThread) && (
                     <h2 className="text-lg font-bold mb-2">{thread.title}</h2>
                   )}
-                  <p className="text-[#E5E5E5] mb-4">{thread.content}</p>
+                  <p className="text-[#E5E5E5] mb-4">{thread?.content || 
+                    `Join the discussion about ${getContentTitle()}!`}</p>
 
                   {/* Song Request Status */}
                   {isSongRequest && isSolved && recommendations && recommendations.length > 0 && (
