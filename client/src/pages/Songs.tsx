@@ -99,57 +99,109 @@ export default function Songs() {
 
     // For now, show all songs in all categories
     // In a real implementation, we would filter based on the active category
-    return (
-      <div className="space-y-2">
-        {filteredSongs.map((song) => (
-          <div 
-            key={song.id} 
-            className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition"
-          >
-            <div className="w-10 h-10 bg-[#282828] rounded overflow-hidden mr-3 flex-shrink-0">
-              {song.albumArt ? (
-                <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
-                  <Music2 className="h-5 w-5 text-[#B3B3B3]" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{song.title}</p>
-              <p className="text-xs text-[#B3B3B3] truncate">
-                {song.features && Array.isArray(song.features) && song.features.length > 0
-                  ? `${song.artist}, ${song.features.join(", ")}`
-                  : song.artist}
-              </p>
-            </div>
-            
-            {/* Right side actions: year, reactions, comments */}
-            <div className="flex items-center space-x-3 ml-2">
-              <div className="text-xs text-[#B3B3B3] flex-shrink-0">
-                {song.releaseDate ? new Date(song.releaseDate).getFullYear() : ""}
+    if (displayMode === "list") {
+      // List view (default)
+      return (
+        <div className="space-y-2">
+          {filteredSongs.map((song) => (
+            <div 
+              key={song.id} 
+              className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition"
+              onClick={() => toast({ title: "Song Selected", description: `Playing ${song.title}` })}
+            >
+              <div className="w-10 h-10 bg-[#282828] rounded overflow-hidden mr-3 flex-shrink-0">
+                {song.albumArt ? (
+                  <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
+                    <Music2 className="h-5 w-5 text-[#B3B3B3]" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">{song.title}</p>
+                <p className="text-xs text-[#B3B3B3] truncate">
+                  {song.features && Array.isArray(song.features) && song.features.length > 0
+                    ? `${song.artist}, ${song.features.join(", ")}`
+                    : song.artist}
+                </p>
               </div>
               
-              {/* Reaction button */}
-              <button 
-                className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                onClick={(e) => handleReaction(e, song.id, song.title)}
-              >
-                <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
-              </button>
-              
-              {/* Comment button */}
-              <button 
-                className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                onClick={(e) => handleComment(e, song.id, song.title)}
-              >
-                <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-              </button>
+              {/* Right side actions: year, reactions, comments */}
+              <div className="flex items-center space-x-3 ml-2">
+                <div className="text-xs text-[#B3B3B3] flex-shrink-0">
+                  {song.releaseDate ? new Date(song.releaseDate).getFullYear() : ""}
+                </div>
+                
+                {/* Reaction button */}
+                <button 
+                  className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                  onClick={(e) => handleReaction(e, song.id, song.title)}
+                >
+                  <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#E51D3E]" />
+                </button>
+                
+                {/* Comment button */}
+                <button 
+                  className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                  onClick={(e) => handleComment(e, song.id, song.title)}
+                >
+                  <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    );
+          ))}
+        </div>
+      );
+    } else {
+      // Grid view
+      return (
+        <div className="grid grid-cols-2 gap-3">
+          {filteredSongs.map((song) => (
+            <div 
+              key={song.id}
+              className="bg-[#181818] hover:bg-[#282828] rounded-md overflow-hidden cursor-pointer transition flex flex-col"
+              onClick={() => toast({ title: "Song Selected", description: `Playing ${song.title}` })}
+            >
+              <div className="w-full aspect-square bg-[#282828] relative">
+                {song.albumArt ? (
+                  <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
+                    <Music2 className="h-10 w-10 text-[#B3B3B3]" />
+                  </div>
+                )}
+                
+                {/* Overlay buttons */}
+                <div className="absolute bottom-2 right-2 flex space-x-2">
+                  <button 
+                    className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                    onClick={(e) => handleReaction(e, song.id, song.title)}
+                  >
+                    <Heart className="h-4 w-4 text-white" />
+                  </button>
+                  <button 
+                    className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                    onClick={(e) => handleComment(e, song.id, song.title)}
+                  >
+                    <MessageCircle className="h-4 w-4 text-white" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-3">
+                <p className="font-medium text-sm truncate">{song.title}</p>
+                <p className="text-xs text-[#B3B3B3] truncate">
+                  {song.features && Array.isArray(song.features) && song.features.length > 0
+                    ? `${song.artist}, ${song.features.join(", ")}`
+                    : song.artist}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
   };
 
   return (
@@ -180,15 +232,37 @@ export default function Songs() {
       </div>
       
       <main className="px-4 py-4">
-        <div className="relative mb-6">
-          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
-          <Input
-            type="text"
-            placeholder="Search songs, artists, genres..."
-            className="pl-9 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="relative mb-6 flex items-center">
+          <div className="relative flex-1">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
+            <Input
+              type="text"
+              placeholder="Search songs, artists, genres..."
+              className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button 
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
+              onClick={() => toast({ title: "Filters", description: "Advanced filters coming soon" })}
+            >
+              <SlidersHorizontal size={18} />
+            </button>
+          </div>
+          <button 
+            className="ml-2 w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
+            onClick={toggleDisplayMode}
+          >
+            {displayMode === "grid" ? 
+              <List size={18} className="text-[#B3B3B3]" /> : 
+              <div className="grid grid-cols-2 gap-1">
+                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
+              </div>
+            }
+          </button>
         </div>
         
         {/* Song list based on selected category */}
