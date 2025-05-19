@@ -97,7 +97,7 @@ export default function Home() {
                 className={cn(
                   "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                   activeDiscussionFilter === filter.id
-                    ? "bg-[#5271ff] text-white"
+                    ? "pink-gradient text-white"
                     : "bg-[#181818] text-[#B3B3B3]"
                 )}
                 onClick={() => setActiveDiscussionFilter(filter.id)}
