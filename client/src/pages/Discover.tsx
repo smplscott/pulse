@@ -302,7 +302,7 @@ export default function Discover() {
                       key={genre} 
                       className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer ${
                         selectedGenres.includes(genre) 
-                          ? "green-gradient text-[#5b5b5b]" 
+                          ? "pink-gradient text-white" 
                           : "bg-[#282828] text-[#B3B3B3]"
                       }`}
                       onClick={() => toggleSimilarGenre(genre)}
@@ -324,7 +324,7 @@ export default function Discover() {
                 </button>
                 
                 <button 
-                  className="pink-gradient px-3 py-1 rounded-full text-xs text-white"
+                  className="border border-white px-3 py-1 rounded-full text-xs text-white hover:bg-white hover:text-black transition-colors"
                   onClick={() => setShowGenreFilter(false)}
                 >
                   Apply filters
