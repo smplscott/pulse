@@ -118,7 +118,13 @@ export default function Venues() {
                 </button>
               </div>
               <button 
-                className="ml-2 w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
+                className="mx-2 w-10 h-10 rounded-lg bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
+                onClick={() => toast({ title: "Add Place", description: "Add a new place with great music coming soon!" })}
+              >
+                <span className="text-[#B3B3B3] text-xl font-bold">+</span>
+              </button>
+              <button 
+                className="w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
                 onClick={toggleDisplayMode}
               >
                 {displayMode === "grid" ? 
@@ -206,17 +212,19 @@ export default function Venues() {
         )}
         
         {activeOption === "search" && (
-          <div className="space-y-6">
+          <div>
             {isLoading ? (
-              <>
+              <div className="grid gap-4">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-64 w-full" />
                 ))}
-              </>
+              </div>
             ) : filteredVenues && filteredVenues.length > 0 ? (
-              filteredVenues.map((venue) => (
-                <VenueCard key={venue.id} venue={venue} />
-              ))
+              <div className="grid gap-4">
+                {filteredVenues.map((venue) => (
+                  <VenueCard key={venue.id} venue={venue} />
+                ))}
+              </div>
             ) : (
               <div className="text-center py-10">
                 <p className="text-[#B3B3B3]">
