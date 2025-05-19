@@ -102,7 +102,7 @@ export default function Home() {
           </div>
           
           {/* Sample discussions with trophy icons */}
-          <div className="space-y-2 mb-6">
+          <div className="space-y-2 mb-3">
             {/* Sample discussion rows with trophies */}
             {activeDiscussionFilter === "artists" && (
               <>
@@ -215,10 +215,13 @@ export default function Home() {
           </div>
         </div>
         
-        <WhatsThisSong />
+        {/* What's This Song section */}
+        <div className="mb-3">
+          <WhatsThisSong />
+        </div>
         
         {/* Trending Songs section */}
-        <div className="mb-4">
+        <div className="mb-3">
           <div className="px-4 py-2">
             <h2 className="text-xl font-bold">Trending Songs on Pulse</h2>
           </div>
@@ -226,8 +229,15 @@ export default function Home() {
           <TrackIDs hideTitle={true} />
         </div>
         
-        <Threads />
-        <Venues />
+        {/* Hot Threads section */}
+        <div className="mb-6">
+          <Threads />
+        </div>
+        
+        {/* Places to Listen section */}
+        <div>
+          <Venues />
+        </div>
       </main>
       
       <BottomNav />

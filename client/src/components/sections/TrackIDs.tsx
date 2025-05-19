@@ -18,7 +18,7 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
       <section className="px-4 mb-6">
         {!hideTitle && (
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-semibold text-lg">Popular Track IDs</h2>
+            <h2 className="text-xl font-bold">Popular Track IDs</h2>
             <button className="text-[#5271ff] text-sm font-medium">View All</button>
           </div>
         )}
@@ -40,7 +40,7 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
       <section className="px-4 mb-6">
         {!hideTitle && (
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-semibold text-lg">Popular Track IDs</h2>
+            <h2 className="text-xl font-bold">Popular Track IDs</h2>
             <button className="text-[#5271ff] text-sm font-medium">View All</button>
           </div>
         )}
@@ -57,7 +57,7 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
     <section className="px-4 mb-6">
       {!hideTitle && (
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg">Popular Track IDs</h2>
+          <h2 className="text-xl font-bold">Popular Track IDs</h2>
           <Link href="/discover">
             <button className="text-[#5271ff] text-sm font-medium">View All</button>
           </Link>

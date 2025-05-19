@@ -13,7 +13,7 @@ export default function Threads() {
     return (
       <section className="px-4 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg">Hot Threads</h2>
+          <h2 className="text-xl font-bold">Hot Threads</h2>
           <button className="text-[#5271ff] text-sm font-medium">View All</button>
         </div>
         <div className="space-y-4">
@@ -29,7 +29,7 @@ export default function Threads() {
     return (
       <section className="px-4 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg">Hot Threads</h2>
+          <h2 className="text-xl font-bold">Hot Threads</h2>
           <Link href="/discover">
             <button className="text-[#5271ff] text-sm font-medium">View All</button>
           </Link>
@@ -46,7 +46,7 @@ export default function Threads() {
   return (
     <section className="px-4 mb-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-lg">Hot Threads</h2>
+        <h2 className="text-xl font-bold">Hot Threads</h2>
         <Link href="/discover">
           <button className="text-[#5271ff] text-sm font-medium">View All</button>
         </Link>

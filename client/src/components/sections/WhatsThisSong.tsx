@@ -13,7 +13,7 @@ export default function WhatsThisSong() {
     return (
       <section className="bg-[#181818] px-4 py-5 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg">What's This Song?</h2>
+          <h2 className="text-xl font-bold">What's This Song?</h2>
           <button className="text-[#5271ff] text-sm font-medium">View All</button>
         </div>
         <div className="space-y-4">
@@ -29,7 +29,7 @@ export default function WhatsThisSong() {
     return (
       <section className="bg-[#181818] px-4 py-5 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg">What's This Song?</h2>
+          <h2 className="text-xl font-bold">What's This Song?</h2>
           <Link href="/whats-this-song">
             <button className="text-[#5271ff] text-sm font-medium">View All</button>
           </Link>
@@ -46,7 +46,7 @@ export default function WhatsThisSong() {
   return (
     <section className="bg-[#181818] px-4 py-5 mb-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-lg">What's This Song?</h2>
+        <h2 className="text-xl font-bold">What's This Song?</h2>
         <Link href="/whats-this-song">
           <button className="text-[#5271ff] text-sm font-medium">View All</button>
         </Link>

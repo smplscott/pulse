@@ -13,7 +13,7 @@ export default function Venues() {
     return (
       <section className="px-4 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg">Places to Listen</h2>
+          <h2 className="text-xl font-bold">Places to Listen</h2>
           <button className="text-[#5271ff] text-sm font-medium">View All</button>
         </div>
         <div className="space-y-4">
@@ -29,7 +29,7 @@ export default function Venues() {
     return (
       <section className="px-4 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg">Places to Listen</h2>
+          <h2 className="text-xl font-bold">Places to Listen</h2>
           <Link href="/venues">
             <button className="text-[#5271ff] text-sm font-medium">View All</button>
           </Link>
@@ -46,7 +46,7 @@ export default function Venues() {
   return (
     <section className="px-4 mb-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-lg">Places to Listen</h2>
+        <h2 className="text-xl font-bold">Places to Listen</h2>
         <Link href="/venues">
           <button className="text-[#5271ff] text-sm font-medium">View All</button>
         </Link>
