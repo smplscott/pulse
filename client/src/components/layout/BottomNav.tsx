@@ -23,7 +23,7 @@ export default function BottomNav() {
               location === item.path ? "green-gradient-text" : "text-[#B3B3B3]"
             )}
           >
-            <item.icon className="h-5 w-5" />
+            <item.icon className={cn("h-5 w-5", location === item.path ? "green-gradient-text" : "")} />
             <span className="text-xs mt-1">{item.label}</span>
           </button>
         </Link>
