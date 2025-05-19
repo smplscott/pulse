@@ -20,6 +20,10 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("for-you");
   const [activeDiscussionFilter, setActiveDiscussionFilter] = useState("artists");
   const [activeThreadsFilter, setActiveThreadsFilter] = useState("all");
+  const [showGenreFilter, setShowGenreFilter] = useState(false);
+  const [selectedMainGenre, setSelectedMainGenre] = useState<string | null>(null);
+  const [selectedSubGenre, setSelectedSubGenre] = useState<string | null>(null);
+  const [selectedSimilarGenres, setSelectedSimilarGenres] = useState<string[]>([]);
   const { toast } = useToast();
   
   const tabs = [
@@ -302,101 +306,182 @@ export default function Home() {
           <div className="px-4 py-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold">Discover New Music</h2>
-              <button 
-                className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#252525]"
-                onClick={() => toast({ title: "Filters", description: "Showing genre filters" })}
-              >
-                <Filter size={18} className="text-[#B3B3B3]" />
-              </button>
+              <div className="relative flex-1 ml-3 max-w-[80px]">
+                <button 
+                  className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#252525]"
+                  onClick={() => setShowGenreFilter(!showGenreFilter)}
+                >
+                  <Filter size={18} className="text-[#B3B3B3]" />
+                </button>
+              </div>
             </div>
             
-            {/* Logical progression filter - starts with only main genres shown */}
-            <div className="bg-[#121212] px-4 py-3 mb-6 border border-[#3E3E3E] rounded">
-              {/* Main Genre selection - always visible */}
-              <div className="mb-4">
-                <h3 className="text-white text-sm font-medium mb-2">Genres</h3>
-                <div className="overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
-                  {genreFilters.map((filter, index) => (
-                    <button
-                      key={filter.id}
-                      className={cn(
-                        "mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-block",
-                        index === 0 ? "green-gradient text-[#5b5b5b]" : "bg-[#282828] text-[#B3B3B3]"
-                      )}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                </div>
+            {/* Search bar with filter button */}
+            <div className="relative mb-6 flex items-center">
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
+                <Input
+                  type="text"
+                  placeholder="Search artists, songs, genres..."
+                  className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-              
-              {/* Sub-Genre selection - only visible after main genre is selected */}
-              <div className="mb-4">
-                <h3 className="text-white text-sm font-medium mb-2">Sub-Genres</h3>
-                <div className="overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
-                  {subGenreFilters.map((filter, index) => (
-                    <button
-                      key={filter.id}
-                      className={cn(
-                        "mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-block",
-                        index === 1 ? "green-gradient text-[#5b5b5b]" : "bg-[#282828] text-[#B3B3B3]"
-                      )}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Similar Genres selection - multi-select, only visible after sub-genre is selected */}
-              <div className="mb-4">
-                <h3 className="text-white text-sm font-medium mb-2">Similar Genres</h3>
-                <div className="flex flex-wrap gap-2">
-                  {similarGenres.map((genre, index) => {
-                    // First and last items selected for demonstration
-                    const isSelected = index === 0 || index === 3;
-                    return (
-                      <Badge 
-                        key={genre.id}
+            </div>
+            
+            {/* Logical progression filter - only shown when filter button is clicked */}
+            {showGenreFilter && (
+              <div className="bg-[#121212] px-4 py-3 mb-6 border border-[#3E3E3E] rounded-lg shadow-lg">
+                {/* Main Genre selection - always visible when filter is open */}
+                <div className="mb-4">
+                  <h3 className="text-white text-sm font-medium mb-2">Genres</h3>
+                  <div className="flex overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
+                    {genreFilters.map((filter, index) => (
+                      <button
+                        key={filter.id}
                         className={cn(
-                          "px-3 py-1.5 cursor-pointer",
-                          isSelected ? "pink-gradient text-white" : "bg-[#282828] text-[#B3B3B3]"
+                          "mr-3 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0",
+                          (selectedMainGenre === filter.label || (!selectedMainGenre && index === 0)) 
+                            ? "green-gradient text-[#5b5b5b]" 
+                            : "bg-[#282828] text-[#B3B3B3]"
                         )}
+                        onClick={() => {
+                          setSelectedMainGenre(filter.label);
+                          setSelectedSubGenre(null);
+                          setSelectedSimilarGenres([]);
+                        }}
                       >
-                        {genre.label}
-                      </Badge>
-                    );
-                  })}
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Sub-Genre selection - only visible after main genre is selected */}
+                {selectedMainGenre && (
+                  <div className="mb-4">
+                    <h3 className="text-white text-sm font-medium mb-2">Sub-Genres</h3>
+                    <div className="flex overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
+                      {subGenreFilters.map((filter, index) => (
+                        <button
+                          key={filter.id}
+                          className={cn(
+                            "mr-3 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0",
+                            selectedSubGenre === filter.label
+                              ? "green-gradient text-[#5b5b5b]" 
+                              : "bg-[#282828] text-[#B3B3B3]"
+                          )}
+                          onClick={() => setSelectedSubGenre(filter.label)}
+                        >
+                          {filter.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Similar Genres selection - multi-select, only visible after sub-genre is selected */}
+                {selectedSubGenre && (
+                  <div className="mb-4">
+                    <h3 className="text-white text-sm font-medium mb-2">Similar Genres</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {similarGenres.map((genre) => {
+                        const isSelected = selectedSimilarGenres.includes(genre.label);
+                        return (
+                          <Badge 
+                            key={genre.id}
+                            className={cn(
+                              "px-3 py-1.5 cursor-pointer",
+                              isSelected ? "pink-gradient text-white" : "bg-[#282828] text-[#B3B3B3]"
+                            )}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedSimilarGenres(prev => 
+                                  prev.filter(g => g !== genre.label)
+                                );
+                              } else {
+                                setSelectedSimilarGenres(prev => [...prev, genre.label]);
+                              }
+                            }}
+                          >
+                            {genre.label}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Filter actions */}
+                <div className="mt-4 pt-4 border-t border-[#3E3E3E] flex justify-between items-center">
+                  <button 
+                    className="text-xs text-[#B3B3B3] hover:text-white"
+                    onClick={() => {
+                      setSelectedMainGenre(null);
+                      setSelectedSubGenre(null);
+                      setSelectedSimilarGenres([]);
+                    }}
+                  >
+                    Clear all filters
+                  </button>
+                  
+                  <button 
+                    className="border border-white px-3 py-1 rounded-full text-xs text-white hover:bg-white hover:text-black transition-colors"
+                    onClick={() => setShowGenreFilter(false)}
+                  >
+                    Apply filters
+                  </button>
                 </div>
               </div>
-              
-              {/* Filter actions */}
-              <div className="mt-4 pt-4 border-t border-[#3E3E3E] flex justify-between items-center">
-                <button 
-                  className="text-xs text-[#B3B3B3] hover:text-white"
-                >
-                  Clear all filters
-                </button>
-                
-                <button 
-                  className="border border-white px-3 py-1 rounded-full text-xs text-white hover:bg-white hover:text-black transition-colors"
-                >
-                  Apply filters
-                </button>
-              </div>
-            </div>
+            )}
             
-            {/* Selected filters badges */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <Badge className="green-gradient text-[#5b5b5b] flex items-center gap-1 px-2 py-1">
-                Techno
-                <span className="cursor-pointer">×</span>
-              </Badge>
-              <Badge className="pink-gradient text-white flex items-center gap-1 px-2 py-1">
-                Industrial
-                <span className="cursor-pointer">×</span>
-              </Badge>
-            </div>
+            {/* Selected filters badges - only shown if filters are applied */}
+            {(selectedMainGenre || selectedSubGenre || selectedSimilarGenres.length > 0) && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {selectedMainGenre && (
+                  <Badge 
+                    className="green-gradient text-[#5b5b5b] flex items-center gap-1 px-2 py-1"
+                    onClick={() => {
+                      setSelectedMainGenre(null);
+                      setSelectedSubGenre(null);
+                      setSelectedSimilarGenres([]);
+                    }}
+                  >
+                    {selectedMainGenre}
+                    <span className="cursor-pointer">×</span>
+                  </Badge>
+                )}
+                
+                {selectedSubGenre && (
+                  <Badge 
+                    className="green-gradient text-[#5b5b5b] flex items-center gap-1 px-2 py-1"
+                    onClick={() => {
+                      setSelectedSubGenre(null);
+                      setSelectedSimilarGenres([]);
+                    }}
+                  >
+                    {selectedSubGenre}
+                    <span className="cursor-pointer">×</span>
+                  </Badge>
+                )}
+                
+                {selectedSimilarGenres.map(genre => (
+                  <Badge 
+                    key={genre}
+                    className="pink-gradient text-white flex items-center gap-1 px-2 py-1"
+                    onClick={() => {
+                      setSelectedSimilarGenres(prev => 
+                        prev.filter(g => g !== genre)
+                      );
+                    }}
+                  >
+                    {genre}
+                    <span className="cursor-pointer">×</span>
+                  </Badge>
+                ))}
+              </div>
+            )}
             
             {/* Filter results tabs */}
             <div className="mt-6">
