@@ -10,20 +10,23 @@ import Threads from "@/components/sections/Threads";
 import Venues from "@/components/sections/Venues";
 import DiscussionItem from "@/components/discussion/DiscussionItem";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, SlidersHorizontal, MessageCircle, Trophy, Music, Heart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { SearchIcon, SlidersHorizontal, MessageCircle, Trophy, Music, Heart, Filter, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("for-you");
   const [activeDiscussionFilter, setActiveDiscussionFilter] = useState("artists");
+  const [activeThreadsFilter, setActiveThreadsFilter] = useState("all");
   const { toast } = useToast();
   
   const tabs = [
-    { label: "For You", path: "/" },
-    { label: "Discover", path: "/" },
-    { label: "Threads", path: "/" },
-    { label: "What's That Song", path: "/" },
+    { id: "for-you", label: "For You" },
+    { id: "discover", label: "Discover" },
+    { id: "threads", label: "Threads" },
+    { id: "whats-this-song", label: "What's That Song" },
   ];
   
   // Discussion filter options
@@ -33,11 +36,50 @@ export default function Home() {
     { id: "playlists", label: "Playlists" },
     { id: "new", label: "New Music" },
   ];
+  
+  // Thread filter options
+  const threadFilters = [
+    { id: "all", label: "All" },
+    { id: "music", label: "Music" },
+    { id: "community", label: "Community" },
+    { id: "events", label: "Events" },
+  ];
+  
+  // Genre filters for Discover tab
+  const genreFilters = [
+    { id: "techno", label: "Techno" },
+    { id: "house", label: "House" },
+    { id: "ambient", label: "Ambient" },
+    { id: "breakbeat", label: "Breakbeat" },
+    { id: "dnb", label: "Drum & Bass" },
+    { id: "experimental", label: "Experimental" },
+  ];
+  
+  // Subgenre filters based on selected genre (example for Techno)
+  const subGenreFilters = [
+    { id: "hard-techno", label: "Hard Techno" },
+    { id: "melodic-techno", label: "Melodic Techno" },
+    { id: "acid-techno", label: "Acid Techno" },
+    { id: "dub-techno", label: "Dub Techno" },
+    { id: "minimal-techno", label: "Minimal Techno" },
+  ];
+  
+  // Similar genres for selected subgenre (example)
+  const similarGenres = [
+    { id: "industrial", label: "Industrial" },
+    { id: "ebm", label: "EBM" },
+    { id: "breakcore", label: "Breakcore" },
+    { id: "trance", label: "Trance" },
+  ];
 
   return (
     <div className="min-h-screen pb-32">
       <Header />
-      <TabNavigator tabs={tabs} />
+      <TabNavigator 
+        tabs={tabs} 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+      />
       
       <main>
         {/* Search bar similar to other pages */}
@@ -82,168 +124,425 @@ export default function Home() {
           </button>
         </div>
         
-        {/* Featured Discussions Section with filter buttons - Now at the top */}
-        <div className="px-4 py-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Featured Discussions</h2>
-            <a href="/discover" className="text-sm text-[#B3B3B3] hover:text-white">See All</a>
-          </div>
-          
-          {/* Filter buttons */}
-          <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
-            {discussionFilters.map((filter) => (
-              <button
-                key={filter.id}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
-                  activeDiscussionFilter === filter.id
-                    ? "pink-gradient text-white"
-                    : "bg-[#181818] text-[#B3B3B3]"
+        {/* For You tab content */}
+        {activeTab === "for-you" && (
+          <>
+            {/* Featured Discussions Section with filter buttons */}
+            <div className="px-4 py-2">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Featured Discussions</h2>
+                <a href="#" className="text-sm text-[#B3B3B3] hover:text-white">See All</a>
+              </div>
+              
+              {/* Filter buttons */}
+              <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+                {discussionFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
+                      activeDiscussionFilter === filter.id
+                        ? "pink-gradient text-white"
+                        : "bg-[#181818] text-[#B3B3B3]"
+                    )}
+                    onClick={() => setActiveDiscussionFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Sample discussions with trophy icons */}
+              <div className="space-y-2 mb-3">
+                {/* Sample discussion rows with trophies */}
+                {activeDiscussionFilter === "artists" && (
+                  <>
+                    <DiscussionItem 
+                      id={1}
+                      title="Most Innovative Electronic Artists of 2025"
+                      comments={243}
+                      timeAgo="4h ago"
+                      rank={1}
+                    />
+                    
+                    <DiscussionItem 
+                      id={2}
+                      title="Techno DJs That Define Berlin's Sound"
+                      comments={192}
+                      timeAgo="8h ago"
+                      rank={2}
+                    />
+                    
+                    <DiscussionItem 
+                      id={3}
+                      title="Artists Who Master Both Production & Vocals"
+                      comments={122}
+                      timeAgo="12h ago"
+                      rank={3}
+                    />
+                  </>
                 )}
-                onClick={() => setActiveDiscussionFilter(filter.id)}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-          
-          {/* Sample discussions with trophy icons */}
-          <div className="space-y-2 mb-3">
-            {/* Sample discussion rows with trophies */}
-            {activeDiscussionFilter === "artists" && (
-              <>
-                <DiscussionItem 
-                  id={1}
-                  title="Most Innovative Electronic Artists of 2025"
-                  comments={243}
-                  timeAgo="4h ago"
-                  rank={1}
-                />
                 
-                <DiscussionItem 
-                  id={2}
-                  title="Techno DJs That Define Berlin's Sound"
-                  comments={192}
-                  timeAgo="8h ago"
-                  rank={2}
-                />
+                {activeDiscussionFilter === "songs" && (
+                  <>
+                    <DiscussionItem 
+                      id={4}
+                      title="Tracks That Define The Berlin Underground"
+                      comments={318}
+                      timeAgo="2h ago"
+                      rank={1}
+                    />
+                    
+                    <DiscussionItem 
+                      id={5}
+                      title="Songs With The Most Innovative Sound Design"
+                      comments={205}
+                      timeAgo="6h ago"
+                      rank={2}
+                    />
+                    
+                    <DiscussionItem 
+                      id={6}
+                      title="Most Sampled Breaks In Electronic Music"
+                      comments={173}
+                      timeAgo="9h ago"
+                      rank={3}
+                    />
+                  </>
+                )}
                 
-                <DiscussionItem 
-                  id={3}
-                  title="Artists Who Master Both Production & Vocals"
-                  comments={122}
-                  timeAgo="12h ago"
-                  rank={3}
-                />
-              </>
-            )}
+                {activeDiscussionFilter === "playlists" && (
+                  <>
+                    <DiscussionItem 
+                      id={7}
+                      title="Watergate Closing Sets That Made History"
+                      comments={198}
+                      timeAgo="5h ago"
+                      rank={1}
+                    />
+                    
+                    <DiscussionItem 
+                      id={8}
+                      title="Essential Berghain Sound Playlists"
+                      comments={241}
+                      timeAgo="7h ago"
+                      rank={2}
+                    />
+                    
+                    <DiscussionItem 
+                      id={9}
+                      title="Track IDs From Top Festival Sets of 2025"
+                      comments={152}
+                      timeAgo="11h ago"
+                      rank={3}
+                    />
+                  </>
+                )}
+                
+                {activeDiscussionFilter === "new" && (
+                  <>
+                    <DiscussionItem 
+                      id={10}
+                      title="Just Released: Best Electronic Albums of May"
+                      comments={287}
+                      timeAgo="3h ago"
+                    />
+                    
+                    <DiscussionItem 
+                      id={11}
+                      title="Emerging Artists With Groundbreaking Sound"
+                      comments={168}
+                      timeAgo="6h ago"
+                    />
+                    
+                    <DiscussionItem 
+                      id={12}
+                      title="Fresh Releases From Berlin Underground"
+                      comments={132}
+                      timeAgo="10h ago"
+                    />
+                  </>
+                )}
+              </div>
+            </div>
             
-            {activeDiscussionFilter === "songs" && (
-              <>
-                <DiscussionItem 
-                  id={4}
-                  title="Tracks That Define The Berlin Underground"
-                  comments={318}
-                  timeAgo="2h ago"
-                  rank={1}
-                />
-                
-                <DiscussionItem 
-                  id={5}
-                  title="Songs With The Most Innovative Sound Design"
-                  comments={205}
-                  timeAgo="6h ago"
-                  rank={2}
-                />
-                
-                <DiscussionItem 
-                  id={6}
-                  title="Most Sampled Breaks In Electronic Music"
-                  comments={173}
-                  timeAgo="9h ago"
-                  rank={3}
-                />
-              </>
-            )}
+            {/* What's This Song section */}
+            <div className="mb-3">
+              <WhatsThisSong />
+            </div>
             
-            {activeDiscussionFilter === "playlists" && (
-              <>
-                <DiscussionItem 
-                  id={7}
-                  title="Watergate Closing Sets That Made History"
-                  comments={198}
-                  timeAgo="5h ago"
-                  rank={1}
-                />
-                
-                <DiscussionItem 
-                  id={8}
-                  title="Essential Berghain Sound Playlists"
-                  comments={241}
-                  timeAgo="7h ago"
-                  rank={2}
-                />
-                
-                <DiscussionItem 
-                  id={9}
-                  title="Track IDs From Top Festival Sets of 2025"
-                  comments={152}
-                  timeAgo="11h ago"
-                  rank={3}
-                />
-              </>
-            )}
+            {/* Trending Songs section */}
+            <div className="mb-3">
+              <div className="px-4 py-2">
+                <h2 className="text-xl font-bold">Trending Songs on Pulse</h2>
+              </div>
+              
+              <TrackIDs hideTitle={true} />
+            </div>
             
-            {activeDiscussionFilter === "new" && (
-              <>
-                <DiscussionItem 
-                  id={10}
-                  title="Just Released: Best Electronic Albums of May"
-                  comments={287}
-                  timeAgo="3h ago"
-                />
-                
-                <DiscussionItem 
-                  id={11}
-                  title="Emerging Artists With Groundbreaking Sound"
-                  comments={168}
-                  timeAgo="6h ago"
-                />
-                
-                <DiscussionItem 
-                  id={12}
-                  title="Fresh Releases From Berlin Underground"
-                  comments={132}
-                  timeAgo="10h ago"
-                />
-              </>
-            )}
-          </div>
-        </div>
+            {/* Hot Threads section */}
+            <div className="mb-6">
+              <Threads />
+            </div>
+            
+            {/* Places to Listen section */}
+            <div>
+              <Venues />
+            </div>
+          </>
+        )}
         
-        {/* What's This Song section */}
-        <div className="mb-3">
-          <WhatsThisSong />
-        </div>
-        
-        {/* Trending Songs section */}
-        <div className="mb-3">
+        {/* Discover tab content */}
+        {activeTab === "discover" && (
           <div className="px-4 py-2">
-            <h2 className="text-xl font-bold">Trending Songs on Pulse</h2>
+            <h2 className="text-xl font-bold mb-4">Discover New Music</h2>
+            
+            {/* Genre filter */}
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-[#B3B3B3] mb-2">Genre</h3>
+              <div className="flex space-x-2 overflow-x-auto scrollbar-hide mb-4">
+                {genreFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-[#282828] text-white"
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Sub-Genre filter */}
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-[#B3B3B3] mb-2">Sub-Genre</h3>
+              <div className="flex space-x-2 overflow-x-auto scrollbar-hide mb-4">
+                {subGenreFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-[#282828] text-white"
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Similar Genres filter (multi-select) */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-[#B3B3B3] mb-2">Similar Genres</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {similarGenres.map((genre) => (
+                  <button
+                    key={genre.id}
+                    className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap pink-gradient text-white"
+                  >
+                    {genre.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Apply Filters button */}
+            <button 
+              className="w-full py-3 rounded-md font-medium mb-4 border border-white bg-white text-black hover:bg-[#f0f0f0]"
+            >
+              Apply Filters
+            </button>
+            
+            {/* Filter results */}
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-4">Filter Results</h2>
+              <div className="space-y-4">
+                <p className="text-[#B3B3B3]">Filter results will appear here</p>
+              </div>
+            </div>
           </div>
-          
-          <TrackIDs hideTitle={true} />
-        </div>
+        )}
         
-        {/* Hot Threads section */}
-        <div className="mb-6">
-          <Threads />
-        </div>
+        {/* Threads tab content */}
+        {activeTab === "threads" && (
+          <div className="px-4 py-2">
+            {/* Thread filter tabs */}
+            <div className="mb-6 flex space-x-2 overflow-x-auto scrollbar-hide">
+              {threadFilters.map((filter) => (
+                <button
+                  key={filter.id}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap",
+                    activeThreadsFilter === filter.id
+                      ? "green-gradient text-[#5b5b5b]"
+                      : "bg-[#181818] text-[#B3B3B3]"
+                  )}
+                  onClick={() => setActiveThreadsFilter(filter.id)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+            
+            {/* Featured Discussions section */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold mb-4">Featured Discussions</h2>
+              
+              {/* Featured thread cards */}
+              <div className="space-y-4">
+                <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3E3E3E]">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold mb-1">Best Techno Albums of 2023 So Far</h3>
+                      <p className="text-sm text-[#B3B3B3]">Started by @BerlinTechnoHead</p>
+                    </div>
+                    <Badge className="green-gradient text-[#5b5b5b]">Music</Badge>
+                  </div>
+                  <p className="text-sm text-[#E0E0E0] mb-3 line-clamp-2">
+                    Looking for the most innovative techno albums released this year. Share your favorites and what makes them stand out!
+                  </p>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center">
+                        <MessageCircle size={16} className="text-[#B3B3B3] mr-1" />
+                        <span>243</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock size={16} className="text-[#B3B3B3] mr-1" />
+                        <span>4h ago</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3E3E3E]">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold mb-1">Underground Scene in Berlin: Secret Spots</h3>
+                      <p className="text-sm text-[#B3B3B3]">Started by @NightRaider</p>
+                    </div>
+                    <Badge className="pink-gradient text-white">Community</Badge>
+                  </div>
+                  <p className="text-sm text-[#E0E0E0] mb-3 line-clamp-2">
+                    Let's share those hidden gems in Berlin where the real underground scene thrives. Places that aren't on the tourist maps!
+                  </p>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center">
+                        <MessageCircle size={16} className="text-[#B3B3B3] mr-1" />
+                        <span>189</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock size={16} className="text-[#B3B3B3] mr-1" />
+                        <span>8h ago</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3E3E3E]">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold mb-1">Watergate 25th Anniversary: Who's Going?</h3>
+                      <p className="text-sm text-[#B3B3B3]">Started by @DJ_Max</p>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-[#5271ff] to-[#7a9dff] text-white">Event</Badge>
+                  </div>
+                  <p className="text-sm text-[#E0E0E0] mb-3 line-clamp-2">
+                    The lineup for Watergate's 25th looks insane! Who's planning to attend? Let's coordinate meetups!
+                  </p>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center">
+                        <MessageCircle size={16} className="text-[#B3B3B3] mr-1" />
+                        <span>312</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock size={16} className="text-[#B3B3B3] mr-1" />
+                        <span>2d ago</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Discussion Threads section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Discussion Threads</h2>
+                <button className="text-sm text-[#B3B3B3]">
+                  <Filter size={16} className="inline mr-1" />
+                  Sort
+                </button>
+              </div>
+              
+              {/* Thread list */}
+              <div className="space-y-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={`thread-${i}`} className="flex items-start border-b border-[#3E3E3E] pb-3">
+                    <div className="flex-1">
+                      <h3 className="font-medium mb-1">Thread Title #{i+1}</h3>
+                      <p className="text-xs text-[#B3B3B3] mb-2">
+                        Started by @User{i+1} • {Math.floor(Math.random() * 24) + 1}h ago
+                      </p>
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="flex items-center">
+                          <MessageCircle size={14} className="text-[#B3B3B3] mr-1" />
+                          <span>{Math.floor(Math.random() * 200) + 10}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Badge className={`${
+                      i % 3 === 0 ? "green-gradient text-[#5b5b5b]" : 
+                      i % 3 === 1 ? "pink-gradient text-white" : 
+                      "bg-gradient-to-r from-[#5271ff] to-[#7a9dff] text-white"
+                    }`}>
+                      {i % 3 === 0 ? "Music" : i % 3 === 1 ? "Community" : "Event"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Load more button */}
+              <button className="w-full text-center py-3 mt-4 text-[#B3B3B3] hover:text-white">
+                Load More
+              </button>
+            </div>
+          </div>
+        )}
         
-        {/* Places to Listen section */}
-        <div>
-          <Venues />
-        </div>
+        {/* What's That Song tab content */}
+        {activeTab === "whats-this-song" && (
+          <div className="px-4 py-2">
+            <h2 className="text-xl font-bold mb-4">What's That Song?</h2>
+            <div className="mb-6">
+              <p className="text-[#B3B3B3] mb-4">
+                Heard a track but don't know the name? Describe it here and let the community help identify it.
+              </p>
+              
+              <button 
+                className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium mb-4"
+                onClick={() => {
+                  toast({
+                    title: "Create Request",
+                    description: "New song identification request coming soon!"
+                  });
+                }}
+              >
+                Create New Request
+              </button>
+            </div>
+            
+            {/* Popular requests */}
+            <h3 className="font-bold mb-3 text-lg">Popular Requests</h3>
+            <div className="space-y-4 mb-6">
+              <WhatsThisSong hideTitle={true} expanded={true} />
+            </div>
+            
+            {/* Recent requests */}
+            <h3 className="font-bold mb-3 text-lg">Recent Requests</h3>
+            <div className="space-y-4">
+              <WhatsThisSong hideTitle={true} expanded={true} />
+            </div>
+          </div>
+        )}
       </main>
       
       <BottomNav />
