@@ -302,22 +302,26 @@ export default function Home() {
           <div className="px-4 py-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold">Discover New Music</h2>
-              <button className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#252525]">
+              <button 
+                className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#252525]"
+                onClick={() => toast({ title: "Filters", description: "Showing genre filters" })}
+              >
                 <Filter size={18} className="text-[#B3B3B3]" />
               </button>
             </div>
             
-            {/* Genre filter - full width logical dropdown */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-[#B3B3B3] mb-3">Genre</h3>
-              <div className="flex overflow-x-auto scrollbar-hide mb-6 pb-2">
-                <div className="flex space-x-3 w-full">
+            {/* Logical progression filter - starts with only main genres shown */}
+            <div className="bg-[#121212] px-4 py-3 mb-6 border border-[#3E3E3E] rounded">
+              {/* Main Genre selection - always visible */}
+              <div className="mb-4">
+                <h3 className="text-white text-sm font-medium mb-2">Genres</h3>
+                <div className="overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
                   {genreFilters.map((filter, index) => (
                     <button
                       key={filter.id}
                       className={cn(
-                        "px-5 py-3 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0",
-                        index === 0 ? "green-gradient text-[#5b5b5b]" : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
+                        "mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-block",
+                        index === 0 ? "green-gradient text-[#5b5b5b]" : "bg-[#282828] text-[#B3B3B3]"
                       )}
                     >
                       {filter.label}
@@ -325,19 +329,17 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-            </div>
-            
-            {/* Sub-Genre filter - full width logical dropdown */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-[#B3B3B3] mb-3">Sub-Genre</h3>
-              <div className="flex overflow-x-auto scrollbar-hide mb-6 pb-2">
-                <div className="flex space-x-3 w-full">
+              
+              {/* Sub-Genre selection - only visible after main genre is selected */}
+              <div className="mb-4">
+                <h3 className="text-white text-sm font-medium mb-2">Sub-Genres</h3>
+                <div className="overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
                   {subGenreFilters.map((filter, index) => (
                     <button
                       key={filter.id}
                       className={cn(
-                        "px-5 py-3 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0",
-                        index === 1 ? "green-gradient text-[#5b5b5b]" : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
+                        "mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-block",
+                        index === 1 ? "green-gradient text-[#5b5b5b]" : "bg-[#282828] text-[#B3B3B3]"
                       )}
                     >
                       {filter.label}
@@ -345,42 +347,74 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-            </div>
-            
-            {/* Similar Genres filter - multi-select with pink gradient */}
-            <div className="mb-8">
-              <h3 className="text-sm font-medium text-[#B3B3B3] mb-3">Similar Genres</h3>
-              <div className="flex flex-wrap gap-3 mb-4">
-                {similarGenres.map((genre, index) => {
-                  // First and last items selected for demonstration
-                  const isSelected = index === 0 || index === 3;
-                  return (
-                    <button
-                      key={genre.id}
-                      className={cn(
-                        "px-5 py-3 rounded-full text-sm font-medium whitespace-nowrap",
-                        isSelected ? "pink-gradient text-white" : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
-                      )}
-                    >
-                      {genre.label}
-                    </button>
-                  );
-                })}
+              
+              {/* Similar Genres selection - multi-select, only visible after sub-genre is selected */}
+              <div className="mb-4">
+                <h3 className="text-white text-sm font-medium mb-2">Similar Genres</h3>
+                <div className="flex flex-wrap gap-2">
+                  {similarGenres.map((genre, index) => {
+                    // First and last items selected for demonstration
+                    const isSelected = index === 0 || index === 3;
+                    return (
+                      <Badge 
+                        key={genre.id}
+                        className={cn(
+                          "px-3 py-1.5 cursor-pointer",
+                          isSelected ? "pink-gradient text-white" : "bg-[#282828] text-[#B3B3B3]"
+                        )}
+                      >
+                        {genre.label}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Filter actions */}
+              <div className="mt-4 pt-4 border-t border-[#3E3E3E] flex justify-between items-center">
+                <button 
+                  className="text-xs text-[#B3B3B3] hover:text-white"
+                >
+                  Clear all filters
+                </button>
+                
+                <button 
+                  className="border border-white px-3 py-1 rounded-full text-xs text-white hover:bg-white hover:text-black transition-colors"
+                >
+                  Apply filters
+                </button>
               </div>
             </div>
             
-            {/* Apply Filters button with white outline/black bg */}
-            <button 
-              className="w-full py-3 rounded-md font-medium mb-8 border border-white bg-white text-black hover:bg-[#f0f0f0]"
-            >
-              Apply Filters
-            </button>
+            {/* Selected filters badges */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <Badge className="green-gradient text-[#5b5b5b] flex items-center gap-1 px-2 py-1">
+                Techno
+                <span className="cursor-pointer">×</span>
+              </Badge>
+              <Badge className="pink-gradient text-white flex items-center gap-1 px-2 py-1">
+                Industrial
+                <span className="cursor-pointer">×</span>
+              </Badge>
+            </div>
             
-            {/* Filter results */}
-            <div className="mt-8">
-              <h2 className="text-xl font-bold mb-4">Filter Results</h2>
-              <div className="space-y-4">
-                <p className="text-[#B3B3B3]">Filter results will appear here</p>
+            {/* Filter results tabs */}
+            <div className="mt-6">
+              <div className="flex border-b border-[#3E3E3E] mb-4">
+                <button className="px-4 py-2 border-b-2 border-white text-white">Artists</button>
+                <button className="px-4 py-2 text-[#B3B3B3]">Songs</button>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-[#181818] rounded-lg p-3 overflow-hidden">
+                    <div className="aspect-square rounded-lg bg-[#282828] mb-2 overflow-hidden">
+                      <div className="w-full h-full bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a]"></div>
+                    </div>
+                    <h3 className="text-sm font-medium truncate">Artist Name #{i+1}</h3>
+                    <p className="text-xs text-[#B3B3B3]">Electronic • Techno</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
