@@ -131,7 +131,12 @@ export default function Home() {
             <div className="px-4 py-2">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Featured Discussions</h2>
-                <a href="#" className="text-sm text-[#B3B3B3] hover:text-white">See All</a>
+                <button 
+                  onClick={() => setActiveTab("threads")} 
+                  className="text-sm text-[#B3B3B3] hover:text-white"
+                >
+                  See All
+                </button>
               </div>
               
               {/* Filter buttons */}
@@ -363,14 +368,14 @@ export default function Home() {
         {activeTab === "threads" && (
           <div className="px-4 py-2">
             {/* Thread filter tabs */}
-            <div className="mb-6 flex space-x-2 overflow-x-auto scrollbar-hide">
+            <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
               {threadFilters.map((filter) => (
                 <button
                   key={filter.id}
                   className={cn(
-                    "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap",
+                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                     activeThreadsFilter === filter.id
-                      ? "green-gradient text-[#5b5b5b]"
+                      ? "pink-gradient text-white"
                       : "bg-[#181818] text-[#B3B3B3]"
                   )}
                   onClick={() => setActiveThreadsFilter(filter.id)}
@@ -471,6 +476,24 @@ export default function Home() {
                   <Filter size={16} className="inline mr-1" />
                   Sort
                 </button>
+              </div>
+              
+              {/* Mini filter buttons like in featured discussions */}
+              <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+                {discussionFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
+                      activeDiscussionFilter === filter.id
+                        ? "pink-gradient text-white"
+                        : "bg-[#181818] text-[#B3B3B3]"
+                    )}
+                    onClick={() => setActiveDiscussionFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
               </div>
               
               {/* Thread list */}
