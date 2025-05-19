@@ -392,7 +392,7 @@ export default function ThreadDetail() {
               ) : isSongRequest ? (
                 <div className="bg-[#181818] rounded-lg p-4 text-center mb-6">
                   <p className="text-[#B3B3B3]">No song suggestions yet</p>
-                  <button className="mt-2 pink-gradient text-white py-1.5 px-4 rounded-full text-sm font-medium">
+                  <button className="mt-2 artist-tab-active text-white py-1.5 px-4 rounded-full text-sm font-medium">
                     Suggest a Song
                   </button>
                 </div>
@@ -468,7 +468,7 @@ export default function ThreadDetail() {
             </div>
             <button 
               type="submit"
-              className={`w-10 h-10 flex items-center justify-center pink-gradient rounded-full ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'pink-gradient-hover'}`}
+              className={`w-10 h-10 flex items-center justify-center artist-tab-active rounded-full ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={!commentText.trim() || addCommentMutation.isPending}
             >
               {addCommentMutation.isPending ? (
