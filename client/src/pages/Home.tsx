@@ -21,9 +21,9 @@ export default function Home() {
   
   const tabs = [
     { label: "For You", path: "/" },
-    { label: "Discover", path: "/discover" },
-    { label: "What's That Song", path: "/whats-this-song" },
-    { label: "Live Venues", path: "/venues" },
+    { label: "Discover", path: "/" },
+    { label: "Threads", path: "/" },
+    { label: "What's That Song", path: "/" },
   ];
   
   // Discussion filter options

@@ -7,10 +7,10 @@ export default function BottomNav() {
 
   const navItems = [
     { icon: HomeIcon, label: "Home", path: "/" },
-    { icon: MessageCircle, label: "Threads", path: "/threads" },
     { icon: MapPinIcon, label: "Places", path: "/venues" },
     { icon: Music2Icon, label: "Songs", path: "/songs" },
     { icon: UserIcon, label: "Artists", path: "/artists" },
+    { icon: ListMusicIcon, label: "Playlists", path: "/playlists" },
   ];
 
   return (
