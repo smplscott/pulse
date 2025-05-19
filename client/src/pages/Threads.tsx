@@ -6,7 +6,7 @@ import TabNavigator from "@/components/layout/TabNavigator";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Thread } from "@shared/schema";
-import { SearchIcon, Filter, MessageCircle, Music, User, Calendar } from "lucide-react";
+import { SearchIcon, MessageCircle, Music, User, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +36,11 @@ export default function Threads() {
   const { data: threads, isLoading: isLoadingThreads } = useQuery<Thread[]>({
     queryKey: ["/api/threads"],
   });
+
+  // Get the user for a thread
+  const getUserById = (userId: number) => {
+    return `User #${userId}`;
+  };
 
   // Filter threads based on search query
   const filteredThreads = threads?.filter(
@@ -134,14 +139,14 @@ export default function Threads() {
                   <p className="text-[#B3B3B3] text-sm line-clamp-2 mb-3">{thread.content}</p>
                   <div className="flex justify-between items-center text-xs text-[#808080]">
                     <div className="flex items-center gap-2">
-                      <span>{thread.author}</span>
+                      <span>{getUserById(thread.userId)}</span>
                       <span>•</span>
                       <span>{formatRelativeTime(new Date(thread.createdAt || ''))}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
                         <MessageCircle className="w-3.5 h-3.5" />
-                        <span>{thread.commentCount || 0}</span>
+                        <span>{thread.commentsCount || 0}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -187,14 +192,14 @@ export default function Threads() {
                   <p className="text-[#B3B3B3] text-sm line-clamp-2 mb-3">{thread.content}</p>
                   <div className="flex justify-between items-center text-xs text-[#808080]">
                     <div className="flex items-center gap-2">
-                      <span>{thread.author}</span>
+                      <span>{getUserById(thread.userId)}</span>
                       <span>•</span>
                       <span>{formatRelativeTime(new Date(thread.createdAt || ''))}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
                         <MessageCircle className="w-3.5 h-3.5" />
-                        <span>{thread.commentCount || 0}</span>
+                        <span>{thread.commentsCount || 0}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
