@@ -86,35 +86,35 @@ export default function Home() {
       />
       
       <main>
-        {/* Search bar similar to other pages */}
-        <div className="px-4 py-4">
-          <div className="relative mb-4 flex items-center">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
-              <Input
-                type="text"
-                placeholder="Search artists, songs, threads..."
-                className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        {/* Search bar and Talk Music CTA - Hide completely when on Discover tab */}
+        {activeTab !== "discover" && (
+          <div className="px-4 py-4">
+            <div className="relative mb-4 flex items-center">
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
+                <Input
+                  type="text"
+                  placeholder="Search artists, songs, threads..."
+                  className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button 
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
+                  onClick={() => toast({ title: "Filters", description: "Advanced filters coming soon" })}
+                >
+                  <SlidersHorizontal size={18} />
+                </button>
+              </div>
               <button 
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
-                onClick={() => toast({ title: "Filters", description: "Advanced filters coming soon" })}
+                className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
+                onClick={() => toast({ title: "Create Content", description: "Create new content coming soon!" })}
               >
-                <SlidersHorizontal size={18} />
+                <span className="text-white text-xl font-bold">+</span>
               </button>
             </div>
-            <button 
-              className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
-              onClick={() => toast({ title: "Create Content", description: "Create new content coming soon!" })}
-            >
-              <span className="text-white text-xl font-bold">+</span>
-            </button>
-          </div>
-          
-          {/* Talk Music CTA button - only show on For You tab */}
-          {activeTab !== "discover" && (
+            
+            {/* Talk Music CTA button */}
             <button 
               className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium mb-2 flex items-center justify-center"
               onClick={() => {
@@ -127,8 +127,8 @@ export default function Home() {
               <Music className="mr-2 h-5 w-5" />
               Talk Music
             </button>
-          )}
-        </div>
+          </div>
+        )}
         
         {/* For You tab content */}
         {activeTab === "for-you" && (
