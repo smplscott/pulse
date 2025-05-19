@@ -28,7 +28,7 @@ export default function TrackIDCard({ playlist, className }: TrackIDCardProps) {
                 className="w-5 h-5"
               />
             </div>
-            <span className="text-xs bg-[#5271ff] text-white px-2 py-0.5 rounded-sm font-medium">
+            <span className="text-xs pink-gradient text-white px-2 py-0.5 rounded-sm font-medium">
               track IDs
             </span>
           </div>

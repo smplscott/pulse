@@ -131,7 +131,7 @@ export default function SongDetail() {
             
             <div className="flex items-center mb-8 space-x-4 justify-center">
               <button 
-                className="bg-[#5271ff] text-white py-2 px-6 rounded-full text-sm font-medium flex items-center justify-center"
+                className="pink-gradient pink-gradient-hover text-white py-2 px-6 rounded-full text-sm font-medium flex items-center justify-center"
                 onClick={handleUpvoteSong}
               >
                 <Heart className="h-4 w-4 mr-2" />

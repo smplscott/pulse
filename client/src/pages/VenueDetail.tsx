@@ -128,7 +128,7 @@ export default function VenueDetail() {
             
             <div className="flex space-x-4 mb-8">
               <button 
-                className="flex-1 bg-[#5271ff] text-white py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center"
+                className="flex-1 pink-gradient pink-gradient-hover text-white py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center"
                 onClick={handleSaveVenue}
               >
                 <Calendar className="h-4 w-4 mr-2" />

@@ -232,7 +232,7 @@ export default function CreateSongRequest() {
             <div className="pt-4 flex justify-end">
               <Button
                 type="submit"
-                className="bg-[#5271ff] hover:bg-[#3a5bea] text-white"
+                className="pink-gradient pink-gradient-hover text-white"
                 disabled={createThreadMutation.isPending}
               >
                 {createThreadMutation.isPending ? (
