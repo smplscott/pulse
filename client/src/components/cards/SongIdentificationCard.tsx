@@ -27,7 +27,7 @@ export default function SongIdentificationCard({ thread, className }: SongIdenti
     <Link href={`/thread/${thread.id}`}>
       <div className={cn("bg-[#282828] rounded-lg p-4 cursor-pointer hover:bg-[#303030] transition-colors", className)}>
         <div className="flex items-start space-x-3">
-          <div className={`w-10 h-10 rounded-full ${solved ? "bg-[#c1ff72]" : "bg-[#5271ff]"} flex items-center justify-center flex-shrink-0`}>
+          <div className={`w-10 h-10 rounded-full ${solved ? "green-gradient" : "pink-gradient"} flex items-center justify-center flex-shrink-0`}>
             {solved ? <CheckIcon className="h-5 w-5 text-black" /> : <HelpCircleIcon className="h-5 w-5 text-white" />}
           </div>
           <div className="flex-1">
@@ -57,7 +57,7 @@ export default function SongIdentificationCard({ thread, className }: SongIdenti
                 <span className="text-xs text-[#B3B3B3]">{thread.recommendationsCount} suggestions</span>
               </div>
               <button 
-                className="px-4 py-1.5 rounded-full bg-[#5271ff] hover:bg-[#3a5bea] text-white text-sm font-medium transition-colors"
+                className="px-4 py-1.5 rounded-full pink-gradient pink-gradient-hover text-white text-sm font-medium transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
                   window.location.href = `/thread/${thread.id}`;
@@ -88,8 +88,8 @@ function SolvedSongDisplay({ recommendationId, songId }: { recommendationId: num
           {song.artist}
         </p>
       </div>
-      <button className="w-8 h-8 rounded-full bg-[#c1ff72] flex items-center justify-center">
-        <PlayIcon className="h-4 w-4 text-black" />
+      <button className="w-8 h-8 rounded-full green-gradient flex items-center justify-center">
+        <PlayIcon className="h-4 w-4 text-[#5b5b5b]" />
       </button>
     </div>
   );

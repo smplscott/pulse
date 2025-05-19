@@ -118,7 +118,7 @@ export default function Venues() {
                 </button>
               </div>
               <button 
-                className="ml-2 w-10 h-10 rounded-lg bg-[#5271ff] flex items-center justify-center hover:bg-[#3a5bea]"
+                className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
                 onClick={() => toast({ title: "Add Place", description: "Add a new place with great music coming soon!" })}
               >
                 <span className="text-white text-xl font-bold">+</span>
@@ -135,7 +135,7 @@ export default function Venues() {
                     className={cn(
                       "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                       venueCategory === category.id
-                        ? "bg-[#5271ff] text-white"
+                        ? "pink-gradient text-white"
                         : "bg-[#181818] text-[#B3B3B3]"
                     )}
                   >
@@ -188,7 +188,7 @@ export default function Venues() {
             />
             <div className="flex justify-end">
               <button 
-                className="bg-[#5271ff] hover:bg-[#3a5bea] text-white px-4 py-2 rounded-full text-sm font-medium"
+                className="pink-gradient pink-gradient-hover text-white px-4 py-2 rounded-full text-sm font-medium"
                 onClick={() => toast({ title: "Coming Soon", description: "Review submission will be available soon!" })}
               >
                 Submit Review
