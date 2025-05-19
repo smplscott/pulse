@@ -387,82 +387,82 @@ export default function Home() {
             
             {/* Featured Discussions section */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold mb-4">Featured Discussions</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Featured Discussions</h2>
+                <span className="text-sm text-[#B3B3B3] hover:text-white">See All</span>
+              </div>
               
-              {/* Featured thread cards */}
-              <div className="space-y-4">
-                <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3E3E3E]">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-bold mb-1">Best Techno Albums of 2023 So Far</h3>
-                      <p className="text-sm text-[#B3B3B3]">Started by @BerlinTechnoHead</p>
-                    </div>
-                    <Badge className="green-gradient text-[#5b5b5b]">Music</Badge>
+              {/* Filter buttons matching the provided screenshot */}
+              <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+                {discussionFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className={cn(
+                      "px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap",
+                      activeDiscussionFilter === filter.id
+                        ? "pink-gradient text-white"
+                        : "bg-[#181818] text-[#B3B3B3]"
+                    )}
+                    onClick={() => setActiveDiscussionFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Featured discussion items matching the screenshot */}
+              <div className="space-y-5 pt-2">
+                <div className="flex items-start">
+                  <div className="mr-3 pt-1">
+                    <Trophy className="h-6 w-6 text-yellow-500" />
                   </div>
-                  <p className="text-sm text-[#E0E0E0] mb-3 line-clamp-2">
-                    Looking for the most innovative techno albums released this year. Share your favorites and what makes them stand out!
-                  </p>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center">
-                        <MessageCircle size={16} className="text-[#B3B3B3] mr-1" />
-                        <span>243</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock size={16} className="text-[#B3B3B3] mr-1" />
-                        <span>4h ago</span>
-                      </div>
-                    </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-white">Most Innovative Electronic Artists of 2025</h3>
+                    <p className="text-[#B3B3B3] text-sm">243 comments • 4h ago</p>
                   </div>
-                </div>
-                
-                <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3E3E3E]">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-bold mb-1">Underground Scene in Berlin: Secret Spots</h3>
-                      <p className="text-sm text-[#B3B3B3]">Started by @NightRaider</p>
-                    </div>
-                    <Badge className="pink-gradient text-white">Community</Badge>
-                  </div>
-                  <p className="text-sm text-[#E0E0E0] mb-3 line-clamp-2">
-                    Let's share those hidden gems in Berlin where the real underground scene thrives. Places that aren't on the tourist maps!
-                  </p>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center">
-                        <MessageCircle size={16} className="text-[#B3B3B3] mr-1" />
-                        <span>189</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock size={16} className="text-[#B3B3B3] mr-1" />
-                        <span>8h ago</span>
-                      </div>
-                    </div>
+                  <div className="flex space-x-2">
+                    <button className="p-2 rounded-full bg-[#1A1A1A]">
+                      <Heart className="h-5 w-5 text-[#B3B3B3]" />
+                    </button>
+                    <button className="p-2 rounded-full bg-[#1A1A1A]">
+                      <MessageCircle className="h-5 w-5 text-[#B3B3B3]" />
+                    </button>
                   </div>
                 </div>
                 
-                <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3E3E3E]">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-bold mb-1">Watergate 25th Anniversary: Who's Going?</h3>
-                      <p className="text-sm text-[#B3B3B3]">Started by @DJ_Max</p>
-                    </div>
-                    <Badge className="bg-gradient-to-r from-[#5271ff] to-[#7a9dff] text-white">Event</Badge>
+                <div className="flex items-start">
+                  <div className="mr-3 pt-1">
+                    <Trophy className="h-6 w-6 text-gray-400" />
                   </div>
-                  <p className="text-sm text-[#E0E0E0] mb-3 line-clamp-2">
-                    The lineup for Watergate's 25th looks insane! Who's planning to attend? Let's coordinate meetups!
-                  </p>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center">
-                        <MessageCircle size={16} className="text-[#B3B3B3] mr-1" />
-                        <span>312</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock size={16} className="text-[#B3B3B3] mr-1" />
-                        <span>2d ago</span>
-                      </div>
-                    </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-white">Techno DJs That Define Berlin's Sound</h3>
+                    <p className="text-[#B3B3B3] text-sm">192 comments • 8h ago</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button className="p-2 rounded-full bg-[#1A1A1A]">
+                      <Heart className="h-5 w-5 text-[#B3B3B3]" />
+                    </button>
+                    <button className="p-2 rounded-full bg-[#1A1A1A]">
+                      <MessageCircle className="h-5 w-5 text-[#B3B3B3]" />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="mr-3 pt-1">
+                    <Trophy className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-white">Artists Who Master Both Production & Vocals</h3>
+                    <p className="text-[#B3B3B3] text-sm">122 comments • 12h ago</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button className="p-2 rounded-full bg-[#1A1A1A]">
+                      <Heart className="h-5 w-5 text-[#B3B3B3]" />
+                    </button>
+                    <button className="p-2 rounded-full bg-[#1A1A1A]">
+                      <MessageCircle className="h-5 w-5 text-[#B3B3B3]" />
+                    </button>
                   </div>
                 </div>
               </div>
