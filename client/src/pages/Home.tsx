@@ -113,19 +113,21 @@ export default function Home() {
             </button>
           </div>
           
-          {/* Talk Music CTA button */}
-          <button 
-            className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium mb-2 flex items-center justify-center"
-            onClick={() => {
-              toast({
-                title: "Let's Talk Music",
-                description: "What do you want to talk about?"
-              });
-            }}
-          >
-            <Music className="mr-2 h-5 w-5" />
-            Talk Music
-          </button>
+          {/* Talk Music CTA button - only show on For You tab */}
+          {activeTab !== "discover" && (
+            <button 
+              className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium mb-2 flex items-center justify-center"
+              onClick={() => {
+                toast({
+                  title: "Let's Talk Music",
+                  description: "What do you want to talk about?"
+                });
+              }}
+            >
+              <Music className="mr-2 h-5 w-5" />
+              Talk Music
+            </button>
+          )}
         </div>
         
         {/* For You tab content */}
