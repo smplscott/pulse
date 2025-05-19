@@ -188,7 +188,6 @@ export default function Discover() {
           <TabsList className="w-full bg-[#181818] border border-[#3E3E3E]">
             <TabsTrigger value="artists" className="flex-1">Artists</TabsTrigger>
             <TabsTrigger value="songs" className="flex-1">Songs</TabsTrigger>
-            <TabsTrigger value="playlists" className="flex-1">Track IDs</TabsTrigger>
           </TabsList>
           
           <TabsContent value="artists" className="mt-4">
@@ -251,27 +250,7 @@ export default function Discover() {
             )}
           </TabsContent>
 
-          <TabsContent value="playlists" className="mt-4">
-            {isLoadingPlaylists ? (
-              <div className="grid grid-cols-2 gap-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-56 w-full" />
-                ))}
-              </div>
-            ) : filteredPlaylists && filteredPlaylists.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
-                {filteredPlaylists.map((playlist) => (
-                  <TrackIDCard key={playlist.id} playlist={playlist} className="w-full" />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <p className="text-[#B3B3B3]">
-                  {searchQuery ? "No playlists found matching your search" : "No playlists available"}
-                </p>
-              </div>
-            )}
-          </TabsContent>
+
         </Tabs>
       </main>
       
