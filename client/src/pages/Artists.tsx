@@ -323,7 +323,7 @@ export default function Artists() {
       </div>
       
       <main className="px-4 py-4">
-        <div className="relative mb-6 flex items-center">
+        <div className="relative mb-4 flex items-center">
           <div className="relative flex-1">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
             <Input
