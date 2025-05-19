@@ -76,38 +76,46 @@ export default function ArtistDetail() {
       ) : artist ? (
         <>
           <div className="pt-4 px-4">
-            <Link href="/">
-              <div className="flex items-center mb-4 cursor-pointer">
-                <ChevronLeft className="h-6 w-6 mr-2" />
-                <span className="text-lg font-medium">Artist</span>
-              </div>
-            </Link>
-            
-            <div className="relative h-64 rounded-xl overflow-hidden mb-4">
-              {artist.profilePicture ? (
-                <img
-                  src={artist.profilePicture}
-                  alt={artist.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-[#282828] flex items-center justify-center">
-                  <Music2 className="h-16 w-16 text-[#B3B3B3]" />
+            <div className="flex items-center justify-between mb-4">
+              <Link href="/">
+                <div className="flex items-center cursor-pointer">
+                  <ChevronLeft className="h-6 w-6 mr-2" />
                 </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-              <div className="absolute bottom-4 left-4 right-4">
-                {artist.verified && (
-                  <Badge variant="status" className="bg-[#c1ff72] text-black text-xs mb-2">
-                    Verified Artist
-                  </Badge>
+              </Link>
+              <span className="text-xl font-medium text-center flex-1">Artist Thread</span>
+              <button className="w-8 h-8 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#5c5c7b]">
+                  <circle cx="12" cy="12" r="1"></circle>
+                  <circle cx="19" cy="12" r="1"></circle>
+                  <circle cx="5" cy="12" r="1"></circle>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="flex items-start px-2 mb-6">
+              <div className="w-20 h-20 rounded-xl overflow-hidden mr-4 flex-shrink-0">
+                {artist.profilePicture ? (
+                  <img
+                    src={artist.profilePicture}
+                    alt={artist.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#282828] flex items-center justify-center">
+                    <Music2 className="h-10 w-10 text-[#B3B3B3]" />
+                  </div>
                 )}
-                <h1 className="text-3xl font-bold">{artist.name}</h1>
-                <p className="text-sm text-[#B3B3B3]">
+              </div>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold mb-1">{artist.name}</h1>
+                <p className="text-sm text-[#A0A0A0] mb-3">
                   {artist.genres && artist.genres.length > 0
-                    ? artist.genres.join(" • ")
-                    : "Artist"}
+                    ? `Electronic / ${artist.genres[0]}`
+                    : "Electronic"}
                 </p>
+                <button className="bg-[#F45151] text-white text-sm font-medium px-4 py-2 rounded-lg">
+                  Artist
+                </button>
               </div>
             </div>
             
@@ -141,18 +149,32 @@ export default function ArtistDetail() {
             </div>
           )}
           
+          <div className="overflow-x-auto px-4 mb-4">
+            <div className="flex space-x-4">
+              <button className="bg-[#4169E1] text-white px-5 py-2 rounded-full text-sm font-medium">
+                All
+              </button>
+              <button className="text-[#B3B3B3] px-5 py-2 text-sm font-medium">
+                Live Performances
+              </button>
+              <button className="text-[#B3B3B3] px-5 py-2 text-sm font-medium">
+                Records
+              </button>
+              <button className="text-[#B3B3B3] px-5 py-2 text-sm font-medium">
+                Albums
+              </button>
+            </div>
+          </div>
+          
           <Tabs defaultValue="tracks" className="px-4">
-            <TabsList className="w-full bg-[#181818] border border-[#3E3E3E]">
+            <TabsList className="hidden w-full bg-[#181818] border border-[#3E3E3E]">
               <TabsTrigger value="tracks" className="flex-1">
-                <Music2 className="h-4 w-4 mr-2" />
                 Tracks
               </TabsTrigger>
               <TabsTrigger value="releases" className="flex-1">
-                <ListMusic className="h-4 w-4 mr-2" />
                 Releases
               </TabsTrigger>
               <TabsTrigger value="events" className="flex-1">
-                <Calendar className="h-4 w-4 mr-2" />
                 Events
               </TabsTrigger>
             </TabsList>
