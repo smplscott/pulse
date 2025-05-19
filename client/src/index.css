@@ -45,6 +45,28 @@
   }
 }
 
+/* Custom Gradients */
+.green-gradient {
+  background: linear-gradient(to right, #c2f970, #ecffa1);
+  color: #5b5b5b;
+}
+
+.green-gradient-text {
+  background: linear-gradient(to right, #c2f970, #ecffa1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.pink-gradient {
+  background: linear-gradient(to right, #b388eb, #ff6fd8);
+  color: white;
+}
+
+.pink-gradient-hover:hover {
+  background: linear-gradient(to right, #a579dc, #f060c9);
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

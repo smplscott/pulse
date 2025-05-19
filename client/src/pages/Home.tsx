@@ -60,7 +60,7 @@ export default function Home() {
               </button>
             </div>
             <button 
-              className="ml-2 w-10 h-10 rounded-lg bg-[#5271ff] flex items-center justify-center hover:bg-[#3a5bea]"
+              className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
               onClick={() => toast({ title: "Create Content", description: "Create new content coming soon!" })}
             >
               <span className="text-white text-xl font-bold">+</span>
@@ -69,7 +69,7 @@ export default function Home() {
           
           {/* Talk Music CTA button */}
           <button 
-            className="w-full bg-[#5271ff] hover:bg-[#3a5bea] text-white py-3 rounded-md font-medium mb-2 flex items-center justify-center"
+            className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium mb-2 flex items-center justify-center"
             onClick={() => {
               toast({
                 title: "Let's Talk Music",
