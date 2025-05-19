@@ -7,16 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Artist, Song, Playlist } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
-import TrackIDCard from "@/components/cards/TrackIDCard";
-// import SongCard from "@/components/cards/SongCard";
-import { SearchIcon, SlidersHorizontal, Filter } from "lucide-react";
+import { SearchIcon, Filter } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,6 +16,9 @@ export default function Discover() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("artists");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedMainGenre, setSelectedMainGenre] = useState<string | null>(null);
+  const [selectedSubGenre, setSelectedSubGenre] = useState<string | null>(null);
+  const [showGenreFilter, setShowGenreFilter] = useState(false);
   const { toast } = useToast();
 
   const tabs = [
@@ -33,75 +28,192 @@ export default function Discover() {
     { label: "Live Venues", path: "/venues" },
   ];
   
-  // List of music genres for filtering
-  const genres = [
-    "Techno", "House", "Deep House", "Ambient", "Trance", "EDM", 
-    "Progressive House", "Tech House", "Minimal", "Acid", "Electronica", 
-    "Dubstep", "Drum & Bass", "Breakbeat", "Jungle", "UK Garage",
-    "Disco", "Funk", "Soul", "R&B", "Hip Hop", "Jazz", "Alternative",
-    "Rock", "Metal", "Pop", "Indie", "Folk", "Classical"
-  ];
+  // Define the type structure for our genre hierarchy
+  type GenreHierarchy = {
+    [mainGenre: string]: {
+      subGenres: string[];
+      similarGenres: {
+        [subGenre: string]: string[];
+      };
+    };
+  };
+  
+  // Hierarchical genre structure
+  const genreHierarchy: GenreHierarchy = {
+    "Electronic": {
+      subGenres: ["Techno", "House", "Trance", "Ambient", "Drum & Bass"],
+      similarGenres: {
+        "Techno": ["Industrial", "Minimal Techno", "Hard Techno", "Acid"],
+        "House": ["Deep House", "Tech House", "Progressive House", "Disco House"],
+        "Trance": ["Progressive Trance", "Psytrance", "Uplifting Trance", "Vocal Trance"],
+        "Ambient": ["Chillout", "Downtempo", "IDM", "Ambient Dub"],
+        "Drum & Bass": ["Jungle", "Liquid Funk", "Neurofunk", "Jump Up"]
+      }
+    },
+    "Urban": {
+      subGenres: ["Hip Hop", "R&B", "Soul", "Funk", "Trap"],
+      similarGenres: {
+        "Hip Hop": ["Rap", "Boom Bap", "Conscious Hip Hop", "Alternative Hip Hop"],
+        "R&B": ["Contemporary R&B", "Neo Soul", "Quiet Storm", "New Jack Swing"],
+        "Soul": ["Southern Soul", "Deep Soul", "Northern Soul", "Psychedelic Soul"],
+        "Funk": ["P-Funk", "Funk Rock", "Electro-Funk", "G-Funk"],
+        "Trap": ["Drill", "Trap Soul", "Latin Trap", "UK Drill"]
+      }
+    },
+    "Rock": {
+      subGenres: ["Alternative", "Metal", "Indie", "Punk", "Classic Rock"],
+      similarGenres: {
+        "Alternative": ["Grunge", "Post-Rock", "Shoegaze", "Math Rock"],
+        "Metal": ["Heavy Metal", "Thrash Metal", "Death Metal", "Black Metal"],
+        "Indie": ["Indie Pop", "Indie Folk", "Dream Pop", "Post-Punk Revival"],
+        "Punk": ["Hardcore", "Pop Punk", "Post-Punk", "Emo"],
+        "Classic Rock": ["Progressive Rock", "Blues Rock", "Psychedelic Rock", "Hard Rock"]
+      }
+    },
+    "Pop": {
+      subGenres: ["Mainstream Pop", "Synth Pop", "Art Pop", "K-Pop", "Indie Pop"],
+      similarGenres: {
+        "Mainstream Pop": ["Dance Pop", "Electropop", "Teen Pop", "Bubblegum Pop"],
+        "Synth Pop": ["New Wave", "Synthwave", "Future Pop", "Electro Pop"],
+        "Art Pop": ["Chamber Pop", "Baroque Pop", "Avant-Pop", "Experimental Pop"],
+        "K-Pop": ["J-Pop", "Mandopop", "C-Pop", "T-Pop"],
+        "Indie Pop": ["Bedroom Pop", "Dream Pop", "Twee Pop", "Synthpop"]
+      }
+    },
+    "Jazz & Blues": {
+      subGenres: ["Jazz", "Blues", "Fusion", "Big Band", "Swing"],
+      similarGenres: {
+        "Jazz": ["Bebop", "Cool Jazz", "Modal Jazz", "Free Jazz"],
+        "Blues": ["Delta Blues", "Chicago Blues", "Jump Blues", "Electric Blues"],
+        "Fusion": ["Jazz Fusion", "Soul Jazz", "Jazz-Funk", "Nu Jazz"],
+        "Big Band": ["Orchestral Jazz", "Swing", "Dixieland", "Hot Jazz"],
+        "Swing": ["Gypsy Jazz", "Western Swing", "Jump Blues", "Boogie-Woogie"]
+      }
+    },
+    "World": {
+      subGenres: ["Latin", "African", "Asian", "Middle Eastern", "Celtic"],
+      similarGenres: {
+        "Latin": ["Salsa", "Reggaeton", "Cumbia", "Bachata"],
+        "African": ["Afrobeat", "Highlife", "Soukous", "Amapiano"],
+        "Asian": ["Bollywood", "K-Pop", "J-Pop", "Traditional Asian"],
+        "Middle Eastern": ["Arabic Pop", "Turkish Pop", "Persian Traditional", "Raï"],
+        "Celtic": ["Irish Folk", "Scottish Folk", "Breton Music", "Welsh Folk"]
+      }
+    }
+  };
+  
+  // Flat list of all main genres
+  const mainGenres = Object.keys(genreHierarchy);
 
   const { data: artists, isLoading: isLoadingArtists } = useQuery<Artist[]>({
     queryKey: ["/api/artists"],
   });
 
-  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery<Playlist[]>({
-    queryKey: ["/api/playlists"],
-  });
-
-  // Add songs query
   const { data: songs, isLoading: isLoadingSongs } = useQuery<Song[]>({
     queryKey: ["/api/songs"],
   });
   
-  // Helper function to filter by genres
+  // Helper function for genre filtering
   const filterByGenres = (item: any) => {
-    if (!selectedGenres.length) return true;
-    if (!item.genres) return false;
-    return selectedGenres.some(genre => 
-      item.genres.some((g: string) => g.toLowerCase() === genre.toLowerCase())
-    );
+    // If no genres are selected, show all items
+    if (!selectedGenres.length && !selectedSubGenre && !selectedMainGenre) return true;
+    
+    // Create an array of all relevant genres to filter by
+    const filterGenres = [...selectedGenres];
+    
+    // If a subgenre is selected, add it to the filter list
+    if (selectedSubGenre && !filterGenres.includes(selectedSubGenre)) {
+      filterGenres.push(selectedSubGenre);
+    }
+    
+    // If main genre is selected but no subgenre or similar genres,
+    // show everything from that main category
+    if (selectedMainGenre && !selectedSubGenre && !selectedGenres.length) {
+      // Get the subgenres for the selected main genre
+      const mainGenreEntry = genreHierarchy[selectedMainGenre];
+      if (mainGenreEntry) {
+        // Check if the item has any genre from the selected main genre's subgenres
+        return mainGenreEntry.subGenres.some(subGenre => {
+          // Handle different data structures for genres
+          if (item.genre && typeof item.genre === 'string') {
+            return item.genre.toLowerCase().includes(subGenre.toLowerCase());
+          } else if (item.genres && Array.isArray(item.genres)) {
+            return item.genres.some((g: string) => 
+              g && typeof g === 'string' && g.toLowerCase().includes(subGenre.toLowerCase())
+            );
+          }
+          return false;
+        });
+      }
+    }
+    
+    // If no genres to filter by after all checks, show all items
+    if (filterGenres.length === 0) return true;
+    
+    // Check if the item matches any of the selected genres
+    if (item.genre && typeof item.genre === 'string') {
+      return filterGenres.some(genre => 
+        item.genre.toLowerCase().includes(genre.toLowerCase())
+      );
+    } else if (item.genres && Array.isArray(item.genres)) {
+      return filterGenres.some(genre => 
+        item.genres.some((g: string) => 
+          g && typeof g === 'string' && g.toLowerCase().includes(genre.toLowerCase())
+        )
+      );
+    }
+    
+    return false;
   };
   
-  // Toggle genre selection
-  const toggleGenre = (genre: string) => {
+  // Genre selection handlers
+  const selectMainGenre = (genre: string) => {
+    setSelectedMainGenre(genre);
+    setSelectedSubGenre(null);
+  };
+  
+  const selectSubGenre = (genre: string) => {
+    setSelectedSubGenre(genre);
+  };
+  
+  const toggleSimilarGenre = (genre: string) => {
     setSelectedGenres(prev => 
       prev.includes(genre)
         ? prev.filter(g => g !== genre)
         : [...prev, genre]
     );
   };
+  
+  const clearFilters = () => {
+    setSelectedGenres([]);
+    setSelectedMainGenre(null);
+    setSelectedSubGenre(null);
+  };
+  
+  // Toggle genre filter visibility
+  const toggleGenreFilter = () => {
+    setShowGenreFilter(prev => !prev);
+  };
 
   // Filter artists based on search query and genres
   const filteredArtists = artists?.filter(
-    (artist) => (
-      (artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      artist.genres?.some(genre => 
-        genre.toLowerCase().includes(searchQuery.toLowerCase())
-      )) && filterByGenres(artist)
-    )
+    (artist) => {
+      const matchesSearch = searchQuery === "" || 
+        artist.name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return matchesSearch && filterByGenres(artist);
+    }
   );
 
   // Filter songs based on search query and genres
   const filteredSongs = songs?.filter(
-    (song) => (
-      (song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      song.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      song.genres?.some(genre => 
-        genre.toLowerCase().includes(searchQuery.toLowerCase())
-      )) && filterByGenres(song)
-    )
-  );
-
-  // Filter playlists based on search query
-  const filteredPlaylists = playlists?.filter(
-    (playlist) => 
-      playlist.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      playlist.curator.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      playlist.genres?.some(genre => 
-        genre.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    (song) => {
+      const matchesSearch = searchQuery === "" || 
+        song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        song.artist.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return matchesSearch && filterByGenres(song);
+    }
   );
 
   return (
@@ -121,44 +233,12 @@ export default function Discover() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button 
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
-                  >
-                    <Filter size={18} />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-[#282828] border-[#3E3E3E] p-2">
-                  <div className="mb-2 px-2">
-                    <p className="text-white text-sm font-medium">Filter by genre</p>
-                  </div>
-                  <div className="max-h-48 overflow-y-auto scrollbar-hide">
-                    {genres.map((genre) => (
-                      <DropdownMenuItem 
-                        key={genre} 
-                        className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-[#3E3E3E] rounded"
-                        onClick={() => toggleGenre(genre)}
-                      >
-                        <span className="text-[#B3B3B3]">{genre}</span>
-                        {selectedGenres.includes(genre) && (
-                          <span className="ml-2 h-2 w-2 rounded-full green-gradient"></span>
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </div>
-                  {selectedGenres.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-[#3E3E3E] px-2">
-                      <button 
-                        className="text-xs text-[#B3B3B3] hover:text-white"
-                        onClick={() => setSelectedGenres([])}
-                      >
-                        Clear filters
-                      </button>
-                    </div>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <button 
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
+                onClick={toggleGenreFilter}
+              >
+                <Filter size={18} />
+              </button>
             </div>
           </div>
           <button 
@@ -169,13 +249,98 @@ export default function Discover() {
           </button>
         </div>
         
+        {showGenreFilter && (
+          <div className="bg-[#121212] px-4 py-3 mb-4 border border-[#3E3E3E] rounded">
+            <div className="mb-4">
+              <h3 className="text-white text-sm font-medium mb-2">Genres</h3>
+              <div className="overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
+                {mainGenres.map((genre) => (
+                  <button
+                    key={genre}
+                    onClick={() => selectMainGenre(genre)}
+                    className={`mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-block ${
+                      selectedMainGenre === genre 
+                        ? "pink-gradient text-white" 
+                        : "bg-[#282828] text-[#B3B3B3]"
+                    }`}
+                  >
+                    {genre}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {selectedMainGenre && genreHierarchy[selectedMainGenre] && (
+              <div className="mb-4">
+                <h3 className="text-white text-sm font-medium mb-2">Sub-Genres</h3>
+                <div className="overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
+                  {genreHierarchy[selectedMainGenre].subGenres.map((genre) => (
+                    <button
+                      key={genre}
+                      onClick={() => selectSubGenre(genre)}
+                      className={`mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-block ${
+                        selectedSubGenre === genre 
+                          ? "pink-gradient text-white" 
+                          : "bg-[#282828] text-[#B3B3B3]"
+                      }`}
+                    >
+                      {genre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {selectedSubGenre && selectedMainGenre && 
+             genreHierarchy[selectedMainGenre] && 
+             genreHierarchy[selectedMainGenre].similarGenres[selectedSubGenre] && (
+              <div className="mb-2">
+                <h3 className="text-white text-sm font-medium mb-2">Similar Genres</h3>
+                <div className="flex flex-wrap gap-2">
+                  {genreHierarchy[selectedMainGenre].similarGenres[selectedSubGenre].map((genre) => (
+                    <Badge 
+                      key={genre} 
+                      className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer ${
+                        selectedGenres.includes(genre) 
+                          ? "green-gradient text-[#5b5b5b]" 
+                          : "bg-[#282828] text-[#B3B3B3]"
+                      }`}
+                      onClick={() => toggleSimilarGenre(genre)}
+                    >
+                      {genre}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {(selectedMainGenre || selectedSubGenre || selectedGenres.length > 0) && (
+              <div className="mt-3 pt-3 border-t border-[#3E3E3E] flex justify-between items-center">
+                <button 
+                  className="text-xs text-[#B3B3B3] hover:text-white"
+                  onClick={clearFilters}
+                >
+                  Clear all filters
+                </button>
+                
+                <button 
+                  className="pink-gradient px-3 py-1 rounded-full text-xs text-white"
+                  onClick={() => setShowGenreFilter(false)}
+                >
+                  Apply filters
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        
         {selectedGenres.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {selectedGenres.map(genre => (
               <Badge 
                 key={genre} 
                 className="green-gradient flex items-center gap-1 px-2 py-1"
-                onClick={() => toggleGenre(genre)}
+                onClick={() => toggleSimilarGenre(genre)}
               >
                 {genre}
                 <span className="cursor-pointer">×</span>
@@ -249,8 +414,6 @@ export default function Discover() {
               </div>
             )}
           </TabsContent>
-
-
         </Tabs>
       </main>
       
