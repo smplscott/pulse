@@ -59,6 +59,12 @@ export default function Home() {
                 <SlidersHorizontal size={18} />
               </button>
             </div>
+            <button 
+              className="ml-2 w-10 h-10 rounded-lg bg-[#5271ff] flex items-center justify-center hover:bg-[#3a5bea]"
+              onClick={() => toast({ title: "Create Content", description: "Create new content coming soon!" })}
+            >
+              <span className="text-white text-xl font-bold">+</span>
+            </button>
           </div>
           
           {/* Talk Music CTA button */}
