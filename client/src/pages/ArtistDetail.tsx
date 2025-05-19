@@ -113,7 +113,7 @@ export default function ArtistDetail() {
                     ? `Electronic / ${artist.genres[0]}`
                     : "Electronic"}
                 </p>
-                <button className="bg-[#F45151] text-white text-sm font-medium px-4 py-2 rounded-lg">
+                <button className="bg-gradient-to-r from-[#C1FF72] to-[#8AE68A] text-black text-sm font-medium px-4 py-2 rounded-lg">
                   Artist
                 </button>
               </div>
@@ -151,17 +151,17 @@ export default function ArtistDetail() {
           
           <div className="overflow-x-auto px-4 mb-4">
             <div className="flex space-x-4">
-              <button className="bg-[#4169E1] text-white px-5 py-2 rounded-full text-sm font-medium">
-                All
+              <button className="bg-gradient-to-r from-[#DA7CF3] to-[#F868C8] text-white px-5 py-2 rounded-full text-sm font-medium">
+                Singles & EPs
               </button>
-              <button className="text-[#B3B3B3] px-5 py-2 text-sm font-medium">
+              <button className="text-[#B3B3B3] hover:text-white px-5 py-2 text-sm font-medium">
+                Albums
+              </button>
+              <button className="text-[#B3B3B3] hover:text-white px-5 py-2 text-sm font-medium">
                 Live Performances
               </button>
-              <button className="text-[#B3B3B3] px-5 py-2 text-sm font-medium">
-                Records
-              </button>
-              <button className="text-[#B3B3B3] px-5 py-2 text-sm font-medium">
-                Albums
+              <button className="text-[#B3B3B3] hover:text-white px-5 py-2 text-sm font-medium">
+                Featured On
               </button>
             </div>
           </div>
