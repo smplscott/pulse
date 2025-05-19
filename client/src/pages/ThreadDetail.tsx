@@ -591,7 +591,7 @@ function SongRecommendationCard({ recommendation, solved }: { recommendation: So
         </div>
         {solved && (
           <div className="ml-auto">
-            <Badge variant="active" className="bg-[#c1ff72] text-black text-xs">
+            <Badge variant="active" className="green-gradient text-[#5b5b5b] text-xs">
               <CheckCircle className="h-3 w-3 mr-1" />
               Correct
             </Badge>
@@ -647,9 +647,9 @@ function SolvedSongDisplay({ recommendationId, songId }: { recommendationId: num
   if (!song) return null;
 
   return (
-    <div className="bg-[#c1ff72]/10 border border-[#c1ff72] rounded-lg p-4 mb-4">
+    <div className="bg-[#c2f970]/10 border border-[#c2f970] rounded-lg p-4 mb-4">
       <div className="flex items-center mb-2">
-        <CheckCircle className="h-5 w-5 text-[#c1ff72] mr-2" />
+        <CheckCircle className="h-5 w-5 text-[#c2f970] mr-2" />
         <p className="font-medium">Track Identified!</p>
       </div>
       

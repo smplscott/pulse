@@ -34,7 +34,7 @@ export default function WhatsThisSong() {
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">What's This Song?</h1>
           <Link href="/create-song-request">
-            <button className="bg-[#5271ff] text-white py-2 px-4 rounded-lg text-sm font-medium">
+            <button className="pink-gradient pink-gradient-hover text-white py-2 px-4 rounded-lg text-sm font-medium">
               New Request
             </button>
           </Link>
