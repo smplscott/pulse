@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { HomeIcon, MapPinIcon, Music2Icon, UserIcon, ListMusicIcon } from "lucide-react";
+import { HomeIcon, MapPinIcon, Music2Icon, UserIcon, ListMusicIcon, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNav() {
@@ -7,10 +7,10 @@ export default function BottomNav() {
 
   const navItems = [
     { icon: HomeIcon, label: "Home", path: "/" },
+    { icon: MessageCircle, label: "Threads", path: "/threads" },
     { icon: MapPinIcon, label: "Places", path: "/venues" },
     { icon: Music2Icon, label: "Songs", path: "/songs" },
     { icon: UserIcon, label: "Artists", path: "/artists" },
-    { icon: ListMusicIcon, label: "Playlists", path: "/playlists" },
   ];
 
   return (
