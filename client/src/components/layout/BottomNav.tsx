@@ -20,7 +20,7 @@ export default function BottomNav() {
           <button
             className={cn(
               "flex flex-col items-center justify-center py-1 px-3",
-              location === item.path ? "text-[#5271ff]" : "text-[#B3B3B3]"
+              location === item.path ? "text-white" : "text-[#B3B3B3]"
             )}
           >
             <item.icon className="h-5 w-5" />
