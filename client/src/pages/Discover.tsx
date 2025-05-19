@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Artist, Song, Playlist } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
 import TrackIDCard from "@/components/cards/TrackIDCard";
-import SongCard from "@/components/cards/SongCard";
+// import SongCard from "@/components/cards/SongCard";
 import { SearchIcon, SlidersHorizontal, Filter } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -187,6 +187,7 @@ export default function Discover() {
         <Tabs defaultValue="artists" className="mb-6" onValueChange={setActiveTab}>
           <TabsList className="w-full bg-[#181818] border border-[#3E3E3E]">
             <TabsTrigger value="artists" className="flex-1">Artists</TabsTrigger>
+            <TabsTrigger value="songs" className="flex-1">Songs</TabsTrigger>
             <TabsTrigger value="playlists" className="flex-1">Track IDs</TabsTrigger>
           </TabsList>
           
@@ -212,6 +213,44 @@ export default function Discover() {
             )}
           </TabsContent>
           
+          <TabsContent value="songs" className="mt-4">
+            {isLoadingSongs ? (
+              <div className="grid grid-cols-2 gap-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-56 w-full" />
+                ))}
+              </div>
+            ) : filteredSongs && filteredSongs.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {filteredSongs.map((song) => (
+                  <div key={song.id} className="bg-[#181818] rounded-lg p-3 cursor-pointer transition-all hover:bg-[#282828]">
+                    <div className="relative aspect-square mb-3 bg-[#282828] rounded overflow-hidden">
+                      {song.albumArt ? (
+                        <img 
+                          src={song.albumArt}
+                          alt={song.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[#B3B3B3]">
+                          <SearchIcon className="w-10 h-10" />
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-white truncate">{song.title}</h3>
+                    <p className="text-sm text-[#B3B3B3] truncate">{song.artist}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <p className="text-[#B3B3B3]">
+                  {searchQuery ? "No songs found matching your search" : "No songs available"}
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="playlists" className="mt-4">
             {isLoadingPlaylists ? (
               <div className="grid grid-cols-2 gap-3">

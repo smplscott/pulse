@@ -17,9 +17,9 @@ export default function SongCard({ song, className }: SongCardProps) {
         className
       )}>
         <div className="relative aspect-square mb-3 bg-[#282828] rounded overflow-hidden">
-          {song.coverArt ? (
+          {song.albumArt ? (
             <img 
-              src={song.coverArt}
+              src={song.albumArt}
               alt={song.title}
               className="w-full h-full object-cover"
             />
