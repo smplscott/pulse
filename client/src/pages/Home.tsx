@@ -300,56 +300,78 @@ export default function Home() {
         {/* Discover tab content */}
         {activeTab === "discover" && (
           <div className="px-4 py-2">
-            <h2 className="text-xl font-bold mb-4">Discover New Music</h2>
-            
-            {/* Genre filter */}
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-[#B3B3B3] mb-2">Genre</h3>
-              <div className="flex space-x-2 overflow-x-auto scrollbar-hide mb-4">
-                {genreFilters.map((filter) => (
-                  <button
-                    key={filter.id}
-                    className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-[#282828] text-white"
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">Discover New Music</h2>
+              <button className="p-2 rounded-full bg-[#1A1A1A] hover:bg-[#252525]">
+                <Filter size={18} className="text-[#B3B3B3]" />
+              </button>
             </div>
             
-            {/* Sub-Genre filter */}
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-[#B3B3B3] mb-2">Sub-Genre</h3>
-              <div className="flex space-x-2 overflow-x-auto scrollbar-hide mb-4">
-                {subGenreFilters.map((filter) => (
-                  <button
-                    key={filter.id}
-                    className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-[#282828] text-white"
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            {/* Similar Genres filter (multi-select) */}
+            {/* Genre filter - full width logical dropdown */}
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-[#B3B3B3] mb-2">Similar Genres</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {similarGenres.map((genre) => (
-                  <button
-                    key={genre.id}
-                    className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap pink-gradient text-white"
-                  >
-                    {genre.label}
-                  </button>
-                ))}
+              <h3 className="text-sm font-medium text-[#B3B3B3] mb-3">Genre</h3>
+              <div className="flex overflow-x-auto scrollbar-hide mb-6 pb-2">
+                <div className="flex space-x-3 w-full">
+                  {genreFilters.map((filter, index) => (
+                    <button
+                      key={filter.id}
+                      className={cn(
+                        "px-5 py-3 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0",
+                        index === 0 ? "green-gradient text-[#5b5b5b]" : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
+                      )}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             
-            {/* Apply Filters button */}
+            {/* Sub-Genre filter - full width logical dropdown */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-[#B3B3B3] mb-3">Sub-Genre</h3>
+              <div className="flex overflow-x-auto scrollbar-hide mb-6 pb-2">
+                <div className="flex space-x-3 w-full">
+                  {subGenreFilters.map((filter, index) => (
+                    <button
+                      key={filter.id}
+                      className={cn(
+                        "px-5 py-3 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0",
+                        index === 1 ? "green-gradient text-[#5b5b5b]" : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
+                      )}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Similar Genres filter - multi-select with pink gradient */}
+            <div className="mb-8">
+              <h3 className="text-sm font-medium text-[#B3B3B3] mb-3">Similar Genres</h3>
+              <div className="flex flex-wrap gap-3 mb-4">
+                {similarGenres.map((genre, index) => {
+                  // First and last items selected for demonstration
+                  const isSelected = index === 0 || index === 3;
+                  return (
+                    <button
+                      key={genre.id}
+                      className={cn(
+                        "px-5 py-3 rounded-full text-sm font-medium whitespace-nowrap",
+                        isSelected ? "pink-gradient text-white" : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
+                      )}
+                    >
+                      {genre.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Apply Filters button with white outline/black bg */}
             <button 
-              className="w-full py-3 rounded-md font-medium mb-4 border border-white bg-white text-black hover:bg-[#f0f0f0]"
+              className="w-full py-3 rounded-md font-medium mb-8 border border-white bg-white text-black hover:bg-[#f0f0f0]"
             >
               Apply Filters
             </button>
