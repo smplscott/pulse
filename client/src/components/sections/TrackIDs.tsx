@@ -19,7 +19,7 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
         {!hideTitle && (
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Popular Track IDs</h2>
-            <button className="text-[#5271ff] text-sm font-medium">View All</button>
+            <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
           </div>
         )}
         <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
@@ -41,7 +41,7 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
         {!hideTitle && (
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Popular Track IDs</h2>
-            <button className="text-[#5271ff] text-sm font-medium">View All</button>
+            <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
           </div>
         )}
         <div className="bg-[#181818] rounded-lg p-4 text-center">
@@ -59,7 +59,7 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Popular Track IDs</h2>
           <Link href="/discover">
-            <button className="text-[#5271ff] text-sm font-medium">View All</button>
+            <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
           </Link>
         </div>
       )}

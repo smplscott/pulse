@@ -14,7 +14,7 @@ export default function WhatsThisSong() {
       <section className="bg-[#181818] px-4 py-5 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">What's This Song?</h2>
-          <button className="text-[#5271ff] text-sm font-medium">View All</button>
+          <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
         </div>
         <div className="space-y-4">
           {[1, 2].map((i) => (
@@ -31,7 +31,7 @@ export default function WhatsThisSong() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">What's This Song?</h2>
           <Link href="/whats-this-song">
-            <button className="text-[#5271ff] text-sm font-medium">View All</button>
+            <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
           </Link>
         </div>
         <div className="bg-[#282828] rounded-lg p-4 text-center">
@@ -48,7 +48,7 @@ export default function WhatsThisSong() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">What's This Song?</h2>
         <Link href="/whats-this-song">
-          <button className="text-[#5271ff] text-sm font-medium">View All</button>
+          <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
         </Link>
       </div>
       
