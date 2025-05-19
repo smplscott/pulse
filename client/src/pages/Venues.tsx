@@ -118,24 +118,10 @@ export default function Venues() {
                 </button>
               </div>
               <button 
-                className="mx-2 w-10 h-10 rounded-lg bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
+                className="ml-2 w-10 h-10 rounded-lg bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
                 onClick={() => toast({ title: "Add Place", description: "Add a new place with great music coming soon!" })}
               >
                 <span className="text-[#B3B3B3] text-xl font-bold">+</span>
-              </button>
-              <button 
-                className="w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
-                onClick={toggleDisplayMode}
-              >
-                {displayMode === "grid" ? 
-                  <List size={18} className="text-[#B3B3B3]" /> : 
-                  <div className="grid grid-cols-2 gap-1">
-                    <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                    <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                    <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                    <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                  </div>
-                }
               </button>
             </div>
             
