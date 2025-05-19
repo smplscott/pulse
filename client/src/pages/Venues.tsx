@@ -118,10 +118,10 @@ export default function Venues() {
                 </button>
               </div>
               <button 
-                className="ml-2 w-10 h-10 rounded-lg bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
+                className="ml-2 w-10 h-10 rounded-lg bg-[#5271ff] flex items-center justify-center hover:bg-[#3a5bea]"
                 onClick={() => toast({ title: "Add Place", description: "Add a new place with great music coming soon!" })}
               >
-                <span className="text-[#B3B3B3] text-xl font-bold">+</span>
+                <span className="text-white text-xl font-bold">+</span>
               </button>
             </div>
             
