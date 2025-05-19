@@ -127,7 +127,7 @@ export default function Artists() {
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                     artistContentTab === tab.id
-                      ? "bg-[#5271ff] text-white"
+                      ? "pink-gradient text-white"
                       : "bg-[#181818] text-[#B3B3B3]"
                   )}
                   onClick={() => setArtistContentTab(tab.id)}
@@ -159,7 +159,7 @@ export default function Artists() {
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                     artistContentTab === tab.id
-                      ? "bg-[#5271ff] text-white"
+                      ? "pink-gradient text-white"
                       : "bg-[#181818] text-[#B3B3B3]"
                   )}
                   onClick={() => setArtistContentTab(tab.id)}
@@ -260,7 +260,7 @@ export default function Artists() {
                   className={cn(
                     "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                     artistContentTab === tab.id
-                      ? "bg-[#5271ff] text-white"
+                      ? "pink-gradient text-white"
                       : "bg-[#181818] text-[#B3B3B3]"
                   )}
                   onClick={() => setArtistContentTab(tab.id)}
