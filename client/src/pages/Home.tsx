@@ -303,11 +303,9 @@ export default function Home() {
         
         {/* Discover tab content */}
         {activeTab === "discover" && (
-          <div className="px-4 py-2">
-            <h2 className="text-xl font-bold mb-6">Discover New Music</h2>
-            
+          <div className="px-4 py-2">            
             {/* Search bar with filter button */}
-            <div className="relative mb-6 flex items-center">
+            <div className="relative mb-6 flex items-center gap-2">
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
                 <Input
@@ -324,6 +322,13 @@ export default function Home() {
                   <Filter size={18} />
                 </button>
               </div>
+              
+              <button 
+                className="w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
+                onClick={() => toast({ title: "Create Content", description: "Create new content feature coming soon!" })}
+              >
+                <span className="text-white text-xl font-bold">+</span>
+              </button>
             </div>
             
             {/* Logical progression filter - only shown when filter button is clicked */}
