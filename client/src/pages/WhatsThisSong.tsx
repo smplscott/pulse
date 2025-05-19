@@ -90,8 +90,8 @@ export default function WhatsThisSong() {
       <TabNavigator tabs={tabs} />
       
       <main className="px-4 py-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">What's This Song?</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">What's This Song?</h1>
           <Link href="/whats-this-song">
             <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
           </Link>
@@ -214,26 +214,58 @@ export default function WhatsThisSong() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-40 w-full" />
+              <Skeleton key={i} className="h-40 w-full rounded-lg" />
             ))}
           </div>
         ) : filteredThreads && filteredThreads.length > 0 ? (
           <div className="space-y-4">
             {filteredThreads.map((thread) => (
-              <SongIdentificationCard key={thread.id} thread={thread} />
+              <div key={thread.id} className="bg-[#1A1A1A] rounded-lg overflow-hidden mb-4">
+                <div className="p-4">
+                  <div className="flex items-start mb-4">
+                    <div className="w-14 h-14 bg-[#DA7CF3] rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                      <span className="text-white text-2xl font-bold">?</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold text-lg text-white">Help identify this track</h3>
+                        <span className="bg-[#D2F874] text-black text-xs font-medium px-3 py-1 rounded-full">
+                          ACTIVE
+                        </span>
+                      </div>
+                      <p className="text-sm text-[#B3B3B3] mb-4">Posted by @user • 3s ago</p>
+                      
+                      <p className="text-[#E5E5E5] mb-6">{thread.content}</p>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-[#B3B3B3]">
+                          <span className="mr-2">🎧</span>
+                          <span>0 suggestions</span>
+                        </div>
+                        
+                        <Link href={`/thread/${thread.id}`}>
+                          <button className="bg-[#DA7CF3] hover:bg-[#E892FF] text-white px-6 py-2 rounded-full text-sm font-medium">
+                            Help Identify
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
             
             {hasMore && (
               <button 
                 onClick={loadMore}
-                className="w-full py-3 bg-[#181818] border border-[#3E3E3E] rounded-lg text-[#B3B3B3] hover:text-white text-sm font-medium"
+                className="w-full py-3 bg-[#181818] border border-[#3E3E3E] rounded-lg text-[#B3B3B3] hover:text-white text-sm font-medium mt-4"
               >
                 Load More
               </button>
             )}
           </div>
         ) : (
-          <div className="bg-[#181818] rounded-lg p-8 text-center">
+          <div className="bg-[#1E1E1E] rounded-lg p-8 text-center">
             <p className="text-lg font-medium">No song identification requests found</p>
             <p className="text-sm text-[#B3B3B3] mt-2 mb-4">Create a new request or adjust your filters</p>
             <Link href="/create-song-request">
