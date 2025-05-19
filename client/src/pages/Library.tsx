@@ -147,7 +147,7 @@ export default function Library() {
               <>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-semibold text-lg">Your Playlists</h2>
-                  <button className="text-[#5271ff] text-sm font-medium">Create New</button>
+                  <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">Create New</button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {playlists.map((playlist) => (
