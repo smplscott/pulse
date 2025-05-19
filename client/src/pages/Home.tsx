@@ -63,7 +63,7 @@ export default function Home() {
           
           {/* Talk Music CTA button */}
           <button 
-            className="w-full bg-[#5271ff] hover:bg-[#3a5bea] text-white py-3 rounded-md font-medium mb-3 flex items-center justify-center"
+            className="w-full bg-[#5271ff] hover:bg-[#3a5bea] text-white py-3 rounded-md font-medium mb-2 flex items-center justify-center"
             onClick={() => {
               toast({
                 title: "Let's Talk Music",
