@@ -679,22 +679,87 @@ export default function Home() {
         {activeTab === "whats-this-song" && (
           <div className="px-4 py-2">
             <h2 className="text-xl font-bold mb-4">What's That Song?</h2>
-            <div className="mb-6">
-              <p className="text-[#B3B3B3] mb-4">
-                Heard a track but don't know the name? Describe it here and let the community help identify it.
+            
+            {/* Create New Request Form */}
+            <div className="bg-[#181818] border border-[#3E3E3E] rounded-lg p-4 mb-6">
+              <h3 className="font-medium text-lg mb-3">Create New Request</h3>
+              <p className="text-[#B3B3B3] text-sm mb-4">
+                Heard a track but don't know the name? Fill in as many details as you can to help the community identify it.
               </p>
               
-              <button 
-                className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium mb-4"
-                onClick={() => {
-                  toast({
-                    title: "Create Request",
-                    description: "New song identification request coming soon!"
-                  });
-                }}
-              >
-                Create New Request
-              </button>
+              <div className="space-y-4">
+                {/* Possible artist field */}
+                <div>
+                  <label className="text-sm text-[#B3B3B3] mb-1 block">Possible Artist (if known)</label>
+                  <Input 
+                    placeholder="Artist name if you have a guess" 
+                    className="bg-[#282828] border-[#3E3E3E]"
+                  />
+                </div>
+                
+                {/* Where you heard it */}
+                <div>
+                  <label className="text-sm text-[#B3B3B3] mb-1 block">Where did you hear it?</label>
+                  <Input 
+                    placeholder="Festival, club, radio, etc." 
+                    className="bg-[#282828] border-[#3E3E3E]"
+                  />
+                </div>
+                
+                {/* Description */}
+                <div>
+                  <label className="text-sm text-[#B3B3B3] mb-1 block">Description</label>
+                  <textarea 
+                    placeholder="Describe the sound, tempo, instruments, mood, etc." 
+                    className="w-full h-20 bg-[#282828] border border-[#3E3E3E] rounded-md p-2 text-white placeholder:text-[#B3B3B3]"
+                  ></textarea>
+                </div>
+                
+                {/* Lyrics */}
+                <div>
+                  <label className="text-sm text-[#B3B3B3] mb-1 block">Any lyrics you remember?</label>
+                  <textarea 
+                    placeholder="Type any lyrics you remember hearing" 
+                    className="w-full h-20 bg-[#282828] border border-[#3E3E3E] rounded-md p-2 text-white placeholder:text-[#B3B3B3]"
+                  ></textarea>
+                </div>
+                
+                {/* Genre tags */}
+                <div>
+                  <label className="text-sm text-[#B3B3B3] mb-1 block">Genre Tags</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {["Techno", "House", "Ambient", "Experimental", "Vocal", "Melodic"].map(genre => (
+                      <Badge 
+                        key={genre} 
+                        className="bg-[#282828] text-[#B3B3B3] cursor-pointer hover:pink-gradient hover:text-white"
+                      >
+                        {genre}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Upload recording option */}
+                <div>
+                  <label className="text-sm text-[#B3B3B3] mb-1 block">Attach audio clip (optional)</label>
+                  <button className="w-full border border-dashed border-[#3E3E3E] py-4 rounded-md text-[#B3B3B3] text-sm">
+                    Click to upload recording or sound clip
+                  </button>
+                </div>
+                
+                {/* Submit button */}
+                <button 
+                  className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium"
+                  onClick={() => {
+                    toast({
+                      title: "Request Submitted",
+                      description: "Your song identification request has been posted!"
+                    });
+                  }}
+                >
+                  Submit Request
+                </button>
+              </div>
             </div>
             
             {/* Popular requests */}
