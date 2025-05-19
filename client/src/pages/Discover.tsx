@@ -24,6 +24,7 @@ export default function Discover() {
   const tabs = [
     { label: "For You", path: "/" },
     { label: "Discover", path: "/discover" },
+    { label: "Threads", path: "/threads" },
     { label: "What's That Song", path: "/whats-this-song" },
     { label: "Live Venues", path: "/venues" },
   ];
