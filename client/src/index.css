@@ -59,22 +59,22 @@
 }
 
 .pink-gradient {
-  background: linear-gradient(to right, #DA7CF3, #F868C8) !important;
+  background: linear-gradient(to right, #b388eb, #ff6fd8) !important;
   color: white !important;
 }
 
 .pink-gradient-hover:hover {
-  background: linear-gradient(to right, #C96EDA, #E760B9) !important;
+  background: linear-gradient(to right, #a579dc, #f060c9) !important;
 }
 
 .artist-tab-active {
-  background: linear-gradient(to right, #DA7CF3, #F868C8) !important;
+  background: linear-gradient(to right, #b388eb, #ff6fd8) !important;
   color: white !important;
 }
 
 .artist-badge {
-  background: linear-gradient(to right, #C1FF72, #8AE68A) !important;
-  color: black !important;
+  background: linear-gradient(to right, #c2f970, #ecffa1) !important;
+  color: #5b5b5b !important;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
