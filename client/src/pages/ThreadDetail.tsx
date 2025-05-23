@@ -389,7 +389,7 @@ export default function ThreadDetail() {
                               <span className="text-xs text-gray-500">
                                 {comment.createdAt ? formatRelativeTime(new Date(comment.createdAt)) : 'Now'}
                               </span>
-                              <button className="text-xs artist-tab-active px-2 py-1 rounded font-medium hover:opacity-80">
+                              <button className="text-xs font-medium hover:opacity-80" style={{background: 'linear-gradient(to right, #b388eb, #ff6fd8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'}}>
                                 reply
                               </button>
                               <button className="text-xs text-gray-500 hover:text-gray-400">
