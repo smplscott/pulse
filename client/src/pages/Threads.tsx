@@ -69,7 +69,30 @@ export default function Threads() {
       <Header />
       <TabNavigator tabs={tabs} />
       
-      <main className="px-4 py-4">
+      {/* Thread filters using the horizontal button style */}
+      <div className="px-4 py-3 bg-[#121212]">
+        <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
+          {filters.map((filter) => {
+            const isActive = selectedFilter === filter.id;
+            return (
+              <button
+                key={filter.id}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+                  isActive
+                    ? "bg-[#282828] text-white"
+                    : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
+                }`}
+                onClick={() => setSelectedFilter(filter.id)}
+              >
+                {filter.icon}
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      
+      <main className="px-4 pt-3 pb-4">
         <div className="flex items-center mb-6">
           <div className="flex-1 relative flex">
             <div className="flex-1 relative">
@@ -89,24 +112,6 @@ export default function Threads() {
           >
             <span className="text-white text-xl font-bold">+</span>
           </button>
-        </div>
-        
-        {/* Thread filters (horizontal scrollable buttons) */}
-        <div className="mb-6 overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
-          {filters.map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => setSelectedFilter(filter.id)}
-              className={`mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-flex items-center gap-2 ${
-                selectedFilter === filter.id 
-                  ? "pink-gradient text-white" 
-                  : "bg-[#282828] text-[#B3B3B3]"
-              }`}
-            >
-              {filter.icon}
-              {filter.label}
-            </button>
-          ))}
         </div>
 
         {/* Featured threads section */}
