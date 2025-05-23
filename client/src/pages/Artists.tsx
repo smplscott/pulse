@@ -202,7 +202,7 @@ export default function Artists() {
                         </div>
                         
                         {/* Right side actions with soft grey formatting */}
-                        <div className="flex items-center space-x-3 ml-2">
+                        <div className="flex items-center space-x-0.5 ml-1">
                           {/* Add/Plus button */}
                           <button 
                             className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"

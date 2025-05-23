@@ -114,7 +114,7 @@ export default function Playlists() {
                 </div>
                 
                 {/* Right side actions with soft grey formatting */}
-                <div className="flex items-center space-x-3 ml-2">
+                <div className="flex items-center space-x-0.5 ml-1">
                   {/* Add/Plus button */}
                   <button 
                     className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
@@ -168,7 +168,7 @@ export default function Playlists() {
                   )}
                   
                   {/* Overlay buttons with soft grey formatting */}
-                  <div className="absolute bottom-2 right-2 flex space-x-2">
+                  <div className="absolute bottom-2 right-2 flex space-x-0.5">
                     <button 
                       className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
                       onClick={(e) => {
