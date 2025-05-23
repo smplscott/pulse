@@ -213,6 +213,25 @@ export default function SongDetail() {
         </div>
       )}
       
+      {/* Chat input fixed at bottom */}
+      <div className="fixed bottom-20 left-0 right-0 border-t border-[#222222] bg-black px-4 py-3">
+        <form className="flex items-center space-x-3">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Add to the discussion..."
+              className="w-full bg-[#1a1a1a] border border-[#333] text-white placeholder-[#777] px-4 py-3 pr-12 rounded-full focus:outline-none focus:border-[#555]"
+            />
+          </div>
+          <button
+            type="submit"
+            className="pink-gradient text-white px-6 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Send
+          </button>
+        </form>
+      </div>
+      
       <BottomNav />
     </div>
   );
