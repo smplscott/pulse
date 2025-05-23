@@ -227,7 +227,7 @@ export default function ThreadDetail() {
           <>
             {/* Content-specific header for artist/venue/playlist/song threads */}
             {(isArtistThread || isVenueThread || isPlaylistThread || isSongThread) && (
-              <div className="py-4 border-b border-[#333333] bg-[#1A1A1A] -mx-4 px-4 mb-4">
+              <div className="relative py-4 border-b border-[#333333] bg-[#1A1A1A] -mx-4 px-4 mb-4">
                 <div className="flex items-center space-x-3">
                   {/* Image for the content */}
                   <div className="w-16 h-16 rounded-md overflow-hidden bg-[#282828] flex-shrink-0">
@@ -263,19 +263,19 @@ export default function ThreadDetail() {
                       )}
                     </div>
                   </div>
+                  
+                  {/* Artist badge - moved to top right for better spacing */}
+                  {isArtistThread && (
+                    <div className="self-start">
+                      <Badge
+                        variant="default"
+                        className="artist-badge text-xs px-2 py-0.5 rounded-sm"
+                      >
+                        Artist
+                      </Badge>
+                    </div>
+                  )}
                 </div>
-                
-                {/* Artist badge - moved to top right for better spacing */}
-                {isArtistThread && (
-                  <div className="absolute top-4 right-4">
-                    <Badge
-                      variant="default"
-                      className="artist-badge text-xs px-2 py-0.5 rounded-sm"
-                    >
-                      Artist
-                    </Badge>
-                  </div>
-                )}
                 
                 {/* Artist content type tabs - only shown for artist threads */}
                 {isArtistThread && (
@@ -430,9 +430,57 @@ export default function ThreadDetail() {
                   </div>
                 </>
               ) : comments && comments.length > 0 ? (
-                <div className="bg-[#121212] rounded-xl p-2 max-h-[calc(70vh-180px)] overflow-y-auto">
-                  {comments.map((comment) => (
-                    <CommentCard key={comment.id} comment={comment} />
+                <div className="space-y-1 max-h-[calc(70vh-180px)] overflow-y-auto">
+                  {comments.map((comment, index) => (
+                    <div key={comment.id} className="bg-[#0a0a0a] border-l-2 border-[#333] px-3 py-3 hover:bg-[#111]">
+                      <div className="flex items-start space-x-3">
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarFallback className="bg-[#444] text-white text-xs">
+                            U
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-sm text-white truncate">Anonymous</span>
+                          </div>
+                          <p className="text-sm text-gray-200 mt-1 leading-tight break-words">{comment.content}</p>
+                          
+                          {/* Comment actions row - Real Sports style */}
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-center space-x-4">
+                              <span className="text-xs text-gray-500">
+                                {comment.createdAt ? formatRelativeTime(new Date(comment.createdAt)) : 'Now'}
+                              </span>
+                              <button className="text-xs text-orange-500 hover:text-orange-400 font-medium">
+                                reply
+                              </button>
+                              <button className="text-xs text-gray-500 hover:text-gray-400">
+                                •••
+                              </button>
+                              <span className="text-xs text-gray-500">General</span>
+                            </div>
+                            
+                            {/* Upvote/Downvote section */}
+                            <div className="flex items-center space-x-2">
+                              <button 
+                                className="flex items-center space-x-1 text-xs text-gray-400 hover:text-orange-500 transition-colors"
+                                onClick={() => upvoteComment(comment.id)}
+                              >
+                                <svg className="w-3 h-3 rotate-180" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-orange-500 font-medium">{comment.upvotes || 0}</span>
+                              </button>
+                              <button className="flex items-center text-xs text-gray-400 hover:text-gray-200 transition-colors">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : (
