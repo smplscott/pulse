@@ -262,18 +262,20 @@ export default function ThreadDetail() {
                         <span>{songContent?.artist || 'Song'}</span>
                       )}
                     </div>
-                    <div className="mt-2">
-                      <Badge
-                        variant="default"
-                        className={`text-xs px-2 py-0.5 rounded-sm ${isArtistThread ? 'artist-badge' : ''}`}
-                      >
-                        {isArtistThread ? 'Artist' : 
-                         isVenueThread ? 'Venue' : 
-                         isPlaylistThread ? 'Playlist' : 'Song'}
-                      </Badge>
-                    </div>
                   </div>
                 </div>
+                
+                {/* Artist badge - moved to top right for better spacing */}
+                {isArtistThread && (
+                  <div className="absolute top-4 right-4">
+                    <Badge
+                      variant="default"
+                      className="artist-badge text-xs px-2 py-0.5 rounded-sm"
+                    >
+                      Artist
+                    </Badge>
+                  </div>
+                )}
                 
                 {/* Artist content type tabs - only shown for artist threads */}
                 {isArtistThread && (
