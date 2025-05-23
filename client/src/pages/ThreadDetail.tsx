@@ -80,7 +80,43 @@ export default function ThreadDetail() {
   });
 
   // Mock comments for artist pages when no thread exists
-  const mockComments = contentType ? [] : undefined;
+  const mockComments = contentType ? [
+    {
+      id: 1,
+      content: "Just discovered this artist through their latest EP - the production quality is insane! 🔥",
+      createdAt: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+      upvotes: 12,
+      userId: 2
+    },
+    {
+      id: 2,
+      content: "Saw them live last month at Watergate. Absolutely incredible set, the crowd was going wild!",
+      createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+      upvotes: 8,
+      userId: 3
+    },
+    {
+      id: 3,
+      content: "Anyone know if they're touring this year? Would love to catch them in NYC",
+      createdAt: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
+      upvotes: 3,
+      userId: 4
+    },
+    {
+      id: 4,
+      content: "That collab with Âme is pure perfection. Been on repeat all week!",
+      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+      upvotes: 15,
+      userId: 5
+    },
+    {
+      id: 5,
+      content: "New to their music - where should I start? Looking for their best tracks",
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      upvotes: 5,
+      userId: 6
+    }
+  ] : undefined;
 
   const { data: recommendations, isLoading: isLoadingRecommendations } = useQuery<SongRecommendation[]>({
     queryKey: [`/api/threads/${threadId}/recommendations`],
@@ -328,7 +364,7 @@ export default function ThreadDetail() {
                 </div>
               ) : (comments || mockComments) && (comments || mockComments).length > 0 ? (
                 <div className="space-y-1 max-h-[calc(70vh-180px)] overflow-y-auto">
-                  {comments.map((comment, index) => (
+                  {(comments || mockComments).map((comment, index) => (
                     <div key={comment.id} className="bg-[#0a0a0a] border-l-2 border-[#333] px-3 py-3 hover:bg-[#111]">
                       <div className="flex items-start space-x-3">
                         <Avatar className="h-8 w-8 flex-shrink-0">
@@ -338,7 +374,12 @@ export default function ThreadDetail() {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium text-sm text-white truncate">Anonymous</span>
+                            <span className="font-medium text-sm text-white truncate">
+                              {contentType ? 
+                                ['techno_lover', 'berlin_vibes', 'warehouse_kid', 'beat_seeker', 'groove_master'][index % 5] : 
+                                'Anonymous'
+                              }
+                            </span>
                           </div>
                           <p className="text-sm text-gray-200 mt-1 leading-tight break-words">{comment.content}</p>
                           
