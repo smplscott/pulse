@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Artist } from "@shared/schema";
-import { Heart, MessageCircle } from "lucide-react";
+import { Plus, Smile, MessageCircle } from "lucide-react";
 
 type ArtistRowProps = {
   artist: Artist;
@@ -36,24 +36,34 @@ export default function ArtistRow({ artist, onClick }: ArtistRowProps) {
           </div>
           <div className="flex gap-2">
             <button 
-              className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center"
+              className="w-6 h-6 rounded-full bg-[#2A2A2A] flex items-center justify-center hover:bg-[#3A3A3A] transition-colors"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // Like artist functionality would go here
+                // Save artist functionality would go here
               }}
             >
-              <Heart className="w-5 h-5 text-[#E5E5E5]" />
+              <Plus size={12} className="text-[#B3B3B3]" />
             </button>
             <button 
-              className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center"
+              className="w-6 h-6 rounded-full bg-[#2A2A2A] flex items-center justify-center hover:bg-[#3A3A3A] transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // React to artist functionality would go here
+              }}
+            >
+              <Smile size={12} className="text-[#B3B3B3]" />
+            </button>
+            <button 
+              className="w-6 h-6 rounded-full bg-[#2A2A2A] flex items-center justify-center hover:bg-[#3A3A3A] transition-colors"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 window.location.href = `/thread/artist_${artist.id}`;
               }}
             >
-              <MessageCircle className="w-5 h-5 text-[#E5E5E5]" />
+              <MessageCircle size={12} className="text-[#B3B3B3]" />
             </button>
           </div>
         </div>

@@ -148,17 +148,19 @@ export default function Threads() {
                       <span>{formatRelativeTime(new Date(thread.createdAt || ''))}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="flex items-center justify-center w-6 h-6 rounded-full bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-colors">
+                      <button className="w-6 h-6 rounded-full bg-[#2A2A2A] flex items-center justify-center hover:bg-[#3A3A3A] transition-colors">
                         <Plus size={12} className="text-[#B3B3B3]" />
                       </button>
-                      <button className="flex items-center justify-center w-6 h-6 rounded-full bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-colors">
+                      <button className="w-6 h-6 rounded-full bg-[#2A2A2A] flex items-center justify-center hover:bg-[#3A3A3A] transition-colors">
                         <Smile size={12} className="text-[#B3B3B3]" />
                       </button>
-                      <div className="flex items-center gap-1 ml-1">
-                        <MessageCircle className="w-3.5 h-3.5" />
+                      <button className="w-6 h-6 rounded-full bg-[#2A2A2A] flex items-center justify-center hover:bg-[#3A3A3A] transition-colors">
+                        <MessageCircle size={12} className="text-[#B3B3B3]" />
+                      </button>
+                      <div className="flex items-center gap-1 ml-1 text-[#808080]">
                         <span>{thread.commentsCount || 0}</span>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 text-[#808080]">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M7 11L12 6L17 11M12 18V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
