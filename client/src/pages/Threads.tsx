@@ -68,7 +68,6 @@ export default function Threads() {
     <div className="min-h-screen pb-32">
       <Header />
       <TabNavigator tabs={tabs} />
-      
       {/* Thread filters using the horizontal button style */}
       <div className="px-4 py-2 bg-[#121212]">
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
