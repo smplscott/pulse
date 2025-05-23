@@ -66,16 +66,21 @@ export default function ThreadDetail() {
 
   const { data: thread, isLoading: isLoadingThread } = useQuery<Thread>({
     queryKey: [`/api/threads/${threadId}`],
+    enabled: !contentType, // Only fetch thread data if this is not a content-specific page
   });
 
   const { data: user, isLoading: isLoadingUser } = useQuery<User>({
-    queryKey: [`/api/users/${thread?.userId}`],
-    enabled: !!thread?.userId,
+    queryKey: [`/api/users/${thread?.userId || 1}`], // Use user 1 as default for content pages
+    enabled: !!thread?.userId || !!contentType,
   });
 
   const { data: comments, isLoading: isLoadingComments } = useQuery<Comment[]>({
     queryKey: [`/api/threads/${threadId}/comments`],
+    enabled: !contentType, // For content pages, we'll create mock comments or load differently
   });
+
+  // Mock comments for artist pages when no thread exists
+  const mockComments = contentType ? [] : undefined;
 
   const { data: recommendations, isLoading: isLoadingRecommendations } = useQuery<SongRecommendation[]>({
     queryKey: [`/api/threads/${threadId}/recommendations`],
@@ -213,7 +218,7 @@ export default function ThreadDetail() {
               </div>
             </div>
           </>
-        ) : thread && user ? (
+        ) : (thread && user) || (contentType && user) ? (
           <>
             {/* Content-specific header for artist/venue/playlist/song threads */}
             {(isArtistThread || isVenueThread || isPlaylistThread || isSongThread) && (
@@ -295,7 +300,7 @@ export default function ThreadDetail() {
                 <div className="flex items-center space-x-3">
                   <h2 className="text-lg font-semibold text-white">Discussion</h2>
                   <span className="text-sm text-[#707070]">
-                    {comments && comments.length > 0 ? `${comments.length} comments` : 'Join the conversation'}
+                    {(comments || mockComments) && (comments || mockComments).length > 0 ? `${(comments || mockComments).length} comments` : 'Join the conversation'}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -321,7 +326,7 @@ export default function ThreadDetail() {
                     </div>
                   ))}
                 </div>
-              ) : comments && comments.length > 0 ? (
+              ) : (comments || mockComments) && (comments || mockComments).length > 0 ? (
                 <div className="space-y-1 max-h-[calc(70vh-180px)] overflow-y-auto">
                   {comments.map((comment, index) => (
                     <div key={comment.id} className="bg-[#0a0a0a] border-l-2 border-[#333] px-3 py-3 hover:bg-[#111]">
@@ -396,7 +401,7 @@ export default function ThreadDetail() {
       </main>
       
       {/* Chat input fixed at bottom */}
-      {thread && (
+      {((thread && user) || (contentType && user)) && (
         <div className="fixed bottom-0 left-0 right-0 border-t border-[#222222] bg-black px-4 py-3">
           <form onSubmit={handleCommentSubmit} className="flex items-center space-x-3">
             <div className="relative flex-1">
