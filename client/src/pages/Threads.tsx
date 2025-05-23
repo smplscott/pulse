@@ -92,7 +92,7 @@ export default function Threads() {
       </div>
       
       <main className="px-4 pt-2 pb-4">
-        <div className="flex items-center mb-6">
+        <div className="flex items-center mb-4">
           <div className="flex-1 relative flex">
             <div className="flex-1 relative">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
