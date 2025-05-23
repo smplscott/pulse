@@ -443,26 +443,26 @@ export default function ThreadDetail() {
       
       {/* Chat input fixed at bottom */}
       {((thread && user) || (contentType && user)) && (
-        <div className="fixed bottom-0 left-0 right-0 border-t border-[#222222] bg-black px-4 py-3">
-          <form onSubmit={handleCommentSubmit} className="flex items-center space-x-3">
+        <div className="fixed bottom-[72px] left-0 right-0 border-t border-[#222222] bg-black px-3 py-2 z-40">
+          <form onSubmit={handleCommentSubmit} className="flex items-center space-x-2">
             <div className="relative flex-1">
               <input
                 type="text"
                 placeholder="Message the group..."
-                className="w-full bg-[#121212] border border-[#333333] rounded-full py-2.5 pl-4 pr-10 outline-none text-white placeholder:text-[#707070]"
+                className="w-full bg-[#121212] border border-[#333333] rounded-full py-2 pl-3 pr-8 outline-none text-white placeholder:text-[#707070] text-sm"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
               />
             </div>
             <button 
               type="submit"
-              className={`w-10 h-10 flex items-center justify-center artist-tab-active rounded-full ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-8 h-8 flex items-center justify-center pink-gradient rounded-full ${!commentText.trim() || addCommentMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={!commentText.trim() || addCommentMutation.isPending}
             >
               {addCommentMutation.isPending ? (
-                <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
+                <div className="h-4 w-4 border-2 border-t-transparent border-white rounded-full animate-spin" />
               ) : (
-                <Send className="h-5 w-5 text-white" />
+                <Send className="h-4 w-4 text-white" />
               )}
             </button>
           </form>
