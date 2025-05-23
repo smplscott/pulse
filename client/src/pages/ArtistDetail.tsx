@@ -272,7 +272,7 @@ export default function ArtistDetail() {
       )}
       
       {/* Chat input fixed at bottom */}
-      <div className="fixed bottom-20 left-0 right-0 border-t border-[#222222] bg-black px-4 py-3">
+      <div className="fixed bottom-[80px] left-0 right-0 border-t border-[#222222] bg-black px-4 py-3 z-40">
         <form className="flex items-center space-x-3">
           <div className="relative flex-1">
             <input
