@@ -389,7 +389,7 @@ export default function ThreadDetail() {
                               <span className="text-xs text-gray-500">
                                 {comment.createdAt ? formatRelativeTime(new Date(comment.createdAt)) : 'Now'}
                               </span>
-                              <button className="text-xs text-orange-500 hover:text-orange-400 font-medium">
+                              <button className="text-xs artist-tab-active px-2 py-1 rounded font-medium hover:opacity-80">
                                 reply
                               </button>
                               <button className="text-xs text-gray-500 hover:text-gray-400">
@@ -407,7 +407,7 @@ export default function ThreadDetail() {
                                 <svg className="w-3 h-3 rotate-180" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                                 </svg>
-                                <span className="text-orange-500 font-medium">{comment.upvotes || 0}</span>
+                                <span className="text-orange-400 font-bold">{comment.upvotes || 0}</span>
                               </button>
                               <button className="flex items-center text-xs text-gray-400 hover:text-gray-200 transition-colors">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
