@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus } from "lucide-react";
+import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -132,30 +132,30 @@ export default function Songs() {
                   </p>
                 </div>
                 
-                {/* Right side actions with new icon order: + icon, 😮 reaction, comment */}
+                {/* Right side actions with soft grey formatting */}
                 <div className="flex items-center space-x-3 ml-2">
                   {/* Add/Plus button */}
                   <button 
-                    className="artist-tab-active px-3 py-1.5 rounded-lg flex items-center justify-center transition hover:opacity-80"
+                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       toast({ title: "Added", description: `Added "${song.title}" to your collection` });
                     }}
                   >
-                    <Plus className="h-4 w-4 text-white" />
+                    <Plus className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                   </button>
                   
-                  {/* Reaction button with emoji */}
+                  {/* Universal reaction button */}
                   <button 
-                    className="text-lg px-2 py-1 hover:bg-[#3E3E3E] rounded transition"
+                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       handleReaction(e, song.id, song.title);
                     }}
                   >
-                    😮
+                    <Smile className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                   </button>
                   
                   {/* Comment button */}
@@ -197,10 +197,10 @@ export default function Songs() {
                     </div>
                   )}
                   
-                  {/* Overlay buttons with new order: + icon, 😮 reaction, comment */}
+                  {/* Overlay buttons with soft grey formatting */}
                   <div className="absolute bottom-2 right-2 flex space-x-2">
                     <button 
-                      className="w-8 h-8 rounded-full artist-tab-active backdrop-blur-sm flex items-center justify-center hover:opacity-80"
+                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -210,14 +210,14 @@ export default function Songs() {
                       <Plus className="h-4 w-4 text-white" />
                     </button>
                     <button 
-                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828] text-sm"
+                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         handleReaction(e, song.id, song.title);
                       }}
                     >
-                      😮
+                      <Smile className="h-4 w-4 text-white" />
                     </button>
                     <button 
                       className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
