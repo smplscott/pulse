@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Song, Artist } from "@shared/schema";
@@ -13,39 +14,44 @@ export default function SongDetail() {
   const params = useParams<{ id: string }>();
   const songId = parseInt(params.id);
   const { toast } = useToast();
-  const { upvoteSong } = useMusic();
+  const { upvoteSong, addToFavorites, addToPlaylist } = useMusic();
 
   const { data: song, isLoading: isLoadingSong } = useQuery<Song>({
     queryKey: [`/api/songs/${songId}`],
   });
 
-  const { data: artist, isLoading: isLoadingArtist } = useQuery<Artist>({
+  const { data: artist } = useQuery<Artist>({
     queryKey: [`/api/artists/name/${song?.artist}`],
     enabled: !!song?.artist,
   });
 
-  // Handler for upvoting the song
+  // Handler for upvoting song
   const handleUpvoteSong = async () => {
-    if (song) {
-      const success = await upvoteSong(song.id);
-      if (success) {
-        toast({
-          title: "Upvoted!",
-          description: `You upvoted ${song.title} by ${song.artist}`,
-        });
-      }
+    if (!song) return;
+    
+    const success = await upvoteSong(song.id);
+    if (success) {
+      toast({
+        title: "Song Upvoted",
+        description: `You upvoted "${song.title}"`,
+      });
     }
   };
 
-  // Handler for adding song to favorites
-  const handleAddToFavorites = () => {
-    toast({
-      title: "Added to Favorites",
-      description: `${song?.title} has been added to your favorites`,
-    });
+  // Handler for adding to favorites
+  const handleAddToFavorites = async () => {
+    if (!song) return;
+    
+    const success = await addToFavorites(1, song.id); // Using user ID 1 for demo
+    if (success) {
+      toast({
+        title: "Added to Favorites",
+        description: `"${song.title}" added to your favorites`,
+      });
+    }
   };
 
-  // Handler for adding song to playlist
+  // Handler for adding to playlist
   const handleAddToPlaylist = () => {
     toast({
       title: "Add to Playlist",
@@ -75,140 +81,126 @@ export default function SongDetail() {
           <Skeleton className="h-64 w-full mb-4" />
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-4 w-32 mb-4" />
-          <div className="flex space-x-4 mb-6">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <Skeleton className="h-10 w-10 rounded-full" />
-          </div>
         </div>
       ) : song ? (
         <>
-          <div className="pt-4 px-4">
+          {/* Header with back button */}
+          <div className="pt-4 px-4 pb-2">
             <Link href="/">
               <div className="flex items-center mb-4 cursor-pointer">
                 <ChevronLeft className="h-6 w-6 mr-2" />
-                <span className="text-lg font-medium">Song</span>
+                <span className="text-lg font-medium">Song Thread</span>
+                <div className="ml-2 text-xs text-[#666]">•••</div>
               </div>
             </Link>
-            
-            <div className="relative aspect-square max-w-xs mx-auto rounded-lg overflow-hidden mb-6 shadow-xl">
-              {song.albumArt ? (
-                <img
-                  src={song.albumArt}
-                  alt={song.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-[#282828] flex items-center justify-center">
-                  <Music2 className="h-16 w-16 text-[#B3B3B3]" />
-                </div>
-              )}
-            </div>
-            
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold mb-1">{song.title}</h1>
-              <Link href={`/artist/${artist?.id || 'unknown'}`}>
-                <p className="text-[#B3B3B3] hover:underline cursor-pointer">
-                  {song.artist}
-                  {song.features && song.features.length > 0 && (
-                    <span> feat. {song.features.join(", ")}</span>
-                  )}
-                </p>
-              </Link>
-              <div className="flex justify-center mt-2 space-x-2">
-                {song.genre && (
-                  <Badge variant="genre" className="text-xs">
-                    {song.genre}
-                  </Badge>
+          </div>
+
+          {/* Song info header */}
+          <div className="px-4 pb-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                {song.albumArt ? (
+                  <img
+                    src={song.albumArt}
+                    alt={song.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#282828] flex items-center justify-center">
+                    <Music2 className="h-8 w-8 text-[#B3B3B3]" />
+                  </div>
                 )}
-                {song.subGenres && song.subGenres.map((subGenre, index) => (
-                  <Badge key={index} variant="genre" className="text-xs">
-                    {subGenre}
-                  </Badge>
-                ))}
               </div>
-            </div>
-            
-            <div className="flex items-center mb-8 space-x-4 justify-center">
-              <button 
-                className="pink-gradient pink-gradient-hover text-white py-2 px-6 rounded-full text-sm font-medium flex items-center justify-center"
-                onClick={handleUpvoteSong}
-              >
-                <Heart className="h-4 w-4 mr-2" />
-                Upvote
-              </button>
-              <button 
-                className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center"
-                onClick={handleAddToFavorites}
-              >
-                <Heart className="h-5 w-5 text-white" />
-              </button>
-              <button 
-                className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center"
-                onClick={handleAddToPlaylist}
-              >
-                <PlusCircle className="h-5 w-5 text-white" />
-              </button>
-              <button 
-                className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center"
-                onClick={handleShare}
-              >
-                <Share2 className="h-5 w-5 text-white" />
-              </button>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-bold truncate">{song.title}</h1>
+                <p className="text-[#B3B3B3] text-sm truncate">{song.artist}</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  {song.genre && (
+                    <span className="text-xs px-2 py-0.5 bg-[#1a1a1a] rounded text-[#B3B3B3]">
+                      {song.genre}
+                    </span>
+                  )}
+                  <span className="pink-gradient text-white px-2 py-0.5 rounded text-xs font-medium">
+                    Song
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-          
-          {song.story && (
-            <div className="px-4 mb-6">
-              <h2 className="text-lg font-semibold mb-2">About This Track</h2>
-              <p className="text-sm text-[#B3B3B3]">{song.story}</p>
-            </div>
-          )}
-          
-          {song.sample && (
-            <div className="px-4 mb-6">
-              <h2 className="text-lg font-semibold mb-2">Samples</h2>
-              <div className="bg-[#181818] p-3 rounded-lg">
-                <p className="text-sm">{song.sample}</p>
+
+          {/* Discussion section header */}
+          <div className="px-4 pb-3 border-b border-[#222222]">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Discussion</h2>
+              <div className="flex items-center space-x-4 text-sm text-[#B3B3B3]">
+                <span>5 comments</span>
+                <span>Sort by votes</span>
               </div>
-            </div>
-          )}
-          
-          {song.streamingLinks && song.streamingLinks.length > 0 && (
-            <div className="px-4 mt-6">
-              <h2 className="text-lg font-semibold mb-2">Listen On</h2>
-              <div className="flex flex-wrap gap-3">
-                {song.streamingLinks.map((link, index) => (
-                  <a 
-                    key={index} 
-                    href={link.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="bg-[#282828] p-3 rounded-lg flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                  >
-                    <span className="text-sm">{link.platform}</span>
-                    <LinkIcon className="h-4 w-4 ml-2" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <div className="px-4 mt-8 mb-4">
-            <h2 className="text-lg font-semibold mb-4">Similar Tracks</h2>
-            <div className="text-center py-4 bg-[#181818] rounded-lg">
-              <p className="text-[#B3B3B3]">Coming soon...</p>
             </div>
           </div>
+
+          {/* Discussion content */}
+          <main className="px-4 py-4 space-y-4 mb-20">
+            {/* Sample discussion comments - matching Artist Thread style */}
+            <div className="space-y-4">
+              {/* Comment 1 */}
+              <div className="flex space-x-3">
+                <div className="w-10 h-10 bg-[#333] rounded-full flex items-center justify-center text-sm font-medium">
+                  U
+                </div>
+                <div className="flex-1">
+                  <div className="bg-[#1a1a1a] rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="font-medium text-sm">music_lover</span>
+                      <span className="text-xs text-[#666]">2m ago</span>
+                    </div>
+                    <p className="text-sm text-[#e0e0e0]">
+                      This track is absolutely incredible! The production quality is insane 🔥
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-4 mt-2 text-xs text-[#888]">
+                    <button className="pink-gradient-text font-bold hover:underline">reply</button>
+                    <span>•••</span>
+                    <span>General</span>
+                    <div className="flex items-center space-x-1">
+                      <span>↑</span>
+                      <span className="pink-gradient-text font-bold">12</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comment 2 */}
+              <div className="flex space-x-3">
+                <div className="w-10 h-10 bg-[#333] rounded-full flex items-center justify-center text-sm font-medium">
+                  U
+                </div>
+                <div className="flex-1">
+                  <div className="bg-[#1a1a1a] rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="font-medium text-sm">beat_collector</span>
+                      <span className="text-xs text-[#666]">15m ago</span>
+                    </div>
+                    <p className="text-sm text-[#e0e0e0]">
+                      Heard this at Watergate last month. Absolutely incredible set, the crowd was going wild!
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-4 mt-2 text-xs text-[#888]">
+                    <button className="pink-gradient-text font-bold hover:underline">reply</button>
+                    <span>•••</span>
+                    <span>General</span>
+                    <div className="flex items-center space-x-1">
+                      <span>↑</span>
+                      <span className="pink-gradient-text font-bold">8</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
         </>
       ) : (
         <div className="pt-4 px-4 text-center">
-          <Link href="/">
-            <div className="flex items-center mb-4 cursor-pointer">
-              <ChevronLeft className="h-6 w-6 mr-2" />
-              <span className="text-lg font-medium">Back</span>
-            </div>
-          </Link>
           <p className="text-[#B3B3B3]">Song not found</p>
         </div>
       )}
