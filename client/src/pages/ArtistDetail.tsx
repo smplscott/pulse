@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Artist, Song } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, PlayCircle, Link as LinkIcon, Share2, ArrowUpCircle, Music2, ListMusic, Calendar, PlayIcon } from "lucide-react";
+import { ChevronLeft, PlayCircle, Link as LinkIcon, Share2, ArrowUpCircle, Music2, ListMusic, Calendar, PlayIcon, Send } from "lucide-react";
 import { useMusic } from "@/hooks/useMusic";
 
 export default function ArtistDetail() {
@@ -277,15 +277,15 @@ export default function ArtistDetail() {
           <div className="relative flex-1">
             <input
               type="text"
-              placeholder="Add to the discussion..."
-              className="w-full bg-[#1a1a1a] border border-[#333] text-white placeholder-[#777] px-4 py-3 pr-12 rounded-full focus:outline-none focus:border-[#555]"
+              placeholder="Message the group..."
+              className="w-full bg-[#121212] border border-[#333333] rounded-full py-2.5 pl-4 pr-10 outline-none text-white placeholder:text-[#707070]"
             />
           </div>
-          <button
+          <button 
             type="submit"
-            className="pink-gradient text-white px-6 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+            className="w-10 h-10 flex items-center justify-center pink-gradient rounded-full"
           >
-            Send
+            <Send className="h-5 w-5 text-white" />
           </button>
         </form>
       </div>
