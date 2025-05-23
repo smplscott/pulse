@@ -167,23 +167,23 @@ export default function Playlists() {
                     </div>
                   )}
                   
-                  {/* Overlay buttons */}
+                  {/* Overlay buttons with new order: + icon, 😮 reaction, comment */}
                   <div className="absolute bottom-2 right-2 flex space-x-2">
                     <button 
-                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                      className="w-8 h-8 rounded-full artist-tab-active backdrop-blur-sm flex items-center justify-center hover:opacity-80"
                       onClick={(e) => {
-                        e.stopPropagation();
                         e.preventDefault();
-                        toast({ title: "Opening", description: `Opening ${playlist.title} on streaming platform` });
+                        e.stopPropagation();
+                        toast({ title: "Added", description: `Added "${playlist.title}" to your collection` });
                       }}
                     >
-                      <ExternalLink className="h-4 w-4 text-white" />
+                      <Plus className="h-4 w-4 text-white" />
                     </button>
                     <button 
-                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828] text-sm"
                       onClick={(e) => handleReaction(e, playlist.id, playlist.title)}
                     >
-                      <Heart className="h-4 w-4 text-white" />
+                      😮
                     </button>
                     <button 
                       className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"

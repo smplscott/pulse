@@ -6,7 +6,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Artist, Song } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
-import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon, Heart, MessageCircle, SlidersHorizontal, List } from "lucide-react";
+import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon, Heart, MessageCircle, SlidersHorizontal, List, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -201,28 +201,38 @@ export default function Artists() {
                           </p>
                         </div>
                         
-                        {/* Right side actions: reactions, comments */}
+                        {/* Right side actions with new icon order: + icon, 😮 reaction, comment */}
                         <div className="flex items-center space-x-3 ml-2">
-                          
-                          {/* Reaction button */}
+                          {/* Add/Plus button */}
                           <button 
-                            className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                            className="artist-tab-active px-3 py-1.5 rounded-lg flex items-center justify-center transition hover:opacity-80"
                             onClick={(e) => {
-                              e.preventDefault(); // Prevent navigation
-                              e.stopPropagation(); // Prevent row click
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toast({ title: "Following", description: `Now following ${artist.name}` });
+                            }}
+                          >
+                            <Plus className="h-4 w-4 text-white" />
+                          </button>
+                          
+                          {/* Reaction button with emoji */}
+                          <button 
+                            className="text-lg px-2 py-1 hover:bg-[#3E3E3E] rounded transition"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
                               handleReaction(e, artist.id, artist.name);
                             }}
                           >
-                            <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#5271ff]" />
+                            😮
                           </button>
                           
                           {/* Comment button */}
                           <button 
                             className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
                             onClick={(e) => {
-                              e.preventDefault(); // Stop navigation
-                              e.stopPropagation(); // Stop row click
-                              // Navigate directly to thread page
+                              e.preventDefault();
+                              e.stopPropagation();
                               window.location.href = `/thread/artist_${artist.id}`;
                             }}
                           >
