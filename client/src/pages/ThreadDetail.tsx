@@ -4,8 +4,6 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { Thread, User, Comment, SongRecommendation, Song, Artist, Venue, Playlist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -23,6 +21,7 @@ export default function ThreadDetail() {
   const { toast } = useToast();
   const { upvoteSong } = useMusic();
   const [commentText, setCommentText] = useState("");
+  const [artistContentTab, setArtistContentTab] = useState("singles");
 
   // Handle different content types in thread ID format (e.g., "artist_1", "venue_2")
   const threadIdParam = params.id;
@@ -49,153 +48,144 @@ export default function ThreadDetail() {
     queryKey: [`/api/artists/${contentId}`],
     enabled: !!contentId && contentType === 'artist',
   });
-  
+
   const { data: venueContent } = useQuery<Venue>({
     queryKey: [`/api/venues/${contentId}`],
     enabled: !!contentId && contentType === 'venue',
   });
-  
+
   const { data: playlistContent } = useQuery<Playlist>({
     queryKey: [`/api/playlists/${contentId}`],
     enabled: !!contentId && contentType === 'playlist',
   });
-  
+
   const { data: songContent } = useQuery<Song>({
     queryKey: [`/api/songs/${contentId}`],
     enabled: !!contentId && contentType === 'song',
   });
 
-  // Determine content-specific thread or regular thread
   const { data: thread, isLoading: isLoadingThread } = useQuery<Thread>({
     queryKey: [`/api/threads/${threadId}`],
   });
 
   const { data: user, isLoading: isLoadingUser } = useQuery<User>({
-    queryKey: [`/api/users/${thread?.userId || 1}`],
-    enabled: !!thread?.userId || true,
+    queryKey: [`/api/users/${thread?.userId}`],
+    enabled: !!thread?.userId,
   });
 
   const { data: comments, isLoading: isLoadingComments } = useQuery<Comment[]>({
     queryKey: [`/api/threads/${threadId}/comments`],
-    enabled: !!threadId,
   });
 
   const { data: recommendations, isLoading: isLoadingRecommendations } = useQuery<SongRecommendation[]>({
     queryKey: [`/api/threads/${threadId}/recommendations`],
-    enabled: !!threadId,
   });
 
-  // Mutation for upvoting a thread
-  const upvoteThreadMutation = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/threads/${threadId}/upvote`, undefined),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/threads/${threadId}`] });
-      toast({
-        description: "Thread has been upvoted",
-      });
-    },
-    onError: () => {
-      toast({
-        description: "Failed to upvote thread",
-        variant: "destructive",
-      });
-    },
-  });
+  // Content type checks
+  const isArtistThread = contentType === 'artist';
+  const isVenueThread = contentType === 'venue';
+  const isPlaylistThread = contentType === 'playlist';
+  const isSongThread = contentType === 'song';
+  const isSongRequest = thread?.type === 'song_request';
 
-  // Mutation for adding a comment
-  const addCommentMutation = useMutation({
-    mutationFn: (content: string) => 
-      apiRequest("POST", "/api/comments", { threadId, userId, content }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/threads/${threadId}/comments`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/threads/${threadId}`] });
-      setCommentText("");
-      toast({
-        description: "Your comment has been posted",
-      });
-    },
-    onError: () => {
-      toast({
-        description: "Failed to post comment",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Handle comment submission
-  const handleCommentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (commentText.trim()) {
-      addCommentMutation.mutate(commentText);
-    }
-  };
-
-  // Handle upvote/like
-  const handleUpvote = () => {
-    upvoteThreadMutation.mutate();
-  };
-
-  // Handle share
-  const handleShare = () => {
-    // In a real app, this would use the Web Share API or similar
-    toast({
-      description: "Thread link copied to clipboard",
-    });
-  };
-
-  // Content-specific flags
-  const isSongRequest = thread?.type === "song_request";
-  const isSolved = thread?.status === "solved";
-  const threadViewCount = thread?.upvotes ? thread.upvotes * 5 : 0; // Simulated view count
-
-  // Determine if we're showing content-specific thread
-  const isArtistThread = contentType === 'artist' && !!artistContent;
-  const isVenueThread = contentType === 'venue' && !!venueContent;
-  const isPlaylistThread = contentType === 'playlist' && !!playlistContent;
-  const isSongThread = contentType === 'song' && !!songContent;
-  
-  // Artist content subfilter tabs (for Artist threads)
-  const [artistContentTab, setArtistContentTab] = useState("singles");
-  
+  // Artist content tabs
   const artistContentTabs = [
     { id: "singles", label: "Singles & EPs" },
     { id: "albums", label: "Albums" },
     { id: "live", label: "Live Performances" },
-    { id: "features", label: "Featured On" }
+    { id: "featured", label: "Featured On" },
   ];
-  
-  // Helper to get the correct thread title based on content type
+
   const getContentTitle = () => {
-    if (isArtistThread) return artistContent!.name;
-    if (isVenueThread) return venueContent!.name;
-    if (isPlaylistThread) return playlistContent!.title;
-    if (isSongThread) return songContent!.title;
-    return thread?.title || "Thread";
-  }
-  
-  // Helper to get back link based on content type  
-  const getBackLink = () => {
-    if (isArtistThread) return "/artists";
-    if (isVenueThread) return "/venues";
-    if (isPlaylistThread) return "/playlists";
-    if (isSongThread) return "/songs";
-    if (isSongRequest) return "/whats-this-song";
-    return "/";
-  }
+    if (isArtistThread && artistContent) return artistContent.name;
+    if (isVenueThread && venueContent) return venueContent.name;
+    if (isPlaylistThread && playlistContent) return playlistContent.title;
+    if (isSongThread && songContent) return songContent.title;
+    return thread?.title || 'Discussion';
+  };
+
+  // Add comment mutation
+  const addCommentMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const result = await apiRequest(`/api/comments`, {
+        method: 'POST',
+        body: JSON.stringify({
+          content,
+          threadId: threadId,
+          userId: userId,
+        }),
+      });
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/threads/${threadId}/comments`] });
+      setCommentText("");
+      toast({
+        title: "Comment added!",
+        description: "Your comment has been posted.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add comment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Upvote comment mutation
+  const upvoteCommentMutation = useMutation({
+    mutationFn: async (commentId: number) => {
+      const result = await apiRequest(`/api/comments/${commentId}/upvote`, {
+        method: 'POST',
+      });
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/threads/${threadId}/comments`] });
+      toast({
+        title: "Comment upvoted!",
+        description: "Your vote has been recorded.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to upvote comment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (commentText.trim()) {
+      addCommentMutation.mutate(commentText.trim());
+    }
+  };
+
+  const upvoteComment = async (commentId: number) => {
+    try {
+      await upvoteCommentMutation.mutateAsync(commentId);
+    } catch (error) {
+      console.error('Failed to upvote comment:', error);
+    }
+  };
 
   return (
-    <div className="min-h-screen pb-32 bg-black">
-      <header className="border-b border-[#222222] sticky top-0 z-10 bg-black">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link href={getBackLink()}>
-            <div className="flex items-center cursor-pointer">
-              <ChevronLeft className="h-5 w-5 mr-2" />
-            </div>
+    <div className="min-h-screen bg-black text-white">
+      <header className="flex items-center justify-between p-4 border-b border-[#222222]">
+        <div className="flex items-center space-x-4">
+          <Link href="/">
+            <button className="text-white">
+              <ChevronLeft className="h-6 w-6" />
+            </button>
           </Link>
-          <h1 className="text-base font-semibold truncate max-w-[200px]">
+          <h1 className="text-lg font-semibold">
             {isArtistThread ? "Artist Thread" : 
              isVenueThread ? "Venue Thread" : 
-             isPlaylistThread ? "Playlist Thread" : 
+             isPlaylistThread ? "Playlist Thread" :
              isSongThread ? "Song Thread" :
              isSongRequest ? "What's This Song" : "Thread"}
           </h1>
@@ -205,7 +195,7 @@ export default function ThreadDetail() {
         </div>
       </header>
       
-      <main className="px-4">
+      <main className="px-4 pb-20">
         {isLoadingThread || isLoadingUser ? (
           <>
             <div className="py-4 border-b border-[#222222]">
@@ -250,7 +240,7 @@ export default function ThreadDetail() {
                     <h2 className="font-bold text-xl">{getContentTitle()}</h2>
                     <div className="text-sm text-[#B3B3B3] flex items-center">
                       {isArtistThread && (
-                        <span>{artistContent?.genres?.slice(0, 2).join(' / ') || 'Artist'}</span>
+                        <span>{artistContent?.genres?.[0] || 'Artist'}</span>
                       )}
                       {isVenueThread && (
                         <span>{venueContent?.location || 'Venue'}</span>
@@ -299,136 +289,38 @@ export default function ThreadDetail() {
               </div>
             )}
             
-            <div className="py-4 border-b border-[#222222]">
-              <div className="flex items-start space-x-3">
-                <Avatar className="w-10 h-10">
-                  {user.profilePicture ? (
-                    <AvatarImage src={user.profilePicture} alt={user.username} />
-                  ) : (
-                    <AvatarFallback className="bg-[#3E3E3E]">
-                      {user.username?.substring(0, 2).toUpperCase() || "U"}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold">{user.displayName || user.username}</p>
-                    <Badge 
-                      variant={isSolved ? "solved" : (thread.upvotes || 0) > 100 ? "hot" : "status"} 
-                      className="text-xs px-2 py-0.5 rounded-full"
-                    >
-                      {isSolved ? "Solved" : (thread.upvotes || 0) > 100 ? "Hot" : "Active"}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-[#A0A0A0] mb-1">
-                    @{user.username}
-                  </p>
-
-                  {thread?.title && !(isArtistThread || isVenueThread || isPlaylistThread || isSongThread) && (
-                    <h2 className="text-lg font-bold mb-2">{thread.title}</h2>
-                  )}
-                  <p className="text-[#E5E5E5] mb-4">{thread?.content || 
-                    `Join the discussion about ${getContentTitle()}!`}</p>
-
-                  {/* Song Request Status */}
-                  {isSongRequest && isSolved && recommendations && recommendations.length > 0 && (
-                    <SolvedSongDisplay recommendationId={recommendations[0].id} songId={recommendations[0].songId} />
-                  )}
-                  
-                  <div className="text-xs text-[#A0A0A0] mt-2 flex items-center">
-                    {formatRelativeTime(new Date(thread.createdAt || new Date()))} • {formatNumber(threadViewCount)} views
-                  </div>
+            {/* Discussion section - flowing comments, no single thread post */}
+            <div className="pb-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-lg font-semibold text-white">Discussion</h2>
+                  <span className="text-sm text-[#707070]">
+                    {comments && comments.length > 0 ? `${comments.length} comments` : 'Join the conversation'}
+                  </span>
                 </div>
-              </div>
-              
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#222222]">
-                <button 
-                  className="flex items-center text-[#B3B3B3] hover:text-[#5271ff]"
-                  onClick={handleUpvote}
-                >
-                  <Heart className={`h-5 w-5 ${(thread.upvotes || 0) > 0 ? "text-[#5271ff] fill-[#5271ff]" : ""}`} />
-                </button>
-                <button className="flex items-center text-[#B3B3B3] hover:text-black">
-                  <MessageCircle className="h-5 w-5" />
-                </button>
-                <button className="flex items-center text-[#B3B3B3] hover:text-black">
-                  <Repeat className="h-5 w-5" />
-                </button>
-                <button 
-                  className="flex items-center text-[#B3B3B3] hover:text-black"
-                  onClick={handleShare}
-                >
-                  <Share2 className="h-5 w-5" />
-                </button>
-              </div>
-              
-              <div className="mt-3 text-[#A0A0A0] text-sm">
-                <span className="font-semibold text-black">{formatNumber(thread.upvotes || 0)}</span> likes • <span className="font-semibold text-black">{formatNumber(thread.commentsCount || 0)}</span> replies
-              </div>
-            </div>
-            
-            <div className="border-t border-[#3E3E3E] pt-4 mb-6">
-              {isLoadingRecommendations ? (
-                <>
-                  {isSongRequest && (
-                    <>
-                      <h2 className="text-lg font-semibold mb-3">Song Suggestions</h2>
-                      <Skeleton className="h-24 w-full mb-4" />
-                      <Skeleton className="h-24 w-full mb-4" />
-                    </>
-                  )}
-                </>
-              ) : recommendations && recommendations.length > 0 && isSongRequest ? (
-                <>
-                  <h2 className="text-lg font-semibold mb-3">Song Suggestions</h2>
-                  <div className="space-y-3 mb-6">
-                    {recommendations.map((recommendation) => (
-                      <SongRecommendationCard 
-                        key={recommendation.id} 
-                        recommendation={recommendation} 
-                        solved={isSolved}
-                      />
-                    ))}
-                  </div>
-                </>
-              ) : isSongRequest ? (
-                <div className="bg-[#181818] rounded-lg p-4 text-center mb-6">
-                  <p className="text-[#B3B3B3]">No song suggestions yet</p>
-                  <button className="mt-2 artist-tab-active text-white py-1.5 px-4 rounded-full text-sm font-medium">
-                    Suggest a Song
+                <div className="flex items-center space-x-2">
+                  <button className="text-xs text-[#707070] hover:text-white px-2 py-1 rounded">
+                    Sort by votes
                   </button>
                 </div>
-              ) : null}
-              
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-[#A0A0A0]">Conversation</h2>
-                <p className="text-xs text-[#707070]">
-                  {comments && comments.length > 0 ? `${comments.length} messages` : 'Start chatting'}
-                </p>
               </div>
               
-              {/* Chat-style comments list */}
+              {/* Comments Section - Real Sports Style Flowing Discussion */}
               {isLoadingComments ? (
-                <>
-                  <div className="space-y-3 bg-[#121212] rounded-xl p-3">
-                    <div className="flex items-start">
-                      <Skeleton className="h-8 w-8 rounded-full mr-2" />
-                      <div className="flex-1">
-                        <Skeleton className="h-3 w-20 mb-1" />
-                        <Skeleton className="h-10 w-3/4 rounded-2xl" />
-                        <Skeleton className="h-2 w-16 mt-1 ml-1" />
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-[#0a0a0a] border-l-2 border-[#333] px-3 py-3">
+                      <div className="flex items-start space-x-3">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="flex-1">
+                          <Skeleton className="h-4 w-20 mb-2" />
+                          <Skeleton className="h-6 w-3/4 mb-2" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-start justify-end">
-                      <div className="flex-1 flex flex-col items-end">
-                        <Skeleton className="h-3 w-20 mb-1" />
-                        <Skeleton className="h-10 w-2/3 rounded-2xl" />
-                        <Skeleton className="h-2 w-16 mt-1 mr-1" />
-                      </div>
-                      <Skeleton className="h-8 w-8 rounded-full ml-2" />
-                    </div>
-                  </div>
-                </>
+                  ))}
+                </div>
               ) : comments && comments.length > 0 ? (
                 <div className="space-y-1 max-h-[calc(70vh-180px)] overflow-y-auto">
                   {comments.map((comment, index) => (
@@ -484,8 +376,8 @@ export default function ThreadDetail() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 bg-[#121212] rounded-xl">
-                  <p className="text-[#909090]">No messages yet</p>
+                <div className="text-center py-8 bg-[#0a0a0a] border-l-2 border-[#333] px-4">
+                  <p className="text-[#909090]">No comments yet</p>
                   <p className="text-xs text-[#707070] mt-1">Be the first to join the conversation</p>
                 </div>
               )}
@@ -495,7 +387,7 @@ export default function ThreadDetail() {
           <div className="text-center py-10">
             <p className="text-[#B3B3B3]">Thread not found</p>
             <Link href="/">
-              <button className="mt-4 bg-[#282828] hover:bg-[#3E3E3E] text-black py-2 px-4 rounded-full text-sm font-medium">
+              <button className="mt-4 bg-[#282828] hover:bg-[#3E3E3E] text-white py-2 px-4 rounded-full text-sm font-medium">
                 Back to Home
               </button>
             </Link>
@@ -511,7 +403,7 @@ export default function ThreadDetail() {
               <input
                 type="text"
                 placeholder="Message the group..."
-                className="w-full bg-[#121212] border border-[#333333] rounded-full py-2.5 pl-4 pr-10 outline-none text-black placeholder:text-[#707070]"
+                className="w-full bg-[#121212] border border-[#333333] rounded-full py-2.5 pl-4 pr-10 outline-none text-white placeholder:text-[#707070]"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
               />
@@ -522,209 +414,16 @@ export default function ThreadDetail() {
               disabled={!commentText.trim() || addCommentMutation.isPending}
             >
               {addCommentMutation.isPending ? (
-                <div className="h-5 w-5 border-2 border-t-transparent border-[#5271ff] rounded-full animate-spin" />
+                <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
               ) : (
-                <Send className="h-5 w-5" />
+                <Send className="h-5 w-5 text-white" />
               )}
             </button>
           </form>
         </div>
       )}
-    </div>
-  );
-}
-
-function CommentCard({ comment }: { comment: Comment }) {
-  const { data: user } = useQuery<User>({
-    queryKey: [`/api/users/${comment.userId}`],
-  });
-
-  // Safely handle date conversion
-  const createdAt = comment.createdAt ? new Date(comment.createdAt) : new Date();
-  
-  // Determine if this is a comment from the logged-in user (mockup)
-  const isCurrentUser = comment.userId === 1; // Mock user ID for example
-  
-  return (
-    <div className={`py-2 ${isCurrentUser ? 'pl-12 pr-2' : 'pr-12 pl-2'}`}>
-      <div className={`flex items-start ${isCurrentUser ? 'justify-end' : ''}`}>
-        {/* Only show avatar for other users' messages */}
-        {!isCurrentUser && (
-          <Avatar className="w-8 h-8 mr-2 flex-shrink-0">
-            {user?.profilePicture ? (
-              <AvatarImage src={user.profilePicture} alt={user.username} />
-            ) : (
-              <AvatarFallback className="bg-[#3E3E3E] text-xs">
-                {user?.username?.substring(0, 2).toUpperCase() || "U"}
-              </AvatarFallback>
-            )}
-          </Avatar>
-        )}
-        
-        <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}>
-          {/* Username display */}
-          <div className="mb-1">
-            <p className="text-xs text-[#909090]">
-              {isCurrentUser ? 'You' : user?.displayName || user?.username || "User"}
-            </p>
-          </div>
-          
-          {/* Message bubble */}
-          <div 
-            className={`rounded-2xl py-2 px-3 mb-1 max-w-[85%] ${
-              isCurrentUser 
-                ? 'bg-[#5271ff] text-black rounded-tr-sm' 
-                : 'bg-[#262626] rounded-tl-sm'
-            }`}
-          >
-            <p className="text-sm">{comment.content}</p>
-          </div>
-          
-          {/* Time and interactions */}
-          <div className="flex items-center gap-2 text-xs text-[#707070]">
-            <span>{formatRelativeTime(createdAt)}</span>
-            <button className="flex items-center hover:text-[#5271ff]">
-              <Heart className={`h-3.5 w-3.5 ${(comment.upvotes || 0) > 0 ? "text-[#5271ff] fill-[#5271ff]" : ""}`} />
-              {(comment.upvotes || 0) > 0 && (
-                <span className="ml-1 text-black">{comment.upvotes}</span>
-              )}
-            </button>
-          </div>
-        </div>
-        
-        {/* Only show avatar for current user's messages */}
-        {isCurrentUser && (
-          <Avatar className="w-8 h-8 ml-2 flex-shrink-0">
-            {user?.profilePicture ? (
-              <AvatarImage src={user.profilePicture} alt={user.username} />
-            ) : (
-              <AvatarFallback className="bg-[#3E3E3E] text-xs">
-                {user?.username?.substring(0, 2).toUpperCase() || "U"}
-              </AvatarFallback>
-            )}
-          </Avatar>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function SongRecommendationCard({ recommendation, solved }: { recommendation: SongRecommendation, solved: boolean }) {
-  const { data: user } = useQuery<User>({
-    queryKey: [`/api/users/${recommendation.userId}`],
-  });
-
-  const { data: song } = useQuery<Song>({
-    queryKey: [`/api/songs/${recommendation.songId}`],
-  });
-
-  const { playSong } = useMusic();
-  
-  if (!song) return null;
-  
-  return (
-    <div className={`bg-[#181818] rounded-lg p-4 ${solved ? 'border-2 border-[#c1ff72]' : ''}`}>
-      <div className="flex items-start space-x-3 mb-3">
-        <Avatar className="w-8 h-8">
-          {user?.profilePicture ? (
-            <AvatarImage src={user.profilePicture} alt={user.username} />
-          ) : (
-            <AvatarFallback className="bg-[#3E3E3E] text-xs">
-              {user?.username?.substring(0, 2).toUpperCase() || "U"}
-            </AvatarFallback>
-          )}
-        </Avatar>
-        <div>
-          <p className="font-medium text-sm">{user?.displayName || user?.username || "User"}</p>
-          <p className="text-xs text-[#B3B3B3]">suggested:</p>
-        </div>
-        {solved && (
-          <div className="ml-auto">
-            <Badge variant="active" className="green-gradient text-[#5b5b5b] text-xs">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Correct
-            </Badge>
-          </div>
-        )}
-      </div>
       
-      <div className="flex items-center bg-[#282828] rounded-md p-3">
-        <div className="w-10 h-10 bg-[#3E3E3E] rounded overflow-hidden mr-3">
-          {song.albumArt ? (
-            <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Music2 className="h-5 w-5 text-[#B3B3B3]" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1">
-          <p className="font-medium text-sm">{song.title}</p>
-          <p className="text-xs text-[#B3B3B3]">
-            {song.artist}
-          </p>
-        </div>
-        <button 
-          className="w-8 h-8 rounded-full bg-[#c1ff72] flex items-center justify-center"
-          onClick={() => playSong(song)}
-        >
-          <Play className="h-4 w-4 text-black" />
-        </button>
-      </div>
-      
-      {recommendation.comment && (
-        <p className="text-sm text-[#B3B3B3] mt-2 ml-11">{recommendation.comment}</p>
-      )}
-      
-      <div className="flex items-center ml-11 mt-2">
-        <button className="flex items-center text-[#B3B3B3] hover:text-black text-xs">
-          <ArrowUp className="h-3.5 w-3.5 mr-1" />
-          <span>{recommendation.upvotes}</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SolvedSongDisplay({ recommendationId, songId }: { recommendationId: number, songId: number }) {
-  const { data: song } = useQuery<Song>({
-    queryKey: [`/api/songs/${songId}`],
-  });
-
-  const { playSong } = useMusic();
-  
-  if (!song) return null;
-
-  return (
-    <div className="bg-[#c2f970]/10 border border-[#c2f970] rounded-lg p-4 mb-4">
-      <div className="flex items-center mb-2">
-        <CheckCircle className="h-5 w-5 text-[#c2f970] mr-2" />
-        <p className="font-medium">Track Identified!</p>
-      </div>
-      
-      <div className="flex items-center bg-[#121212] rounded-md p-3">
-        <div className="w-10 h-10 bg-[#3E3E3E] rounded overflow-hidden mr-3">
-          {song.albumArt ? (
-            <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Music2 className="h-5 w-5 text-[#B3B3B3]" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1">
-          <p className="font-medium text-sm">{song.title}</p>
-          <p className="text-xs text-[#B3B3B3]">
-            {song.artist}
-          </p>
-        </div>
-        <button 
-          className="w-8 h-8 rounded-full bg-[#c1ff72] flex items-center justify-center"
-          onClick={() => playSong(song)}
-        >
-          <Play className="h-4 w-4 text-black" />
-        </button>
-      </div>
+      <BottomNav />
     </div>
   );
 }
