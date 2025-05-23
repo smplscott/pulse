@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Artist } from "@shared/schema";
-import { Music2Icon, MessageCircleIcon } from "lucide-react";
+import { Music2Icon, MessageCircleIcon, Plus, Smile } from "lucide-react";
 
 type ArtistCardProps = {
   artist: Artist;
@@ -23,12 +23,9 @@ export default function ArtistCard({ artist, className }: ArtistCardProps) {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
           <div className="absolute bottom-2 left-2 right-2">
-            <Badge 
-              variant="default" 
-              className="text-xs px-2 py-0.5 rounded-sm mb-1"
-            >
+            <div className="artist-marker text-xs px-2 py-0.5 rounded-sm mb-1 inline-block">
               {artist.verified ? "Artist Spotlight" : "Artist"}
-            </Badge>
+            </div>
             <p className="font-bold text-white">{artist.name}</p>
           </div>
         </div>
@@ -50,17 +47,39 @@ export default function ArtistCard({ artist, className }: ArtistCardProps) {
               <Music2Icon className="h-3 w-3 mr-1 text-[#5271ff]" />
               <span>{Math.floor(Math.random() * 50) + 10} tracks</span>
             </div>
-            <button 
-              className="flex items-center text-sm font-medium text-[#5271ff]"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = `/thread/artist_${artist.id}`;
-              }}
-            >
-              <MessageCircleIcon className="h-3 w-3 mr-1" />
-              <span>Join Discussion</span>
-            </button>
+            {/* Grey icon CTAs matching row objects */}
+            <div className="flex items-center space-x-0.5">
+              <button 
+                className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <Plus className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
+              </button>
+              
+              <button 
+                className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <Smile className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
+              </button>
+              
+              <button 
+                className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `/thread/artist_${artist.id}`;
+                }}
+              >
+                <MessageCircleIcon className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
