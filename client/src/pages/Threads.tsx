@@ -70,7 +70,7 @@ export default function Threads() {
       <TabNavigator tabs={tabs} />
       
       {/* Thread filters using the horizontal button style */}
-      <div className="px-4 py-3 bg-[#121212]">
+      <div className="px-4 py-2 bg-[#121212]">
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
           {filters.map((filter) => {
             const isActive = selectedFilter === filter.id;
@@ -92,7 +92,7 @@ export default function Threads() {
         </div>
       </div>
       
-      <main className="px-4 pt-3 pb-4">
+      <main className="px-4 pt-2 pb-4">
         <div className="flex items-center mb-6">
           <div className="flex-1 relative flex">
             <div className="flex-1 relative">

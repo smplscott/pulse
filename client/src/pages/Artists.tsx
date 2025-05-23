@@ -309,7 +309,7 @@ export default function Artists() {
       <Header />
       
       {/* Category tabs using the horizontal button style */}
-      <div className="px-4 py-3 bg-[#121212]">
+      <div className="px-4 py-2 bg-[#121212]">
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
           {categoryTabs.map((tab) => {
             const isActive = activeCategory === tab.id;
@@ -332,7 +332,7 @@ export default function Artists() {
         </div>
       </div>
       
-      <main className="px-4 pt-3 pb-4">
+      <main className="px-4 pt-2 pb-4">
         <div className="relative mb-4 flex items-center">
           <div className="relative flex-1">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
