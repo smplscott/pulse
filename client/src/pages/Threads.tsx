@@ -6,7 +6,7 @@ import TabNavigator from "@/components/layout/TabNavigator";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Thread } from "@shared/schema";
-import { SearchIcon, MessageCircle, Music, User, Calendar } from "lucide-react";
+import { SearchIcon, MessageCircle, Music, User, Calendar, Plus, Smile } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -147,8 +147,14 @@ export default function Threads() {
                       <span>•</span>
                       <span>{formatRelativeTime(new Date(thread.createdAt || ''))}</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
+                      <button className="flex items-center justify-center w-6 h-6 rounded-full bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-colors">
+                        <Plus size={12} className="text-[#B3B3B3]" />
+                      </button>
+                      <button className="flex items-center justify-center w-6 h-6 rounded-full bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-colors">
+                        <Smile size={12} className="text-[#B3B3B3]" />
+                      </button>
+                      <div className="flex items-center gap-1 ml-1">
                         <MessageCircle className="w-3.5 h-3.5" />
                         <span>{thread.commentsCount || 0}</span>
                       </div>
