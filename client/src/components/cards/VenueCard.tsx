@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { StarIcon, MessageCircleIcon } from "lucide-react";
+import { StarIcon, MessageCircleIcon, Plus, Smile } from "lucide-react";
 import { Venue } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -54,17 +54,41 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
           </div>
           <p className="text-sm mb-4">{venue.description}</p>
           
-          {/* Drop In Button - full width to match content above */}
-          <div className="w-full">
+          {/* Bottom CTAs container */}
+          <div className="flex justify-between items-end">
+            {/* Left side: Grey icon CTAs */}
+            <div className="flex items-center space-x-0.5">
+              <button 
+                className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <Plus className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
+              </button>
+              
+              <button 
+                className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <Smile className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
+              </button>
+            </div>
+            
+            {/* Right side: Smaller Drop In button */}
             <button 
-              className="w-full px-6 py-2 rounded-full pink-gradient pink-gradient-hover text-white text-sm font-medium transition-colors flex items-center justify-center"
+              className="px-4 py-1.5 rounded-full pink-gradient pink-gradient-hover text-white text-xs font-medium transition-colors flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 window.location.href = `/thread/venue_${venue.id}`;
               }}
             >
-              <MessageCircleIcon className="h-5 w-5 mr-2" />
+              <MessageCircleIcon className="h-3 w-3 mr-1" />
               Drop In
             </button>
           </div>
