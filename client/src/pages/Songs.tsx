@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List } from "lucide-react";
+import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -132,31 +132,38 @@ export default function Songs() {
                   </p>
                 </div>
                 
-                {/* Right side actions: year, reactions, comments */}
+                {/* Right side actions with new icon order: + icon, 😮 reaction, comment */}
                 <div className="flex items-center space-x-3 ml-2">
-                  <div className="text-xs text-[#B3B3B3] flex-shrink-0">
-                    {song.releaseDate ? new Date(song.releaseDate).getFullYear() : ""}
-                  </div>
-                  
-                  {/* Reaction button */}
+                  {/* Add/Plus button */}
                   <button 
-                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                    className="artist-tab-active px-3 py-1.5 rounded-lg flex items-center justify-center transition hover:opacity-80"
                     onClick={(e) => {
-                      e.preventDefault(); // Prevent navigation
-                      e.stopPropagation(); // Prevent row click
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toast({ title: "Added", description: `Added "${song.title}" to your collection` });
+                    }}
+                  >
+                    <Plus className="h-4 w-4 text-white" />
+                  </button>
+                  
+                  {/* Reaction button with emoji */}
+                  <button 
+                    className="text-lg px-2 py-1 hover:bg-[#3E3E3E] rounded transition"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       handleReaction(e, song.id, song.title);
                     }}
                   >
-                    <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#5271ff]" />
+                    😮
                   </button>
                   
                   {/* Comment button */}
                   <button 
                     className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
                     onClick={(e) => {
-                      e.preventDefault(); // Stop navigation
-                      e.stopPropagation(); // Stop row click
-                      // Navigate directly to thread page
+                      e.preventDefault();
+                      e.stopPropagation();
                       window.location.href = `/thread/song_${song.id}`;
                     }}
                   >
@@ -190,24 +197,33 @@ export default function Songs() {
                     </div>
                   )}
                   
-                  {/* Overlay buttons */}
+                  {/* Overlay buttons with new order: + icon, 😮 reaction, comment */}
                   <div className="absolute bottom-2 right-2 flex space-x-2">
                     <button 
-                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
+                      className="w-8 h-8 rounded-full artist-tab-active backdrop-blur-sm flex items-center justify-center hover:opacity-80"
                       onClick={(e) => {
-                        e.preventDefault(); // Stop navigation
-                        e.stopPropagation(); // Stop card click
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toast({ title: "Added", description: `Added "${song.title}" to your collection` });
+                      }}
+                    >
+                      <Plus className="h-4 w-4 text-white" />
+                    </button>
+                    <button 
+                      className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828] text-sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         handleReaction(e, song.id, song.title);
                       }}
                     >
-                      <Heart className="h-4 w-4 text-white" />
+                      😮
                     </button>
                     <button 
                       className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
                       onClick={(e) => {
-                        e.preventDefault(); // Stop navigation
-                        e.stopPropagation(); // Stop card click
-                        // Navigate directly to thread page
+                        e.preventDefault();
+                        e.stopPropagation();
                         window.location.href = `/thread/song_${song.id}`;
                       }}
                     >

@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink } from "lucide-react";
+import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -113,26 +113,26 @@ export default function Playlists() {
                   </p>
                 </div>
                 
-                {/* Right side actions: reactions, comments */}
+                {/* Right side actions with new icon order: + icon, 😮 reaction, comment */}
                 <div className="flex items-center space-x-3 ml-2">
-                  {/* External link button */}
+                  {/* Add/Plus button */}
                   <button 
-                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                    className="artist-tab-active px-3 py-1.5 rounded-lg flex items-center justify-center transition hover:opacity-80"
                     onClick={(e) => {
-                      e.stopPropagation();
                       e.preventDefault();
-                      toast({ title: "Opening", description: `Opening ${playlist.title} on streaming platform` });
+                      e.stopPropagation();
+                      toast({ title: "Added", description: `Added "${playlist.title}" to your collection` });
                     }}
                   >
-                    <ExternalLink className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                    <Plus className="h-4 w-4 text-white" />
                   </button>
                   
-                  {/* Reaction button */}
+                  {/* Reaction button with emoji */}
                   <button 
-                    className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                    className="text-lg px-2 py-1 hover:bg-[#3E3E3E] rounded transition"
                     onClick={(e) => handleReaction(e, playlist.id, playlist.title)}
                   >
-                    <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-[#5271ff]" />
+                    😮
                   </button>
                   
                   {/* Comment button */}
