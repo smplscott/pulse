@@ -5,10 +5,11 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink, Plus, Smile } from "lucide-react";
+import { SearchIcon, Music2, Disc3, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink, Plus, Smile, Filter, ChevronDown, ListMusic } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type PlaylistCategoryTab = {
   id: string;
@@ -17,7 +18,7 @@ type PlaylistCategoryTab = {
 
 export default function Playlists() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("new");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
   const { toast } = useToast();
 
@@ -55,13 +56,85 @@ export default function Playlists() {
     setDisplayMode(prev => prev === "grid" ? "list" : "grid");
   };
 
-  const playlistCategories: PlaylistCategoryTab[] = [
-    { id: "new", label: "New" },
-    { id: "popular", label: "Popular" },
-    { id: "youtube-sets", label: "YouTube Sets" },
-    { id: "short", label: "Short" },
-    { id: "long", label: "Long" }
+  const setCategories = [
+    { id: "all", label: "All" },
+    { id: "live", label: "Live Performances" },
+    { id: "youtube", label: "YouTube" },
+    { id: "soundcloud", label: "Soundcloud" },
   ];
+
+  // Genre hierarchy from Discover page
+  const genreHierarchy: { [key: string]: { subGenres: string[]; similarGenres: { [key: string]: string[] } } } = {
+    "Electronic": {
+      subGenres: ["House", "Techno", "Trance", "Drum & Bass", "Ambient"],
+      similarGenres: {
+        "House": ["Deep House", "Tech House", "Progressive House", "Tropical House"],
+        "Techno": ["Minimal Techno", "Industrial Techno", "Acid Techno", "Detroit Techno"],
+        "Trance": ["Progressive Trance", "Uplifting Trance", "Psytrance", "Vocal Trance"],
+        "Ambient": ["Chillout", "Downtempo", "IDM", "Ambient Dub"],
+        "Drum & Bass": ["Jungle", "Liquid Funk", "Neurofunk", "Jump Up"]
+      }
+    },
+    "Urban": {
+      subGenres: ["Hip Hop", "R&B", "Soul", "Funk", "Trap"],
+      similarGenres: {
+        "Hip Hop": ["Rap", "Boom Bap", "Conscious Hip Hop", "Alternative Hip Hop"],
+        "R&B": ["Contemporary R&B", "Neo Soul", "Quiet Storm", "New Jack Swing"],
+        "Soul": ["Southern Soul", "Deep Soul", "Northern Soul", "Psychedelic Soul"],
+        "Funk": ["P-Funk", "Funk Rock", "Electro-Funk", "G-Funk"],
+        "Trap": ["Drill", "Trap Soul", "Latin Trap", "UK Drill"]
+      }
+    },
+    "Rock": {
+      subGenres: ["Alternative", "Metal", "Indie", "Punk", "Classic Rock"],
+      similarGenres: {
+        "Alternative": ["Grunge", "Post-Rock", "Shoegaze", "Math Rock"],
+        "Metal": ["Heavy Metal", "Thrash Metal", "Death Metal", "Black Metal"],
+        "Indie": ["Indie Pop", "Indie Folk", "Dream Pop", "Post-Punk Revival"],
+        "Punk": ["Hardcore", "Pop Punk", "Post-Punk", "Emo"],
+        "Classic Rock": ["Progressive Rock", "Blues Rock", "Psychedelic Rock", "Hard Rock"]
+      }
+    },
+    "Pop": {
+      subGenres: ["Mainstream Pop", "Synth Pop", "Art Pop", "K-Pop", "Indie Pop"],
+      similarGenres: {
+        "Mainstream Pop": ["Dance Pop", "Electropop", "Teen Pop", "Bubblegum Pop"],
+        "Synth Pop": ["New Wave", "Synthwave", "Future Pop", "Electro Pop"],
+        "Art Pop": ["Chamber Pop", "Baroque Pop", "Avant-Pop", "Experimental Pop"],
+        "K-Pop": ["J-Pop", "Mandopop", "C-Pop", "T-Pop"],
+        "Indie Pop": ["Bedroom Pop", "Dream Pop", "Twee Pop", "Synthpop"]
+      }
+    },
+    "Jazz & Blues": {
+      subGenres: ["Jazz", "Blues", "Fusion", "Big Band", "Swing"],
+      similarGenres: {
+        "Jazz": ["Bebop", "Cool Jazz", "Modal Jazz", "Free Jazz"],
+        "Blues": ["Delta Blues", "Chicago Blues", "Jump Blues", "Electric Blues"],
+        "Fusion": ["Jazz Fusion", "Soul Jazz", "Jazz-Funk", "Nu Jazz"],
+        "Big Band": ["Orchestral Jazz", "Swing", "Dixieland", "Hot Jazz"],
+        "Swing": ["Gypsy Jazz", "Western Swing", "Jump Blues", "Boogie-Woogie"]
+      }
+    },
+    "World": {
+      subGenres: ["Latin", "African", "Asian", "Middle Eastern", "Celtic"],
+      similarGenres: {
+        "Latin": ["Salsa", "Reggaeton", "Cumbia", "Bachata"],
+        "African": ["Afrobeat", "Highlife", "Soukous", "Amapiano"],
+        "Asian": ["Bollywood", "K-Pop", "J-Pop", "Traditional Asian"],
+        "Middle Eastern": ["Arabic Pop", "Turkish Pop", "Persian Traditional", "Raï"],
+        "Celtic": ["Irish Folk", "Scottish Folk", "Breton Music", "Welsh Folk"]
+      }
+    }
+  };
+  
+  // Flat list of all main genres
+  const mainGenres = Object.keys(genreHierarchy);
+
+  const [setCategory, setSetCategory] = useState("all");
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedMainGenre, setSelectedMainGenre] = useState<string | null>(null);
+  const [selectedSubGenre, setSelectedSubGenre] = useState<string | null>(null);
+  const [showGenreFilter, setShowGenreFilter] = useState(false);
 
   const renderPlaylistsList = () => {
     if (isLoadingPlaylists) {
@@ -215,7 +288,7 @@ export default function Playlists() {
       {/* Playlist category tabs using the horizontal button style */}
       <div className="px-4 py-2 bg-[#121212]">
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-          {playlistCategories.map((category) => {
+          {setCategories.map((category) => {
             const isActive = activeCategory === category.id;
             return (
               <button
