@@ -14,7 +14,7 @@ type TabNavigatorProps = {
 
 export default function TabNavigator({ tabs, activeTab, onTabChange, className }: TabNavigatorProps) {
   return (
-    <div className={cn("px-4 py-2 bg-[#121212]", className)}>
+    <div className={cn("px-4 pt-6 pb-2 bg-[#121212]", className)}>
       <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;

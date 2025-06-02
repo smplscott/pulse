@@ -89,7 +89,7 @@ export default function Home() {
       <main>
         {/* Search bar and Talk Music CTA - Hide completely when on Discover tab */}
         {activeTab !== "discover" && (
-          <div className="px-4 pt-4 pb-2">
+          <div className="px-4 pt-2 pb-2">
             <div className="relative mb-4 flex items-center">
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
