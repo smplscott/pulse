@@ -67,7 +67,7 @@ export default function Threads() {
   return (
     <div className="min-h-screen pb-32">
       <Header />
-      <TabNavigator tabs={tabs} />
+      {/* Removed TabNavigator as requested */}
       
       {/* Thread filters using the horizontal button style */}
       <div className="px-4 pt-4 pb-2 bg-[#121212]">
