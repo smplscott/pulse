@@ -410,28 +410,17 @@ export default function Artists() {
             <Input
               type="text"
               placeholder="Search music professionals..."
-              className="pl-9 pr-20 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+              className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            {/* Dynamic Genre Filter */}
-            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-              <Select value={selectedMainGenre || "all"} onValueChange={(value) => {
-                setSelectedMainGenre(value === "all" ? null : value);
-                setSelectedSubGenre(null);
-                setSelectedGenres([]);
-              }}>
-                <SelectTrigger className="w-8 h-8 border-0 bg-transparent p-0 focus:ring-0">
-                  <Filter size={18} className="text-[#B3B3B3] hover:text-white" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#282828] border-[#3E3E3E]">
-                  <SelectItem value="all">All Genres</SelectItem>
-                  {mainGenres.map((genre) => (
-                    <SelectItem key={genre} value={genre}>{genre}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <AdvancedGenreFilter
+              onFiltersChange={(filters) => {
+                setSelectedMainGenre(filters.selectedMainGenre);
+                setSelectedSubGenre(filters.selectedSubGenre);
+                setSelectedGenres(filters.selectedGenres);
+              }}
+            />
           </div>
           <button 
             className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
