@@ -147,10 +147,9 @@ export default function Venues() {
       <Header />
       {/* Removed TabNavigator as requested */}
       
-      <main className="px-4 pt-4 pb-4">
-        
-        {/* Options for Places page */}
-        <div className="mt-4 mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+      {/* Place category tabs using the horizontal button style */}
+      <div className="px-4 pt-4 pb-2 bg-[#121212]">
+        <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
           {placeOptions.map((option) => (
             <button
               key={option.id}
@@ -167,7 +166,9 @@ export default function Venues() {
             </button>
           ))}
         </div>
-        
+      </div>
+      
+      <main className="px-4 pt-2 pb-4">
         {activeOption === "search" && (
           <>
             <div className="relative mb-4 flex items-center">
