@@ -250,7 +250,10 @@ export default function Playlists() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <AdvancedGenreFilter
+            <SearchWithFilter
+              placeholder="Search sets, DJs, genres..."
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
               onFiltersChange={(filters) => {
                 setSelectedMainGenre(filters.selectedMainGenre);
                 setSelectedSubGenre(filters.selectedSubGenre);

@@ -8,7 +8,7 @@ import { Venue } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, MapPin, Star, Music, SlidersHorizontal, List, Filter } from "lucide-react";
-import AdvancedGenreFilter from "@/components/ui/advanced-genre-filter";
+import SearchWithFilter from "@/components/ui/search-with-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -182,7 +182,10 @@ export default function Venues() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <AdvancedGenreFilter
+                <SearchWithFilter
+                  placeholder="Search venues, locations, genres..."
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
                   onFiltersChange={(filters) => {
                     setSelectedMainGenre(filters.selectedMainGenre);
                     setSelectedSubGenre(filters.selectedSubGenre);

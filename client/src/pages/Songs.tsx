@@ -360,7 +360,10 @@ export default function Songs() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <AdvancedGenreFilter
+            <SearchWithFilter
+              placeholder="Search songs, artists, genres..."
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
               onFiltersChange={(filters) => {
                 setSelectedMainGenre(filters.selectedMainGenre);
                 setSelectedSubGenre(filters.selectedSubGenre);
