@@ -314,41 +314,37 @@ export default function Playlists() {
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
             <Input
               type="text"
-              placeholder="Search playlists, creators..."
-              className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+              placeholder="Search sets, creators..."
+              className="pl-9 pr-20 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button 
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
-              onClick={() => toast({ title: "Filters", description: "Advanced filters coming soon" })}
-            >
-              <SlidersHorizontal size={18} />
-            </button>
+            {/* Dynamic Genre Filter */}
+            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+              <Select value={selectedMainGenre || ""} onValueChange={(value) => {
+                setSelectedMainGenre(value || null);
+                setSelectedSubGenre(null);
+                setSelectedGenres([]);
+              }}>
+                <SelectTrigger className="w-8 h-8 border-0 bg-transparent p-0 focus:ring-0">
+                  <Filter size={18} className="text-[#B3B3B3] hover:text-white" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#282828] border-[#3E3E3E]">
+                  <SelectItem value="">All Genres</SelectItem>
+                  {mainGenres.map((genre) => (
+                    <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <button 
-            className="ml-2 w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
-            onClick={toggleDisplayMode}
+            className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
+            onClick={() => toast({ title: "Add Set", description: "Add a new set coming soon!" })}
           >
-            {displayMode === "grid" ? 
-              <List size={18} className="text-[#B3B3B3]" /> : 
-              <div className="grid grid-cols-2 gap-1">
-                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-              </div>
-            }
+            <span className="text-white text-xl font-bold">+</span>
           </button>
         </div>
-        
-        {/* Add Playlist CTA button */}
-        <Link href="/add-playlist">
-          <button className="w-full pink-gradient pink-gradient-hover text-white rounded-lg py-3 mb-4 flex items-center justify-center">
-            <ListMusic className="h-5 w-5 mr-2" />
-            Add a Playlist
-          </button>
-        </Link>
         
         {/* Playlist list based on selected category */}
         {renderPlaylistsList()}

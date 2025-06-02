@@ -6,7 +6,8 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Artist, Song } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
-import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile } from "lucide-react";
+import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +23,77 @@ export default function Artists() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("artists");
   const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedMainGenre, setSelectedMainGenre] = useState<string | null>(null);
+  const [selectedSubGenre, setSelectedSubGenre] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Genre hierarchy from Discover page
+  const genreHierarchy: { [key: string]: { subGenres: string[]; similarGenres: { [key: string]: string[] } } } = {
+    "Electronic": {
+      subGenres: ["House", "Techno", "Trance", "Drum & Bass", "Ambient"],
+      similarGenres: {
+        "House": ["Deep House", "Tech House", "Progressive House", "Tropical House"],
+        "Techno": ["Minimal Techno", "Industrial Techno", "Acid Techno", "Detroit Techno"],
+        "Trance": ["Progressive Trance", "Uplifting Trance", "Psytrance", "Vocal Trance"],
+        "Ambient": ["Chillout", "Downtempo", "IDM", "Ambient Dub"],
+        "Drum & Bass": ["Jungle", "Liquid Funk", "Neurofunk", "Jump Up"]
+      }
+    },
+    "Urban": {
+      subGenres: ["Hip Hop", "R&B", "Soul", "Funk", "Trap"],
+      similarGenres: {
+        "Hip Hop": ["Rap", "Boom Bap", "Conscious Hip Hop", "Alternative Hip Hop"],
+        "R&B": ["Contemporary R&B", "Neo Soul", "Quiet Storm", "New Jack Swing"],
+        "Soul": ["Southern Soul", "Deep Soul", "Northern Soul", "Psychedelic Soul"],
+        "Funk": ["P-Funk", "Funk Rock", "Electro-Funk", "G-Funk"],
+        "Trap": ["Drill", "Trap Soul", "Latin Trap", "UK Drill"]
+      }
+    },
+    "Rock": {
+      subGenres: ["Alternative", "Metal", "Indie", "Punk", "Classic Rock"],
+      similarGenres: {
+        "Alternative": ["Grunge", "Post-Rock", "Shoegaze", "Math Rock"],
+        "Metal": ["Heavy Metal", "Thrash Metal", "Death Metal", "Black Metal"],
+        "Indie": ["Indie Pop", "Indie Folk", "Dream Pop", "Post-Punk Revival"],
+        "Punk": ["Hardcore", "Pop Punk", "Post-Punk", "Emo"],
+        "Classic Rock": ["Progressive Rock", "Blues Rock", "Psychedelic Rock", "Hard Rock"]
+      }
+    },
+    "Pop": {
+      subGenres: ["Mainstream Pop", "Synth Pop", "Art Pop", "K-Pop", "Indie Pop"],
+      similarGenres: {
+        "Mainstream Pop": ["Dance Pop", "Electropop", "Teen Pop", "Bubblegum Pop"],
+        "Synth Pop": ["New Wave", "Synthwave", "Future Pop", "Electro Pop"],
+        "Art Pop": ["Chamber Pop", "Baroque Pop", "Avant-Pop", "Experimental Pop"],
+        "K-Pop": ["J-Pop", "Mandopop", "C-Pop", "T-Pop"],
+        "Indie Pop": ["Bedroom Pop", "Dream Pop", "Twee Pop", "Synthpop"]
+      }
+    },
+    "Jazz & Blues": {
+      subGenres: ["Jazz", "Blues", "Fusion", "Big Band", "Swing"],
+      similarGenres: {
+        "Jazz": ["Bebop", "Cool Jazz", "Modal Jazz", "Free Jazz"],
+        "Blues": ["Delta Blues", "Chicago Blues", "Jump Blues", "Electric Blues"],
+        "Fusion": ["Jazz Fusion", "Soul Jazz", "Jazz-Funk", "Nu Jazz"],
+        "Big Band": ["Orchestral Jazz", "Swing", "Dixieland", "Hot Jazz"],
+        "Swing": ["Gypsy Jazz", "Western Swing", "Jump Blues", "Boogie-Woogie"]
+      }
+    },
+    "World": {
+      subGenres: ["Latin", "African", "Asian", "Middle Eastern", "Celtic"],
+      similarGenres: {
+        "Latin": ["Salsa", "Reggaeton", "Cumbia", "Bachata"],
+        "African": ["Afrobeat", "Highlife", "Soukous", "Amapiano"],
+        "Asian": ["Bollywood", "K-Pop", "J-Pop", "Traditional Asian"],
+        "Middle Eastern": ["Arabic Pop", "Turkish Pop", "Persian Traditional", "Raï"],
+        "Celtic": ["Irish Folk", "Scottish Folk", "Breton Music", "Welsh Folk"]
+      }
+    }
+  };
+  
+  // Flat list of all main genres
+  const mainGenres = Object.keys(genreHierarchy);
 
   const { data: artists, isLoading: isLoadingArtists } = useQuery<Artist[]>({
     queryKey: ["/api/artists"],
@@ -339,40 +410,36 @@ export default function Artists() {
             <Input
               type="text"
               placeholder="Search music professionals..."
-              className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+              className="pl-9 pr-20 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button 
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3] hover:text-white"
-              onClick={() => toast({ title: "Filters", description: "Advanced filters coming soon" })}
-            >
-              <SlidersHorizontal size={18} />
-            </button>
+            {/* Dynamic Genre Filter */}
+            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+              <Select value={selectedMainGenre || ""} onValueChange={(value) => {
+                setSelectedMainGenre(value || null);
+                setSelectedSubGenre(null);
+                setSelectedGenres([]);
+              }}>
+                <SelectTrigger className="w-8 h-8 border-0 bg-transparent p-0 focus:ring-0">
+                  <Filter size={18} className="text-[#B3B3B3] hover:text-white" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#282828] border-[#3E3E3E]">
+                  <SelectItem value="">All Genres</SelectItem>
+                  {mainGenres.map((genre) => (
+                    <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <button 
-            className="ml-2 w-10 h-10 rounded-full bg-[#282828] border border-[#3E3E3E] flex items-center justify-center hover:bg-[#3E3E3E]"
-            onClick={toggleDisplayMode}
+            className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
+            onClick={() => toast({ title: "Add Artist", description: "Add a new artist coming soon!" })}
           >
-            {displayMode === "grid" ? 
-              <List size={18} className="text-[#B3B3B3]" /> : 
-              <div className="grid grid-cols-2 gap-1">
-                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-                <div className="w-2 h-2 bg-[#B3B3B3] rounded-sm"></div>
-              </div>
-            }
+            <span className="text-white text-xl font-bold">+</span>
           </button>
         </div>
-        
-        {/* Add Artist CTA button */}
-        <Link href="/add-artist">
-          <button className="w-full pink-gradient pink-gradient-hover text-white rounded-lg py-3 mb-4 flex items-center justify-center">
-            <User className="h-5 w-5 mr-2" />
-            Add an Artist
-          </button>
-        </Link>
         
         {/* Dynamic content based on selected category */}
         {renderCategoryContent()}
