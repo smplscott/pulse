@@ -182,8 +182,8 @@ export default function Venues() {
                 />
                 {/* Dynamic Genre Filter */}
                 <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-                  <Select value={selectedMainGenre || ""} onValueChange={(value) => {
-                    setSelectedMainGenre(value || null);
+                  <Select value={selectedMainGenre || "all"} onValueChange={(value) => {
+                    setSelectedMainGenre(value === "all" ? null : value);
                     setSelectedSubGenre(null);
                     setSelectedGenres([]);
                   }}>
