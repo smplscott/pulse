@@ -142,18 +142,18 @@ export default function AdvancedGenreFilter({ onFiltersChange }: AdvancedGenreFi
       </button>
 
       {showGenreFilter && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[#282828] px-4 py-4 border border-[#3E3E3E] rounded-lg z-50">
-          <div className="mb-4">
+        <div className="fixed inset-x-4 top-32 bg-[#282828] px-4 py-3 border border-[#3E3E3E] rounded-lg z-50">
+          <div className="mb-3">
             <h3 className="text-white text-sm font-medium mb-2">Genres</h3>
-            <div className="overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
+            <div className="flex flex-wrap gap-2">
               {mainGenres.map((genre) => (
                 <button
                   key={genre}
                   onClick={() => selectMainGenre(genre)}
-                  className={`mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-block ${
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                     selectedMainGenre === genre 
                       ? "pink-gradient text-white" 
-                      : "bg-[#282828] text-[#B3B3B3]"
+                      : "bg-[#181818] text-[#B3B3B3]"
                   }`}
                 >
                   {genre}
@@ -163,17 +163,17 @@ export default function AdvancedGenreFilter({ onFiltersChange }: AdvancedGenreFi
           </div>
           
           {selectedMainGenre && genreHierarchy[selectedMainGenre] && (
-            <div className="mb-4">
+            <div className="mb-3">
               <h3 className="text-white text-sm font-medium mb-2">Sub-Genres</h3>
-              <div className="overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
+              <div className="flex flex-wrap gap-2">
                 {genreHierarchy[selectedMainGenre].subGenres.map((genre) => (
                   <button
                     key={genre}
                     onClick={() => selectSubGenre(genre)}
-                    className={`mr-3 px-4 py-1.5 rounded-full text-sm font-medium inline-block ${
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                       selectedSubGenre === genre 
                         ? "pink-gradient text-white" 
-                        : "bg-[#282828] text-[#B3B3B3]"
+                        : "bg-[#181818] text-[#B3B3B3]"
                     }`}
                   >
                     {genre}
@@ -186,43 +186,41 @@ export default function AdvancedGenreFilter({ onFiltersChange }: AdvancedGenreFi
           {selectedSubGenre && selectedMainGenre && 
            genreHierarchy[selectedMainGenre] && 
            genreHierarchy[selectedMainGenre].similarGenres[selectedSubGenre] && (
-            <div className="mb-2">
+            <div className="mb-3">
               <h3 className="text-white text-sm font-medium mb-2">Similar Genres</h3>
               <div className="flex flex-wrap gap-2">
                 {genreHierarchy[selectedMainGenre].similarGenres[selectedSubGenre].map((genre) => (
-                  <Badge 
+                  <button
                     key={genre} 
-                    className={`flex items-center gap-1 px-3 py-1.5 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                       selectedGenres.includes(genre) 
                         ? "pink-gradient text-white" 
-                        : "bg-[#282828] text-[#B3B3B3]"
+                        : "bg-[#181818] text-[#B3B3B3]"
                     }`}
                     onClick={() => toggleSimilarGenre(genre)}
                   >
                     {genre}
-                  </Badge>
+                  </button>
                 ))}
               </div>
             </div>
           )}
           
-          {(selectedMainGenre || selectedSubGenre || selectedGenres.length > 0) && (
-            <div className="mt-3 pt-3 border-t border-[#3E3E3E] flex justify-between items-center">
-              <button 
-                className="text-xs text-[#B3B3B3] hover:text-white"
-                onClick={clearFilters}
-              >
-                Clear all filters
-              </button>
-              
-              <button 
-                className="pink-gradient px-3 py-1 rounded-full text-xs text-white"
-                onClick={() => setShowGenreFilter(false)}
-              >
-                Apply filters
-              </button>
-            </div>
-          )}
+          <div className="mt-3 pt-3 border-t border-[#3E3E3E] flex justify-between items-center">
+            <button 
+              className="text-sm text-[#B3B3B3] hover:text-white"
+              onClick={clearFilters}
+            >
+              Clear all filters
+            </button>
+            
+            <button 
+              className="pink-gradient px-4 py-1.5 rounded-full text-sm text-white"
+              onClick={() => setShowGenreFilter(false)}
+            >
+              Apply filters
+            </button>
+          </div>
         </div>
       )}
 
