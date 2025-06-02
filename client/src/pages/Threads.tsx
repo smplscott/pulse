@@ -70,7 +70,7 @@ export default function Threads() {
       {/* Removed TabNavigator as requested */}
       
       {/* Thread filters using the horizontal button style */}
-      <div className="px-4 pt-4 pb-2 bg-[#121212]">
+      <div className="px-4 pt-6 pb-2 bg-[#121212]">
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
           {filters.map((filter) => {
             const isActive = selectedFilter === filter.id;
