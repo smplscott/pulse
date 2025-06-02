@@ -68,6 +68,7 @@ export default function Threads() {
     <div className="min-h-screen pb-32">
       <Header />
       <TabNavigator tabs={tabs} />
+      
       {/* Thread filters using the horizontal button style */}
       <div className="px-4 pt-4 pb-2 bg-[#121212]">
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
@@ -114,7 +115,7 @@ export default function Threads() {
         </div>
 
         {/* Featured threads section */}
-        <div className="mb-6">
+        <div className="mb-4">
           <h2 className="text-white font-bold text-xl mb-4">Featured Discussions</h2>
           {isLoadingThreads ? (
             <div className="space-y-4">
