@@ -416,8 +416,8 @@ export default function Artists() {
             />
             {/* Dynamic Genre Filter */}
             <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-              <Select value={selectedMainGenre || ""} onValueChange={(value) => {
-                setSelectedMainGenre(value || null);
+              <Select value={selectedMainGenre || "all"} onValueChange={(value) => {
+                setSelectedMainGenre(value === "all" ? null : value);
                 setSelectedSubGenre(null);
                 setSelectedGenres([]);
               }}>
@@ -425,7 +425,7 @@ export default function Artists() {
                   <Filter size={18} className="text-[#B3B3B3] hover:text-white" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#282828] border-[#3E3E3E]">
-                  <SelectItem value="">All Genres</SelectItem>
+                  <SelectItem value="all">All Genres</SelectItem>
                   {mainGenres.map((genre) => (
                     <SelectItem key={genre} value={genre}>{genre}</SelectItem>
                   ))}
