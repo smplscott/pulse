@@ -27,10 +27,10 @@ export default function Threads() {
   ];
 
   const filters = [
-    { id: "all", label: "All", icon: <MessageCircle className="w-4 h-4" /> },
-    { id: "music", label: "Music", icon: <Music className="w-4 h-4" /> },
-    { id: "community", label: "Community", icon: <User className="w-4 h-4" /> },
-    { id: "events", label: "Events", icon: <Calendar className="w-4 h-4" /> }
+    { id: "all", label: "All", icon: <MessageCircle className="w-4 h-4 mr-2" /> },
+    { id: "music", label: "Music", icon: <Music className="w-4 h-4 mr-2" /> },
+    { id: "community", label: "Community", icon: <User className="w-4 h-4 mr-2" /> },
+    { id: "events", label: "Events", icon: <Calendar className="w-4 h-4 mr-2" /> }
   ];
 
   const { data: threads, isLoading: isLoadingThreads } = useQuery<Thread[]>({
@@ -77,7 +77,7 @@ export default function Threads() {
             return (
               <button
                 key={filter.id}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center ${
                   isActive
                     ? "bg-[#282828] text-white"
                     : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
