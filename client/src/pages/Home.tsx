@@ -499,7 +499,7 @@ export default function Home() {
         
         {/* Threads tab content */}
         {activeTab === "threads" && (
-          <div className="px-4 py-2">
+          <div className="px-4 pt-4 pb-2">
             {/* Thread filter tabs */}
             <div className="mt-4 mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
               {threadFilters.map((filter) => (

@@ -147,7 +147,7 @@ export default function Venues() {
       <Header />
       {/* Removed TabNavigator as requested */}
       
-      <main className="px-4 py-4">
+      <main className="px-4 pt-4 pb-4">
         
         {/* Options for Places page */}
         <div className="mt-4 mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
