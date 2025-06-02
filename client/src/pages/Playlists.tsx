@@ -9,7 +9,7 @@ import { SearchIcon, Music2, Disc3, Heart, MessageCircle, SlidersHorizontal, Lis
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import AdvancedGenreFilter from "@/components/ui/advanced-genre-filter";
+import SearchWithFilter from "@/components/ui/search-with-filter";
 
 type PlaylistCategoryTab = {
   id: string;

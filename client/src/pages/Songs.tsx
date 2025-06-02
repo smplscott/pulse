@@ -6,7 +6,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
 import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter, Star, Clock, Flame, Youtube, Radio, TrendingUp } from "lucide-react";
-import AdvancedGenreFilter from "@/components/ui/advanced-genre-filter";
+import SearchWithFilter from "@/components/ui/search-with-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
