@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Playlist } from "@shared/schema";
-import { SearchIcon, Music2, Disc3, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink, Plus, Smile, Filter, ChevronDown, ListMusic } from "lucide-react";
+import { SearchIcon, Music2, Disc3, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink, Plus, Smile, Filter, ChevronDown, ListMusic, Radio, Youtube } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -60,10 +60,10 @@ export default function Playlists() {
   };
 
   const setCategories = [
-    { id: "all", label: "All" },
-    { id: "live", label: "Live Performances" },
-    { id: "youtube", label: "YouTube" },
-    { id: "soundcloud", label: "Soundcloud" },
+    { id: "all", label: "All", icon: <Disc3 className="w-4 h-4 mr-2" /> },
+    { id: "live", label: "Live Performances", icon: <Radio className="w-4 h-4 mr-2" /> },
+    { id: "youtube", label: "YouTube", icon: <Youtube className="w-4 h-4 mr-2" /> },
+    { id: "soundcloud", label: "Soundcloud", icon: <Music2 className="w-4 h-4 mr-2" /> },
   ];
 
   const renderPlaylistsList = () => {
@@ -224,13 +224,14 @@ export default function Playlists() {
               <button
                 key={category.id}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap",
+                  "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center",
                   isActive
                     ? "bg-[#282828] text-white"
                     : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
                 )}
                 onClick={() => setActiveCategory(category.id)}
               >
+                {category.icon}
                 {category.label}
               </button>
             );

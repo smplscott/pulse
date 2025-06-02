@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter } from "lucide-react";
+import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter, Star, Clock, Flame, Youtube, Radio, TrendingUp } from "lucide-react";
 import AdvancedGenreFilter from "@/components/ui/advanced-genre-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +16,7 @@ import { useMusic } from "@/hooks/useMusic";
 type SongCategoryTab = {
   id: string;
   label: string;
+  icon: React.ReactNode;
 };
 
 export default function Songs() {
@@ -139,14 +140,14 @@ export default function Songs() {
   };
 
   const songCategories: SongCategoryTab[] = [
-    { id: "your-list", label: "Your List" },
-    { id: "new-unknowns", label: "New Unknowns" },
-    { id: "new-favorites", label: "New Favorites" },
-    { id: "classics", label: "Classics" },
-    { id: "youtube-sets", label: "From YouTube Sets" },
-    { id: "live-sets", label: "From Live Sets" },
-    { id: "talk-of-town", label: "Talk of the Town" },
-    { id: "trending-social", label: "Trending on Social" }
+    { id: "your-list", label: "Your List", icon: <ListMusic className="w-4 h-4 mr-2" /> },
+    { id: "new-unknowns", label: "New Unknowns", icon: <Music2 className="w-4 h-4 mr-2" /> },
+    { id: "new-favorites", label: "New Favorites", icon: <Star className="w-4 h-4 mr-2" /> },
+    { id: "classics", label: "Classics", icon: <Clock className="w-4 h-4 mr-2" /> },
+    { id: "youtube-sets", label: "From YouTube Sets", icon: <Youtube className="w-4 h-4 mr-2" /> },
+    { id: "live-sets", label: "From Live Sets", icon: <Radio className="w-4 h-4 mr-2" /> },
+    { id: "talk-of-town", label: "Talk of the Town", icon: <Flame className="w-4 h-4 mr-2" /> },
+    { id: "trending-social", label: "Trending on Social", icon: <TrendingUp className="w-4 h-4 mr-2" /> }
   ];
 
   const renderSongsList = () => {
@@ -333,13 +334,14 @@ export default function Songs() {
               <button
                 key={category.id}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap",
+                  "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center",
                   isActive
                     ? "bg-[#282828] text-white"
                     : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
                 )}
                 onClick={() => setActiveCategory(category.id)}
               >
+                {category.icon}
                 {category.label}
               </button>
             );
