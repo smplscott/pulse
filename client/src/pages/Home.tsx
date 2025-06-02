@@ -501,7 +501,7 @@ export default function Home() {
         {activeTab === "threads" && (
           <div className="px-4 py-2">
             {/* Thread filter tabs */}
-            <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+            <div className="mt-4 mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
               {threadFilters.map((filter) => (
                 <button
                   key={filter.id}

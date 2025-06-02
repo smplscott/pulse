@@ -150,7 +150,7 @@ export default function Venues() {
       <main className="px-4 py-4">
         
         {/* Options for Places page */}
-        <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
+        <div className="mt-4 mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
           {placeOptions.map((option) => (
             <button
               key={option.id}
