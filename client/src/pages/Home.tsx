@@ -89,7 +89,7 @@ export default function Home() {
       <main>
         {/* Search bar and Talk Music CTA - Hide completely when on Discover tab */}
         {activeTab !== "discover" && (
-          <div className="px-4 py-4">
+          <div className="px-4 pt-4 pb-2">
             <div className="relative mb-4 flex items-center">
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
@@ -123,7 +123,7 @@ export default function Home() {
         {activeTab === "for-you" && (
           <>
             {/* Featured Discussions Section with filter buttons */}
-            <div className="px-4 py-2">
+            <div className="px-4 pt-2 pb-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Featured Discussions</h2>
                 <button 
@@ -294,7 +294,7 @@ export default function Home() {
         
         {/* Discover tab content */}
         {activeTab === "discover" && (
-          <div className="px-4 py-2">            
+          <div className="px-4 pt-4 pb-2">            
             {/* Search bar with filter button */}
             <div className="relative mb-6 flex items-center gap-2">
               <div className="relative flex-1">
@@ -697,7 +697,7 @@ export default function Home() {
         
         {/* What's That Song tab content */}
         {activeTab === "whats-this-song" && (
-          <div className="px-4 py-2">
+          <div className="px-4 pt-4 pb-2">
             <h2 className="text-xl font-bold mb-4">What's That Song?</h2>
             
             {/* Create New Request Form */}
