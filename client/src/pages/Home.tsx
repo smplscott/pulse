@@ -12,6 +12,7 @@ import DiscussionItem from "@/components/discussion/DiscussionItem";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SearchIcon, SlidersHorizontal, MessageCircle, Trophy, Music, Heart, Filter, Clock } from "lucide-react";
+import AdvancedGenreFilter from "@/components/ui/advanced-genre-filter";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -114,19 +115,7 @@ export default function Home() {
               </button>
             </div>
             
-            {/* Talk Music CTA button */}
-            <button 
-              className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium mb-2 flex items-center justify-center"
-              onClick={() => {
-                toast({
-                  title: "Let's Talk Music",
-                  description: "What do you want to talk about?"
-                });
-              }}
-            >
-              <Music className="mr-2 h-5 w-5" />
-              Talk Music
-            </button>
+
           </div>
         )}
         
@@ -527,6 +516,33 @@ export default function Home() {
                   {filter.label}
                 </button>
               ))}
+            </div>
+
+            {/* Search bar with advanced genre filter */}
+            <div className="relative mb-6 flex items-center">
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
+                <Input
+                  type="text"
+                  placeholder="Search artists, songs, genres..."
+                  className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <AdvancedGenreFilter
+                  onFiltersChange={(filters) => {
+                    setSelectedMainGenre(filters.selectedMainGenre);
+                    setSelectedSubGenre(filters.selectedSubGenre);
+                    setSelectedSimilarGenres(filters.selectedGenres);
+                  }}
+                />
+              </div>
+              <button 
+                className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
+                onClick={() => toast({ title: "Create Thread", description: "Create new thread coming soon!" })}
+              >
+                <span className="text-white text-xl font-bold">+</span>
+              </button>
             </div>
             
             {/* Featured Discussions section */}
