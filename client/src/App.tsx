@@ -15,6 +15,7 @@ import Artists from "@/pages/Artists";
 import Songs from "@/pages/Songs";
 import Playlists from "@/pages/Playlists";
 import Badges from "@/pages/Badges";
+import Messages from "@/pages/Messages";
 import ArtistDetail from "@/pages/ArtistDetail";
 import SongDetail from "@/pages/SongDetail";
 import ThreadDetail from "@/pages/ThreadDetail";
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/library" component={Library} />
       <Route path="/profile" component={Profile} />
       <Route path="/badges" component={Badges} />
+      <Route path="/messages" component={Messages} />
       <Route path="/artists" component={Artists} />
       <Route path="/songs" component={Songs} />
       <Route path="/playlists" component={Playlists} />

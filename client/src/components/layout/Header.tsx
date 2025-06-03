@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Award, UserCircle } from "lucide-react";
+import { Award, UserCircle, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type HeaderProps = {
@@ -20,6 +20,11 @@ export default function Header({ username, profileImage }: HeaderProps) {
         <Link href="/badges">
           <button className="text-[#B3B3B3] hover:text-white">
             <Award className="h-5 w-5" />
+          </button>
+        </Link>
+        <Link href="/messages">
+          <button className="text-[#B3B3B3] hover:text-white">
+            <MessageCircle className="h-5 w-5" />
           </button>
         </Link>
         <Link href="/profile">
