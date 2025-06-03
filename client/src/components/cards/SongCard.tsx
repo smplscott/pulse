@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Play, Heart, MoreHorizontal } from "lucide-react";
+import { Smile } from "lucide-react"";
 import { cn } from "@/lib/utils";
 import { Song } from "@shared/schema";
 import { truncateText } from "@/lib/utils";
@@ -45,7 +45,7 @@ export default function SongCard({ song, className }: SongCardProps) {
             </div>
             <div className="flex items-center space-x-2">
               <button className="text-[#B3B3B3] hover:text-white">
-                <Heart className="w-4 h-4" />
+                <Smile className="w-4 h-4" />
               </button>
               <button className="text-[#B3B3B3] hover:text-white">
                 <MoreHorizontal className="w-4 h-4" />

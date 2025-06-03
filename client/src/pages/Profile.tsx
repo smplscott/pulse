@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Thread, Playlist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Edit, LogOut, Music, Users, MessageSquare, Heart, Award, Settings } from "lucide-react";
+import { Smile } from "lucide-react"";
 import { Link } from "wouter";
 import ThreadCard from "@/components/cards/ThreadCard";
 import TrackIDCard from "@/components/cards/TrackIDCard";
@@ -112,7 +112,7 @@ export default function Profile() {
               Threads
             </TabsTrigger>
             <TabsTrigger value="likes" className="flex-1">
-              <Heart className="h-4 w-4 mr-2" />
+              <Smile className="h-4 w-4 mr-2" />
               Likes
             </TabsTrigger>
             <TabsTrigger value="playlists" className="flex-1">
@@ -148,7 +148,7 @@ export default function Profile() {
           
           <TabsContent value="likes" className="mt-4">
             <div className="bg-[#181818] rounded-lg p-8 text-center">
-              <Heart className="h-12 w-12 text-[#B3B3B3] mx-auto mb-3" />
+              <Smile className="h-12 w-12 text-[#B3B3B3] mx-auto mb-3" />
               <p className="text-lg font-medium">No liked content yet</p>
               <p className="text-sm text-[#B3B3B3] mt-2 mb-4">Upvote threads and songs to see them here</p>
               <Link href="/">

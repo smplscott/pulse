@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Heart, MessageCircle, Trophy } from "lucide-react";
+import { Smile, MessageCircle, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type DiscussionItemProps = {
@@ -49,7 +49,7 @@ export default function DiscussionItem({ id, title, comments, timeAgo, rank = 1,
               }
             }}
           >
-            <Heart size={14} className="text-[#B3B3B3]" />
+            <Smile size={14} className="text-[#B3B3B3]" />
           </button>
           <button 
             className="w-7 h-7 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E]"

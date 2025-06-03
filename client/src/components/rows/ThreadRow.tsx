@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Thread } from "@shared/schema";
-import { Heart, MessageCircle } from "lucide-react";
+import { Smile } from "lucide-react"";
 import { TrophyIcon } from "@/components/icons/TrophyIcon";
 
 type ThreadRowProps = {
@@ -31,7 +31,7 @@ export default function ThreadRow({ thread, onClick }: ThreadRowProps) {
           </div>
           <div className="flex gap-2">
             <button className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center">
-              <Heart className="w-5 h-5 text-[#E5E5E5]" />
+              <Smile className="w-5 h-5 text-[#E5E5E5]" />
             </button>
             <button className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center">
               <MessageCircle className="w-5 h-5 text-[#E5E5E5]" />

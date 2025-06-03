@@ -11,7 +11,7 @@ import Venues from "@/components/sections/Venues";
 import DiscussionItem from "@/components/discussion/DiscussionItem";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { SearchIcon, SlidersHorizontal, MessageCircle, Trophy, Music, Heart, Filter, Clock, Bookmark, Smile } from "lucide-react";
+import { SearchIcon, SlidersHorizontal, MessageCircle, Trophy, Music, Filter, Clock, Bookmark, Smile } from "lucide-react";
 import AdvancedGenreFilter from "@/components/ui/advanced-genre-filter";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -372,7 +372,7 @@ export default function Home() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <button className="p-1 hover:bg-[#282828] rounded">
-                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                        <Smile size={16} className="text-[#B3B3B3] hover:text-pink-500" />
                       </button>
                       <button className="p-1 hover:bg-[#282828] rounded">
                         <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />
@@ -404,7 +404,7 @@ export default function Home() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <button className="p-1 hover:bg-[#282828] rounded">
-                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                        <Smile size={16} className="text-[#B3B3B3] hover:text-pink-500" />
                       </button>
                       <button className="p-1 hover:bg-[#282828] rounded">
                         <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />
@@ -436,7 +436,7 @@ export default function Home() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <button className="p-1 hover:bg-[#282828] rounded">
-                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                        <Smile size={16} className="text-[#B3B3B3] hover:text-pink-500" />
                       </button>
                       <button className="p-1 hover:bg-[#282828] rounded">
                         <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />

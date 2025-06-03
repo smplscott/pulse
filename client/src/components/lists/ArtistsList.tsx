@@ -1,6 +1,6 @@
 import { Artist } from "@shared/schema";
 import { Link } from "wouter";
-import { Heart, MessageCircle } from "lucide-react";
+import { Smile } from "lucide-react"";
 
 type ArtistsListProps = {
   artists: Artist[];
@@ -62,7 +62,7 @@ function ArtistListItem({ artist }: { artist: Artist }) {
                 // Like artist functionality would go here
               }}
             >
-              <Heart className="w-5 h-5 text-[#E5E5E5]" />
+              <Smile className="w-5 h-5 text-[#E5E5E5]" />
             </button>
             <button 
               className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center"

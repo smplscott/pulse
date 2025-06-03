@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter, Star, Clock, Flame, Youtube, Radio, TrendingUp, Bookmark } from "lucide-react";
+import { ListMusic, Music2, Star, Clock, Youtube, Radio, Flame, TrendingUp, Bookmark, MessageCircle, Smile } from "lucide-react";
 import SearchWithFilter from "@/components/ui/search-with-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";

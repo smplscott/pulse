@@ -6,7 +6,7 @@ import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Playlist, Song } from "@shared/schema";
 import { Link } from "wouter";
-import { Heart, Music, ListMusic, Clock, CalendarDays } from "lucide-react";
+import { Smile } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import TrackIDCard from "@/components/cards/TrackIDCard";
 
@@ -50,7 +50,7 @@ export default function Library() {
               <Link href="/library?section=liked">
                 <div className="bg-[#181818] rounded-lg p-4 flex items-center space-x-3 cursor-pointer">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#450af5] to-[#c4efd9] flex items-center justify-center">
-                    <Heart className="h-5 w-5 text-white" />
+                    <Smile className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <p className="font-medium">Liked Songs</p>

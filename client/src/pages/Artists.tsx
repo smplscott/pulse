@@ -6,7 +6,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Artist, Song } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
-import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter, Bookmark } from "lucide-react";
+import { User, Music as MusicIcon, Edit as PenIcon, Settings as SettingsIcon, MessageCircle, Bookmark, Smile } from "lucide-react";
 import SearchWithFilter from "@/components/ui/search-with-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -179,7 +179,7 @@ export default function Artists() {
                           handleLike(artist.id, artist.name);
                         }}
                       >
-                        <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-pink-500" />
+                        <Smile className="h-4 w-4 text-[#B3B3B3] hover:text-pink-500" />
                       </button>
                       <button
                         onClick={(e) => {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Thread } from "@shared/schema";
 import { Link } from "wouter";
-import { Heart, MessageCircle, Trophy } from "lucide-react";
+import { Smile } from "lucide-react"";
 import { TrophyIcon } from "@/components/icons/TrophyIcon";
 import { formatRelativeTime } from "@/lib/utils";
 
@@ -51,7 +51,7 @@ function ThreadListItem({ thread }: { thread: Thread }) {
                 // Like thread functionality would go here
               }}
             >
-              <Heart className={`w-5 h-5 ${(thread.upvotes || 0) > 0 ? "text-[#5271ff] fill-[#5271ff]" : "text-[#E5E5E5]"}`} />
+              <Smile className={`w-5 h-5 ${(thread.upvotes || 0) > 0 ? "text-[#5271ff] fill-[#5271ff]" : "text-[#E5E5E5]"}`} />
             </button>
             <button 
               className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center"
