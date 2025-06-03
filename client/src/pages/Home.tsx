@@ -11,7 +11,7 @@ import Venues from "@/components/sections/Venues";
 import DiscussionItem from "@/components/discussion/DiscussionItem";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { SearchIcon, SlidersHorizontal, MessageCircle, Trophy, Music, Heart, Filter, Clock } from "lucide-react";
+import { SearchIcon, SlidersHorizontal, MessageCircle, Trophy, Music, Heart, Filter, Clock, Bookmark } from "lucide-react";
 import AdvancedGenreFilter from "@/components/ui/advanced-genre-filter";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -162,27 +162,24 @@ export default function Home() {
               </div>
               
               <div className="space-y-2">
-                <DiscussionItem 
-                  id={1}
-                  title="Most Innovative Electronic Artists of 2025"
-                  comments={243}
-                  timeAgo="4h ago"
-                  rank={1}
-                />
-                <DiscussionItem 
-                  id={2}
-                  title="Techno DJs That Define Berlin's Sound"
-                  comments={192}
-                  timeAgo="8h ago"
-                  rank={2}
-                />
-                <DiscussionItem 
-                  id={3}
-                  title="Artists Who Master Both Production & Vocals"
-                  comments={122}
-                  timeAgo="12h ago"
-                  rank={3}
-                />
+                <div className="flex items-center p-3 bg-[#181818] rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white text-sm">Most Innovative Electronic Artists of 2025</h3>
+                    <p className="text-xs text-[#B3B3B3]">243 comments • 4h ago</p>
+                  </div>
+                </div>
+                <div className="flex items-center p-3 bg-[#181818] rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white text-sm">Techno DJs That Define Berlin's Sound</h3>
+                    <p className="text-xs text-[#B3B3B3]">192 comments • 8h ago</p>
+                  </div>
+                </div>
+                <div className="flex items-center p-3 bg-[#181818] rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white text-sm">Artists Who Master Both Production & Vocals</h3>
+                    <p className="text-xs text-[#B3B3B3]">122 comments • 12h ago</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -246,9 +243,9 @@ export default function Home() {
                 <button className="text-sm text-[#B3B3B3] hover:text-white">See All</button>
               </div>
               
-              <div className="space-y-3">
-                <div className="bg-[#181818] rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
+              <div className="flex overflow-x-auto scrollbar-hide space-x-4 pb-2">
+                <div className="bg-[#181818] rounded-lg p-4 flex-shrink-0 w-64">
+                  <div className="flex items-center space-x-3 mb-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-[#1E3A8A] to-[#7C2D12] rounded-lg flex items-center justify-center">
                       <span className="text-white font-bold text-lg">T</span>
                     </div>
@@ -256,20 +253,30 @@ export default function Home() {
                       <h3 className="font-medium text-white">Tripolism</h3>
                       <p className="text-sm text-[#B3B3B3]">1.2M plays this week</p>
                     </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                      </button>
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />
+                      </button>
+                    </div>
                     <button 
-                      className="px-4 py-2 bg-[#282828] rounded-full text-white text-sm border border-[#3E3E3E] hover:bg-[#3E3E3E]"
+                      className="px-3 py-1 bg-[#282828] rounded-full text-white text-xs border border-[#3E3E3E] hover:bg-[#3E3E3E]"
                       onClick={() => toast({
-                        title: "Following",
-                        description: "Now following Tripolism"
+                        title: "Discussion",
+                        description: "Opening Tripolism discussion"
                       })}
                     >
-                      Follow
+                      Discuss
                     </button>
                   </div>
                 </div>
                 
-                <div className="bg-[#181818] rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
+                <div className="bg-[#181818] rounded-lg p-4 flex-shrink-0 w-64">
+                  <div className="flex items-center space-x-3 mb-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-[#7E22CE] to-[#BE185D] rounded-lg flex items-center justify-center">
                       <span className="text-white font-bold text-lg">D</span>
                     </div>
@@ -277,14 +284,55 @@ export default function Home() {
                       <h3 className="font-medium text-white">DESIREE</h3>
                       <p className="text-sm text-[#B3B3B3]">850K plays this week</p>
                     </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                      </button>
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />
+                      </button>
+                    </div>
                     <button 
-                      className="px-4 py-2 bg-[#282828] rounded-full text-white text-sm border border-[#3E3E3E] hover:bg-[#3E3E3E]"
+                      className="px-3 py-1 bg-[#282828] rounded-full text-white text-xs border border-[#3E3E3E] hover:bg-[#3E3E3E]"
                       onClick={() => toast({
-                        title: "Following",
-                        description: "Now following DESIREE"
+                        title: "Discussion",
+                        description: "Opening DESIREE discussion"
                       })}
                     >
-                      Follow
+                      Discuss
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-[#181818] rounded-lg p-4 flex-shrink-0 w-64">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#059669] to-[#DC2626] rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">&</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white">&ME</h3>
+                      <p className="text-sm text-[#B3B3B3]">720K plays this week</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                      </button>
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />
+                      </button>
+                    </div>
+                    <button 
+                      className="px-3 py-1 bg-[#282828] rounded-full text-white text-xs border border-[#3E3E3E] hover:bg-[#3E3E3E]"
+                      onClick={() => toast({
+                        title: "Discussion",
+                        description: "Opening &ME discussion"
+                      })}
+                    >
+                      Discuss
                     </button>
                   </div>
                 </div>
@@ -298,47 +346,99 @@ export default function Home() {
                 <button className="text-sm text-[#B3B3B3] hover:text-white">See All</button>
               </div>
               
-              <div className="space-y-3">
-                <div className="bg-[#181818] rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
+              <div className="flex overflow-x-auto scrollbar-hide space-x-4 pb-2">
+                <div className="bg-[#181818] rounded-lg p-4 flex-shrink-0 w-64">
+                  <div className="flex items-center space-x-3 mb-3">
                     <div className="w-12 h-12 bg-[#282828] rounded-lg overflow-hidden">
                       <div className="w-full h-full bg-gradient-to-br from-[#FF6B35] to-[#F7931E]"></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-white">Flying Away With You</h3>
-                      <p className="text-sm text-[#B3B3B3]">WhoMadeWho, Tripolism</p>
+                      <h3 className="font-medium text-white text-sm">Flying Away With You</h3>
+                      <p className="text-xs text-[#B3B3B3]">WhoMadeWho, Tripolism</p>
                       <p className="text-xs text-[#B3B3B3]">2.1M plays this week</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                      </button>
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />
+                      </button>
                     </div>
                     <button 
                       className="px-3 py-1 bg-[#282828] rounded-full text-white text-xs border border-[#3E3E3E] hover:bg-[#3E3E3E]"
                       onClick={() => toast({
-                        title: "Added to Queue",
-                        description: "Flying Away With You added to queue"
+                        title: "Discussion",
+                        description: "Opening track discussion"
                       })}
                     >
-                      Play
+                      Discuss
                     </button>
                   </div>
                 </div>
                 
-                <div className="bg-[#181818] rounded-lg p-4">
-                  <div className="flex items-center space-x-3">
+                <div className="bg-[#181818] rounded-lg p-4 flex-shrink-0 w-64">
+                  <div className="flex items-center space-x-3 mb-3">
                     <div className="w-12 h-12 bg-[#282828] rounded-lg overflow-hidden">
                       <div className="w-full h-full bg-gradient-to-br from-[#8B5CF6] to-[#EC4899]"></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-white">King Steps (DESIREE Remix)</h3>
-                      <p className="text-sm text-[#B3B3B3]">Disclosure, Pa Salieu, DESIREE</p>
+                      <h3 className="font-medium text-white text-sm">King Steps (DESIREE Remix)</h3>
+                      <p className="text-xs text-[#B3B3B3]">Disclosure, Pa Salieu, DESIREE</p>
                       <p className="text-xs text-[#B3B3B3]">1.8M plays this week</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                      </button>
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />
+                      </button>
                     </div>
                     <button 
                       className="px-3 py-1 bg-[#282828] rounded-full text-white text-xs border border-[#3E3E3E] hover:bg-[#3E3E3E]"
                       onClick={() => toast({
-                        title: "Added to Queue",
-                        description: "King Steps (DESIREE Remix) added to queue"
+                        title: "Discussion",
+                        description: "Opening track discussion"
                       })}
                     >
-                      Play
+                      Discuss
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-[#181818] rounded-lg p-4 flex-shrink-0 w-64">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-12 h-12 bg-[#282828] rounded-lg overflow-hidden">
+                      <div className="w-full h-full bg-gradient-to-br from-[#10B981] to-[#3B82F6]"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white text-sm">Reflections</h3>
+                      <p className="text-xs text-[#B3B3B3]">&ME, Rampa</p>
+                      <p className="text-xs text-[#B3B3B3]">1.5M plays this week</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Heart size={16} className="text-[#B3B3B3] hover:text-pink-500" />
+                      </button>
+                      <button className="p-1 hover:bg-[#282828] rounded">
+                        <Bookmark size={16} className="text-[#B3B3B3] hover:text-white" />
+                      </button>
+                    </div>
+                    <button 
+                      className="px-3 py-1 bg-[#282828] rounded-full text-white text-xs border border-[#3E3E3E] hover:bg-[#3E3E3E]"
+                      onClick={() => toast({
+                        title: "Discussion",
+                        description: "Opening track discussion"
+                      })}
+                    >
+                      Discuss
                     </button>
                   </div>
                 </div>
