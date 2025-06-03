@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Playlist } from "@shared/schema";
-import { SearchIcon, Music2, Disc3, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink, Plus, Smile, Filter, ChevronDown, ListMusic, Radio, Youtube } from "lucide-react";
+import { SearchIcon, Music2, Disc3, Heart, MessageCircle, SlidersHorizontal, List, Play, ExternalLink, Plus, Smile, Filter, ChevronDown, ListMusic, Radio, Youtube, Bookmark } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";

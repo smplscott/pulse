@@ -6,7 +6,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Artist, Song } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
-import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter } from "lucide-react";
+import { SearchIcon, User, MusicIcon, PenIcon, SettingsIcon, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter, Bookmark } from "lucide-react";
 import SearchWithFilter from "@/components/ui/search-with-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";

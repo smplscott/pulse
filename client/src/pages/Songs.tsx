@@ -5,7 +5,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Song, Playlist } from "@shared/schema";
-import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter, Star, Clock, Flame, Youtube, Radio, TrendingUp } from "lucide-react";
+import { SearchIcon, Music2, ListMusic, Heart, MessageCircle, SlidersHorizontal, List, Plus, Smile, Filter, Star, Clock, Flame, Youtube, Radio, TrendingUp, Bookmark } from "lucide-react";
 import SearchWithFilter from "@/components/ui/search-with-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -207,16 +207,16 @@ export default function Songs() {
                 
                 {/* Right side actions with soft grey formatting */}
                 <div className="flex items-center space-x-0.5 ml-1">
-                  {/* Add/Plus button */}
+                  {/* Save/Bookmark button */}
                   <button 
                     className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      toast({ title: "Added", description: `Added "${song.title}" to your collection` });
+                      toast({ title: "Saved", description: `Saved "${song.title}" to your collection` });
                     }}
                   >
-                    <Plus className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                    <Bookmark className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                   </button>
                   
                   {/* Universal reaction button */}
@@ -277,10 +277,10 @@ export default function Songs() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        toast({ title: "Added", description: `Added "${song.title}" to your collection` });
+                        toast({ title: "Saved", description: `Saved "${song.title}" to your collection` });
                       }}
                     >
-                      <Plus className="h-4 w-4 text-white" />
+                      <Bookmark className="h-4 w-4 text-white" />
                     </button>
                     <button 
                       className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"

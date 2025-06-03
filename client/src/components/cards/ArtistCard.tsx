@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Artist } from "@shared/schema";
-import { Music2Icon, MessageCircleIcon, Plus, Smile } from "lucide-react";
+import { Music2Icon, MessageCircleIcon, Plus, Smile, Bookmark } from "lucide-react";
 
 type ArtistCardProps = {
   artist: Artist;
@@ -56,7 +56,7 @@ export default function ArtistCard({ artist, className }: ArtistCardProps) {
                   e.stopPropagation();
                 }}
               >
-                <Plus className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
+                <Bookmark className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
               </button>
               
               <button 

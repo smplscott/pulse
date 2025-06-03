@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Artist } from "@shared/schema";
-import { Plus, Smile, MessageCircle } from "lucide-react";
+import { Plus, Smile, MessageCircle, Bookmark } from "lucide-react";
 
 type ArtistRowProps = {
   artist: Artist;
@@ -43,7 +43,7 @@ export default function ArtistRow({ artist, onClick }: ArtistRowProps) {
                 // Save artist functionality would go here
               }}
             >
-              <Plus size={12} className="text-[#B3B3B3]" />
+              <Bookmark size={12} className="text-[#B3B3B3]" />
             </button>
             <button 
               className="w-6 h-6 rounded-full bg-[#2A2A2A] flex items-center justify-center hover:bg-[#3A3A3A] transition-colors"
