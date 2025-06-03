@@ -228,6 +228,13 @@ export default function Home() {
                   timeAgo="1d ago"
                   rank={2}
                 />
+                <DiscussionItem 
+                  id={6}
+                  title="Best Sets from Berlin's Underground Scene"
+                  comments={76}
+                  timeAgo="2d ago"
+                  rank={3}
+                />
               </div>
             </div>
 
