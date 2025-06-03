@@ -95,8 +95,8 @@ export default function Home() {
       />
       
       <main>
-        {/* Search bar and Talk Music CTA - Hide completely when on Discover tab and What's That Song tab */}
-        {activeTab !== "discover" && activeTab !== "whats-this-song" && (
+        {/* Search bar and Talk Music CTA - Hide completely when on Discover, What's That Song, and Threads tabs */}
+        {activeTab !== "discover" && activeTab !== "whats-this-song" && activeTab !== "threads" && (
           <div className="px-4 pt-2 pb-2">
             <div className="relative mb-4 flex items-center">
               <div className="relative flex-1">
