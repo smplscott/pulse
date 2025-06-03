@@ -87,10 +87,17 @@ export default function Artists() {
     return matchesSearch && matchesGenre;
   });
 
+  const handleSave = (artistId: number, artistName: string) => {
+    toast({
+      title: "Saved!",
+      description: `${artistName} added to your library`
+    });
+  };
+
   const handleLike = (artistId: number, artistName: string) => {
     toast({
-      title: "Liked!",
-      description: `You liked ${artistName}`
+      title: "Reacted!",
+      description: `You reacted to ${artistName}`
     });
   };
 
@@ -176,10 +183,19 @@ export default function Artists() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
+                          handleSave(artist.id, artist.name);
+                        }}
+                      >
+                        <Bookmark className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           handleLike(artist.id, artist.name);
                         }}
                       >
-                        <Smile className="h-4 w-4 text-[#B3B3B3] hover:text-pink-500" />
+                        <Smile className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                       </button>
                       <button
                         onClick={(e) => {
