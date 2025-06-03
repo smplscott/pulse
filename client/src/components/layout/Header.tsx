@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { BellIcon, UserCircle } from "lucide-react";
+import { Award, UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type HeaderProps = {
@@ -17,9 +17,11 @@ export default function Header({ username, profileImage }: HeaderProps) {
         <span className="green-gradient text-xs px-2 py-0.5 rounded-full">BETA</span>
       </div>
       <div className="flex items-center space-x-4">
-        <button className="text-[#B3B3B3] hover:text-white">
-          <BellIcon className="h-5 w-5" />
-        </button>
+        <Link href="/badges">
+          <button className="text-[#B3B3B3] hover:text-white">
+            <Award className="h-5 w-5" />
+          </button>
+        </Link>
         <Link href="/profile">
           <Avatar className="w-8 h-8 cursor-pointer">
             {profileImage ? (
