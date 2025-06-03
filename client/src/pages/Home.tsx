@@ -87,8 +87,8 @@ export default function Home() {
       />
       
       <main>
-        {/* Search bar and Talk Music CTA - Hide completely when on Discover tab */}
-        {activeTab !== "discover" && (
+        {/* Search bar and Talk Music CTA - Hide completely when on Discover tab and What's That Song tab */}
+        {activeTab !== "discover" && activeTab !== "whats-this-song" && (
           <div className="px-4 pt-2 pb-2">
             <div className="relative mb-4 flex items-center">
               <div className="relative flex-1">
@@ -673,25 +673,6 @@ export default function Home() {
         {/* Threads tab content */}
         {activeTab === "threads" && (
           <>
-            {/* Thread filter tabs */}
-            <div className="px-4 pt-4 pb-2 bg-[#121212]">
-              <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-                {threadFilters.map((filter) => (
-                  <button
-                    key={filter.id}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
-                      activeThreadsFilter === filter.id
-                        ? "pink-gradient text-white"
-                        : "bg-[#181818] text-[#B3B3B3]"
-                    )}
-                    onClick={() => setActiveThreadsFilter(filter.id)}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-            </div>
             
             <main className="px-4 pt-2 pb-4">
               {/* Search bar with advanced genre filter */}
