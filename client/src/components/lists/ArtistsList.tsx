@@ -1,6 +1,6 @@
 import { Artist } from "@shared/schema";
 import { Link } from "wouter";
-import { Smile } from "lucide-react"";
+import { Smile } from "lucide-react";
 
 type ArtistsListProps = {
   artists: Artist[];

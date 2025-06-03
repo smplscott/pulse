@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { Thread } from "@shared/schema";
-import { Smile } from "lucide-react"";
+import { Smile } from "lucide-react";
 import { TrophyIcon } from "@/components/icons/TrophyIcon";
 
 type ThreadRowProps = {

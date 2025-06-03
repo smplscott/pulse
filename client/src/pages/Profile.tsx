@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Thread, Playlist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Smile } from "lucide-react"";
+import { Edit, Settings, MessageSquare, Music, Smile } from "lucide-react";
 import { Link } from "wouter";
 import ThreadCard from "@/components/cards/ThreadCard";
 import TrackIDCard from "@/components/cards/TrackIDCard";

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Song, Artist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Smile } from "lucide-react"";
+import { Smile } from "lucide-react";
 import { useMusic } from "@/hooks/useMusic";
 
 export default function SongDetail() {

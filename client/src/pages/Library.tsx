@@ -6,7 +6,7 @@ import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Playlist, Song } from "@shared/schema";
 import { Link } from "wouter";
-import { Smile } from "lucide-react";
+import { Clock, Music, CalendarDays, ListMusic, Smile } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import TrackIDCard from "@/components/cards/TrackIDCard";
 
