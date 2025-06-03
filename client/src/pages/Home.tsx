@@ -672,181 +672,39 @@ export default function Home() {
         
         {/* Threads tab content */}
         {activeTab === "threads" && (
-          <>
-            
-            <main className="px-4 pt-2 pb-4">
-              {/* Search bar with advanced genre filter */}
-              <div className="relative mb-4 flex items-center">
-                <div className="relative flex-1">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B3B3B3]" size={18} />
-                  <Input
-                    type="text"
-                    placeholder="Search artists, songs, genres..."
-                    className="pl-9 pr-12 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <AdvancedGenreFilter
-                    onFiltersChange={(filters) => {
-                      setSelectedMainGenre(filters.selectedMainGenre);
-                      setSelectedSubGenre(filters.selectedSubGenre);
-                      setSelectedSimilarGenres(filters.selectedGenres);
-                    }}
-                  />
-                </div>
-                <button 
-                  className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
-                  onClick={() => toast({ title: "Create Thread", description: "Create new thread coming soon!" })}
-                >
-                  <span className="text-white text-xl font-bold">+</span>
-                </button>
-              </div>
-              
-              {/* Featured Discussions section */}
-              <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Featured Discussions</h2>
-                <span className="text-sm text-[#B3B3B3] hover:text-white">See All</span>
-              </div>
-              
-              {/* Filter buttons matching the provided screenshot */}
-              <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
-                {discussionFilters.map((filter) => (
-                  <button
-                    key={filter.id}
-                    className={cn(
-                      "px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap",
-                      activeDiscussionFilter === filter.id
-                        ? "pink-gradient text-white"
-                        : "bg-[#181818] text-[#B3B3B3]"
-                    )}
-                    onClick={() => setActiveDiscussionFilter(filter.id)}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-              
-              {/* Featured discussion items matching the screenshot */}
-              <div className="space-y-5 pt-2">
-                <div className="flex items-start">
-                  <div className="mr-3 pt-1">
-                    <Trophy className="h-6 w-6 text-yellow-500" />
-                  </div>
+          <main className="px-4 pt-4 pb-4">
+            {/* Thread list */}
+            <div className="space-y-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={`thread-${i}`} className="flex items-start border-b border-[#3E3E3E] pb-3">
                   <div className="flex-1">
-                    <h3 className="font-bold text-white">Most Innovative Electronic Artists of 2025</h3>
-                    <p className="text-[#B3B3B3] text-sm">243 comments • 4h ago</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button className="p-2 rounded-full bg-[#1A1A1A]">
-                      <Heart className="h-5 w-5 text-[#B3B3B3]" />
-                    </button>
-                    <button className="p-2 rounded-full bg-[#1A1A1A]">
-                      <MessageCircle className="h-5 w-5 text-[#B3B3B3]" />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="mr-3 pt-1">
-                    <Trophy className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-white">Techno DJs That Define Berlin's Sound</h3>
-                    <p className="text-[#B3B3B3] text-sm">192 comments • 8h ago</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button className="p-2 rounded-full bg-[#1A1A1A]">
-                      <Heart className="h-5 w-5 text-[#B3B3B3]" />
-                    </button>
-                    <button className="p-2 rounded-full bg-[#1A1A1A]">
-                      <MessageCircle className="h-5 w-5 text-[#B3B3B3]" />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="mr-3 pt-1">
-                    <Trophy className="h-6 w-6 text-amber-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-white">Artists Who Master Both Production & Vocals</h3>
-                    <p className="text-[#B3B3B3] text-sm">122 comments • 12h ago</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button className="p-2 rounded-full bg-[#1A1A1A]">
-                      <Heart className="h-5 w-5 text-[#B3B3B3]" />
-                    </button>
-                    <button className="p-2 rounded-full bg-[#1A1A1A]">
-                      <MessageCircle className="h-5 w-5 text-[#B3B3B3]" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Discussion Threads section */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Discussion Threads</h2>
-                <button className="text-sm text-[#B3B3B3]">
-                  <Filter size={16} className="inline mr-1" />
-                  Sort
-                </button>
-              </div>
-              
-              {/* Mini filter buttons like in featured discussions */}
-              <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
-                {discussionFilters.map((filter) => (
-                  <button
-                    key={filter.id}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
-                      activeDiscussionFilter === filter.id
-                        ? "pink-gradient text-white"
-                        : "bg-[#181818] text-[#B3B3B3]"
-                    )}
-                    onClick={() => setActiveDiscussionFilter(filter.id)}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-              
-              {/* Thread list */}
-              <div className="space-y-3">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={`thread-${i}`} className="flex items-start border-b border-[#3E3E3E] pb-3">
-                    <div className="flex-1">
-                      <h3 className="font-medium mb-1">Thread Title #{i+1}</h3>
-                      <p className="text-xs text-[#B3B3B3] mb-2">
-                        Started by @User{i+1} • {Math.floor(Math.random() * 24) + 1}h ago
-                      </p>
-                      <div className="flex items-center gap-3 text-xs">
-                        <div className="flex items-center">
-                          <MessageCircle size={14} className="text-[#B3B3B3] mr-1" />
-                          <span>{Math.floor(Math.random() * 200) + 10}</span>
-                        </div>
+                    <h3 className="font-medium mb-1">Thread Title #{i+1}</h3>
+                    <p className="text-xs text-[#B3B3B3] mb-2">
+                      Started by @User{i+1} • {Math.floor(Math.random() * 24) + 1}h ago
+                    </p>
+                    <div className="flex items-center gap-3 text-xs">
+                      <div className="flex items-center">
+                        <MessageCircle size={14} className="text-[#B3B3B3] mr-1" />
+                        <span>{Math.floor(Math.random() * 200) + 10}</span>
                       </div>
                     </div>
-                    <Badge className={`${
-                      i % 3 === 0 ? "green-gradient text-[#5b5b5b]" : 
-                      i % 3 === 1 ? "pink-gradient text-white" : 
-                      "bg-gradient-to-r from-[#5271ff] to-[#7a9dff] text-white"
-                    }`}>
-                      {i % 3 === 0 ? "Music" : i % 3 === 1 ? "Community" : "Event"}
-                    </Badge>
                   </div>
-                ))}
-              </div>
-              
-              {/* Load more button */}
-              <button className="w-full text-center py-3 mt-4 text-[#B3B3B3] hover:text-white">
-                Load More
-              </button>
+                  <Badge className={`${
+                    i % 3 === 0 ? "green-gradient text-[#5b5b5b]" : 
+                    i % 3 === 1 ? "pink-gradient text-white" : 
+                    "bg-gradient-to-r from-[#5271ff] to-[#7a9dff] text-white"
+                  }`}>
+                    {i % 3 === 0 ? "Music" : i % 3 === 1 ? "Community" : "Event"}
+                  </Badge>
+                </div>
+              ))}
             </div>
-            </main>
-          </>
+            
+            {/* Load more button */}
+            <button className="w-full text-center py-3 mt-4 text-[#B3B3B3] hover:text-white">
+              Load More
+            </button>
+          </main>
         )}
         
         {/* What's That Song tab content */}
@@ -862,7 +720,6 @@ export default function Home() {
               </p>
               
               <div className="space-y-4">
-                {/* Possible artist field */}
                 <div>
                   <label className="text-sm text-[#B3B3B3] mb-1 block">Possible Artist (if known)</label>
                   <Input 
@@ -871,7 +728,6 @@ export default function Home() {
                   />
                 </div>
                 
-                {/* Where you heard it */}
                 <div>
                   <label className="text-sm text-[#B3B3B3] mb-1 block">Where did you hear it?</label>
                   <Input 
@@ -880,7 +736,6 @@ export default function Home() {
                   />
                 </div>
                 
-                {/* Description */}
                 <div>
                   <label className="text-sm text-[#B3B3B3] mb-1 block">Description</label>
                   <textarea 
@@ -889,7 +744,6 @@ export default function Home() {
                   ></textarea>
                 </div>
                 
-                {/* Lyrics */}
                 <div>
                   <label className="text-sm text-[#B3B3B3] mb-1 block">Any lyrics you remember?</label>
                   <textarea 
@@ -898,54 +752,34 @@ export default function Home() {
                   ></textarea>
                 </div>
                 
-                {/* Genre tags */}
-                <div>
-                  <label className="text-sm text-[#B3B3B3] mb-1 block">Genre Tags</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {["Techno", "House", "Ambient", "Experimental", "Vocal", "Melodic"].map(genre => (
-                      <Badge 
-                        key={genre} 
-                        className="bg-[#282828] text-[#B3B3B3] cursor-pointer hover:pink-gradient hover:text-white"
-                      >
-                        {genre}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Upload recording option */}
-                <div>
-                  <label className="text-sm text-[#B3B3B3] mb-1 block">Attach audio clip (optional)</label>
-                  <button className="w-full border border-dashed border-[#3E3E3E] py-4 rounded-md text-[#B3B3B3] text-sm">
-                    Click to upload recording or sound clip
-                  </button>
-                </div>
-                
-                {/* Submit button */}
                 <button 
-                  className="w-full pink-gradient pink-gradient-hover text-white py-3 rounded-md font-medium"
-                  onClick={() => {
-                    toast({
-                      title: "Request Submitted",
-                      description: "Your song identification request has been posted!"
-                    });
-                  }}
+                  className="w-full py-3 pink-gradient rounded-lg text-white font-medium"
+                  onClick={() => toast({ title: "Request Posted", description: "Your song request has been posted to the community" })}
                 >
-                  Submit Request
+                  Post Request
                 </button>
               </div>
             </div>
             
-            {/* Popular requests */}
-            <h3 className="font-bold mb-3 text-lg">Popular Requests</h3>
-            <div className="space-y-4 mb-6">
-              <WhatsThisSong hideTitle={true} expanded={true} />
-            </div>
-            
-            {/* Recent requests */}
-            <h3 className="font-bold mb-3 text-lg">Recent Requests</h3>
-            <div className="space-y-4">
-              <WhatsThisSong hideTitle={true} expanded={true} />
+            {/* Recent Requests */}
+            <div>
+              <h3 className="font-medium text-lg mb-4">Recent Requests</h3>
+              <div className="space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="bg-[#181818] border border-[#3E3E3E] rounded-lg p-4">
+                    <h4 className="font-medium text-white mb-2">
+                      Looking for track from Berghain last weekend
+                    </h4>
+                    <p className="text-sm text-[#B3B3B3] mb-3">
+                      Deep techno track, around 130 BPM, had a really distinctive synth melody...
+                    </p>
+                    <div className="flex items-center justify-between text-xs text-[#B3B3B3]">
+                      <span>Posted by @user{i+1} • {i+1}h ago</span>
+                      <span>{Math.floor(Math.random() * 10) + 1} responses</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
