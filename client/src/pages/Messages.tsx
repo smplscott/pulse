@@ -144,7 +144,7 @@ export default function Messages() {
             className={cn(
               "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all",
               activeTab === "friends"
-                ? "bg-gradient-to-r from-[#059669] to-[#FBBF24] text-white"
+                ? "bg-gradient-to-r from-[#FBBF24] to-[#059669] text-white"
                 : "text-[#B3B3B3] hover:text-white hover:bg-[#282828]"
             )}
           >
@@ -155,7 +155,7 @@ export default function Messages() {
             className={cn(
               "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all",
               activeTab === "groups"
-                ? "bg-gradient-to-r from-[#059669] to-[#FBBF24] text-white"
+                ? "bg-gradient-to-r from-[#FBBF24] to-[#059669] text-white"
                 : "text-[#B3B3B3] hover:text-white hover:bg-[#282828]"
             )}
           >
@@ -176,7 +176,7 @@ export default function Messages() {
                     <div className="relative">
                       <Avatar className="w-12 h-12">
                         <AvatarImage src={contact.avatar} alt={contact.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-[#059669] to-[#FBBF24] text-white">
+                        <AvatarFallback className="bg-gradient-to-br from-[#FBBF24] to-[#059669] text-white">
                           {contact.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
@@ -196,7 +196,7 @@ export default function Messages() {
 
                     <div className="flex items-center space-x-2">
                       {contact.unreadCount > 0 && (
-                        <Badge className="bg-gradient-to-r from-[#EC4899] to-[#F97316] text-white text-xs">
+                        <Badge className="bg-gradient-to-r from-[#EC4899] to-[#8B5CF6] text-white text-xs">
                           {contact.unreadCount}
                         </Badge>
                       )}
@@ -228,7 +228,7 @@ export default function Messages() {
                     <div className="relative">
                       <Avatar className="w-12 h-12">
                         <AvatarImage src={group.avatar} alt={group.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] text-white">
+                        <AvatarFallback className="bg-gradient-to-br from-[#EC4899] to-[#8B5CF6] text-white">
                           {group.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
@@ -251,7 +251,7 @@ export default function Messages() {
 
                     <div className="flex items-center space-x-2">
                       {group.unreadCount > 0 && (
-                        <Badge className="bg-gradient-to-r from-[#EC4899] to-[#F97316] text-white text-xs">
+                        <Badge className="bg-gradient-to-r from-[#EC4899] to-[#8B5CF6] text-white text-xs">
                           {group.unreadCount}
                         </Badge>
                       )}
@@ -274,7 +274,7 @@ export default function Messages() {
 
         {/* Floating Action Button */}
         <div className="fixed bottom-24 right-6">
-          <button className="w-14 h-14 bg-gradient-to-r from-[#059669] to-[#FBBF24] rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all">
+          <button className="w-14 h-14 bg-gradient-to-r from-[#FBBF24] to-[#059669] rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all">
             <Send className="h-6 w-6 text-white" />
           </button>
         </div>
