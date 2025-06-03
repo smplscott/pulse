@@ -30,7 +30,6 @@ export default function Home() {
   const tabs = [
     { id: "for-you", label: "For You" },
     { id: "discover", label: "Discover" },
-    { id: "threads", label: "Threads" },
     { id: "whats-this-song", label: "What's That Song" },
   ];
   
@@ -195,10 +194,7 @@ export default function Home() {
             <div className="px-4 pt-2 pb-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Featured Discussions</h2>
-                <button 
-                  onClick={() => setActiveTab("threads")} 
-                  className="text-sm text-[#B3B3B3] hover:text-white"
-                >
+                <button className="text-sm text-[#B3B3B3] hover:text-white">
                   See All
                 </button>
               </div>
