@@ -48,104 +48,66 @@ export default function Artists() {
         "R&B": ["Contemporary R&B", "Neo Soul", "Quiet Storm", "New Jack Swing"],
         "Soul": ["Southern Soul", "Deep Soul", "Northern Soul", "Psychedelic Soul"],
         "Funk": ["P-Funk", "Funk Rock", "Electro-Funk", "G-Funk"],
-        "Trap": ["Drill", "Trap Soul", "Latin Trap", "UK Drill"]
+        "Trap": ["Drill", "Future Bass", "Melodic Trap", "Dark Trap"]
       }
     },
     "Rock": {
-      subGenres: ["Alternative", "Metal", "Indie", "Punk", "Classic Rock"],
+      subGenres: ["Alternative", "Indie", "Post-Rock", "Shoegaze", "Grunge"],
       similarGenres: {
-        "Alternative": ["Grunge", "Post-Rock", "Shoegaze", "Math Rock"],
-        "Metal": ["Heavy Metal", "Thrash Metal", "Death Metal", "Black Metal"],
-        "Indie": ["Indie Pop", "Indie Folk", "Dream Pop", "Post-Punk Revival"],
-        "Punk": ["Hardcore", "Pop Punk", "Post-Punk", "Emo"],
-        "Classic Rock": ["Progressive Rock", "Blues Rock", "Psychedelic Rock", "Hard Rock"]
-      }
-    },
-    "Pop": {
-      subGenres: ["Mainstream Pop", "Synth Pop", "Art Pop", "K-Pop", "Indie Pop"],
-      similarGenres: {
-        "Mainstream Pop": ["Dance Pop", "Electropop", "Teen Pop", "Bubblegum Pop"],
-        "Synth Pop": ["New Wave", "Synthwave", "Future Pop", "Electro Pop"],
-        "Art Pop": ["Chamber Pop", "Baroque Pop", "Avant-Pop", "Experimental Pop"],
-        "K-Pop": ["J-Pop", "Mandopop", "C-Pop", "T-Pop"],
-        "Indie Pop": ["Bedroom Pop", "Dream Pop", "Twee Pop", "Synthpop"]
-      }
-    },
-    "Jazz & Blues": {
-      subGenres: ["Jazz", "Blues", "Fusion", "Big Band", "Swing"],
-      similarGenres: {
-        "Jazz": ["Bebop", "Cool Jazz", "Modal Jazz", "Free Jazz"],
-        "Blues": ["Delta Blues", "Chicago Blues", "Jump Blues", "Electric Blues"],
-        "Fusion": ["Jazz Fusion", "Soul Jazz", "Jazz-Funk", "Nu Jazz"],
-        "Big Band": ["Orchestral Jazz", "Swing", "Dixieland", "Hot Jazz"],
-        "Swing": ["Gypsy Jazz", "Western Swing", "Jump Blues", "Boogie-Woogie"]
-      }
-    },
-    "World": {
-      subGenres: ["Latin", "African", "Asian", "Middle Eastern", "Celtic"],
-      similarGenres: {
-        "Latin": ["Salsa", "Reggaeton", "Cumbia", "Bachata"],
-        "African": ["Afrobeat", "Highlife", "Soukous", "Amapiano"],
-        "Asian": ["Bollywood", "K-Pop", "J-Pop", "Traditional Asian"],
-        "Middle Eastern": ["Arabic Pop", "Turkish Pop", "Persian Traditional", "Raï"],
-        "Celtic": ["Irish Folk", "Scottish Folk", "Breton Music", "Welsh Folk"]
+        "Alternative": ["Alt Rock", "College Rock", "Britpop", "Grunge"],
+        "Indie": ["Indie Pop", "Indie Folk", "Math Rock", "Art Rock"],
+        "Post-Rock": ["Post-Metal", "Ambient Rock", "Instrumental Rock", "Drone"],
+        "Shoegaze": ["Dream Pop", "Noise Pop", "Space Rock", "Ethereal Wave"],
+        "Grunge": ["Seattle Sound", "Alternative Metal", "Post-Grunge", "Garage Rock"]
       }
     }
   };
-  
-  // Flat list of all main genres
-  const mainGenres = Object.keys(genreHierarchy);
 
   const { data: artists, isLoading: isLoadingArtists } = useQuery<Artist[]>({
     queryKey: ["/api/artists"],
   });
 
-  // Get songs to count songs by artist
   const { data: songs } = useQuery<Song[]>({
     queryKey: ["/api/songs"],
   });
 
-  // Count songs by artist
-  const getSongCountByArtist = (artistName: string): number => {
-    if (!songs) return 0;
-    return songs.filter(song => 
-      song.artist.toLowerCase() === artistName.toLowerCase() ||
-      (song.features && Array.isArray(song.features) && 
-       song.features.some(feature => feature.toLowerCase() === artistName.toLowerCase()))
-    ).length;
+  // Filter artists based on search query and genre selection
+  const filteredArtists = artists?.filter((artist) => {
+    const matchesSearch = searchQuery === "" || 
+      artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (artist.realName && artist.realName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (artist.bio && artist.bio.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesGenre = selectedGenres.length === 0 || 
+      selectedGenres.some(genre => 
+        artist.bio?.toLowerCase().includes(genre.toLowerCase()) ||
+        artist.name.toLowerCase().includes(genre.toLowerCase())
+      );
+    
+    return matchesSearch && matchesGenre;
+  });
+
+  const handleLike = (artistId: number, artistName: string) => {
+    toast({
+      title: "Liked!",
+      description: `You liked ${artistName}`
+    });
   };
 
-  // Filter artists based on search query
-  const filteredArtists = artists?.filter(artist => 
-    artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (artist.genres && Array.isArray(artist.genres) && artist.genres.some((genre: string) => 
-      genre.toLowerCase().includes(searchQuery.toLowerCase())
-    ))
-  );
-  
-  // For handling reactions
-  const handleReaction = (e: React.MouseEvent, artistId: number, name: string) => {
-    e.stopPropagation(); // Prevent row click event
-    // In a real app, this would call an API to add reaction
-    toast({
-      title: "Reaction Added",
-      description: `You liked "${name}"`
-    });
+  // Filter for Talk Music CTA
+  const handleTalkMusic = (artistId: number, artistName: string) => {
+    // Navigate directly to the thread page
+    window.location.href = `/thread/artist_${artistId}`;
   };
-  
-  // For handling comments
-  const handleComment = (e: React.MouseEvent, artistId: number, name: string) => {
-    e.stopPropagation(); // Prevent row click event
-    // In a real app, this would open a comment modal or navigate to comments
-    toast({
-      title: "Comment",
-      description: `Add a comment to "${name}"`
-    });
-  };
-  
-  // Toggle display mode between grid and list
-  const toggleDisplayMode = () => {
-    setDisplayMode(prev => prev === "grid" ? "list" : "grid");
+
+  const handleFiltersChange = (filters: {
+    selectedMainGenre: string | null;
+    selectedSubGenre: string | null;
+    selectedSimilarGenres: string[];
+  }) => {
+    setSelectedMainGenre(filters.selectedMainGenre);
+    setSelectedSubGenre(filters.selectedSubGenre);
+    setSelectedGenres(filters.selectedSimilarGenres);
   };
 
   const categoryTabs: CategoryTab[] = [
@@ -175,189 +137,73 @@ export default function Artists() {
     }
   ];
 
-  // Artist content type tabs
-  const [artistContentTab, setArtistContentTab] = useState("all");
-  
-  const artistContentTabs = [
-    { id: "all", label: "All" },
-    { id: "live", label: "Live Performances" },
-    { id: "records", label: "Records" },
-    { id: "albums", label: "Albums" },
-    { id: "features", label: "Features" }
-  ];
-  
   const renderCategoryContent = () => {
     if (activeCategory === "artists") {
       if (isLoadingArtists) {
         return (
-          <>
-            {/* Artist content type tabs */}
-            <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
-              {artistContentTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  className={cn(
-                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
-                    artistContentTab === tab.id
-                      ? "pink-gradient text-white"
-                      : "bg-[#181818] text-[#B3B3B3]"
-                  )}
-                  onClick={() => setArtistContentTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-56 w-full" />
-              ))}
-            </div>
-          </>
+          <div className="grid grid-cols-2 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-56 w-full" />
+            ))}
+          </div>
         );
       } else if (filteredArtists && filteredArtists.length > 0) {
-        // Filter artists based on content type
-        // For now, we'll just show all artists regardless of tab
-        // In a real implementation, we would filter based on the tab
-        
         return (
-          <>
-            {/* Artist content type tabs */}
-            <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
-              {artistContentTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  className={cn(
-                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
-                    artistContentTab === tab.id
-                      ? "pink-gradient text-white"
-                      : "bg-[#181818] text-[#B3B3B3]"
-                  )}
-                  onClick={() => setArtistContentTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
+          displayMode === "grid" ? (
+            // Grid view
+            <div className="grid grid-cols-2 gap-3">
+              {filteredArtists.map((artist) => (
+                <ArtistCard key={artist.id} artist={artist} />
               ))}
             </div>
-            
-            {artistContentTab === "all" ? (
-              displayMode === "grid" ? (
-                // Grid view
-                <div className="grid grid-cols-2 gap-3">
-                  {filteredArtists.map((artist) => (
-                    <ArtistCard key={artist.id} artist={artist} />
-                  ))}
-                </div>
-              ) : (
-                // List view with reaction and comment CTAs
-                <div className="space-y-2">
-                  {filteredArtists.map((artist) => (
-                    <Link key={artist.id} href={`/thread/artist_${artist.id}`}>
-                      <div 
-                        className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition"
+          ) : (
+            // List view with reaction and comment CTAs
+            <div className="space-y-2">
+              {filteredArtists.map((artist) => (
+                <Link key={artist.id} href={`/thread/artist_${artist.id}`}>
+                  <div className="flex items-center p-3 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors">
+                    <img
+                      src={artist.image || "/placeholder-artist.jpg"}
+                      alt={artist.name}
+                      className="w-12 h-12 rounded-full object-cover mr-3"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-white">{artist.name}</h3>
+                      <p className="text-sm text-[#B3B3B3]">1 Tracks</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleLike(artist.id, artist.name);
+                        }}
                       >
-                        <div className="w-10 h-10 bg-[#282828] rounded-full overflow-hidden mr-3 flex-shrink-0">
-                          {artist.profilePicture ? (
-                            <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
-                              <User className="h-5 w-5 text-[#B3B3B3]" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{artist.name}</p>
-                          <p className="text-xs text-[#B3B3B3] truncate">
-                            {getSongCountByArtist(artist.name)} Tracks
-                          </p>
-                        </div>
-                        
-                        {/* Right side actions with soft grey formatting */}
-                        <div className="flex items-center space-x-0.5 ml-1">
-                          {/* Add/Plus button */}
-                          <button 
-                            className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              toast({ title: "Following", description: `Now following ${artist.name}` });
-                            }}
-                          >
-                            <Plus className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-                          </button>
-                          
-                          {/* Universal reaction button */}
-                          <button 
-                            className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleReaction(e, artist.id, artist.name);
-                            }}
-                          >
-                            <Smile className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-                          </button>
-                          
-                          {/* Comment button */}
-                          <button 
-                            className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              window.location.href = `/thread/artist_${artist.id}`;
-                            }}
-                          >
-                            <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-                          </button>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )
-            ) : (
-              <div className="text-center py-10">
-                <p className="text-[#B3B3B3]">
-                  No content available in the {artistContentTab} category yet.
-                </p>
-                <p className="text-xs text-[#B3B3B3] mt-2">
-                  {artistContentTab === "live" && "Artist live performances and concerts"}
-                  {artistContentTab === "records" && "Studio recorded singles and EPs"}
-                  {artistContentTab === "albums" && "Full-length album releases"}
-                  {artistContentTab === "features" && "Collaborations and featured appearances"}
-                </p>
-              </div>
-            )}
-          </>
+                        <Heart className="h-4 w-4 text-[#B3B3B3] hover:text-pink-500" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.location.href = `/thread/artist_${artist.id}`;
+                        }}
+                      >
+                        <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                      </button>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )
         );
       } else {
         return (
-          <>
-            {/* Artist content type tabs */}
-            <div className="mb-4 flex space-x-2 overflow-x-auto scrollbar-hide">
-              {artistContentTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  className={cn(
-                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
-                    artistContentTab === tab.id
-                      ? "pink-gradient text-white"
-                      : "bg-[#181818] text-[#B3B3B3]"
-                  )}
-                  onClick={() => setArtistContentTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            
-            <div className="text-center py-10">
-              <p className="text-[#B3B3B3]">
-                {searchQuery ? "No artists found matching your search" : "No artists available"}
-              </p>
-            </div>
-          </>
+          <div className="text-center py-10">
+            <p className="text-[#B3B3B3]">
+              {searchQuery ? "No artists found matching your search" : "No artists available"}
+            </p>
+          </div>
         );
       }
     } else {
@@ -380,24 +226,24 @@ export default function Artists() {
     <div className="min-h-screen pb-32">
       <Header />
       
-      {/* Category tabs using the horizontal button style */}
+      {/* Artist category tabs using the horizontal button style */}
       <div className="px-4 pt-4 pb-2 bg-[#121212]">
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-          {categoryTabs.map((tab) => {
-            const isActive = activeCategory === tab.id;
+          {categoryTabs.map((category) => {
+            const isActive = activeCategory === category.id;
             return (
               <button
-                key={tab.id}
+                key={category.id}
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center",
                   isActive
                     ? "bg-[#282828] text-white"
                     : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
                 )}
-                onClick={() => setActiveCategory(tab.id)}
+                onClick={() => setActiveCategory(category.id)}
               >
-                {tab.icon}
-                {tab.label}
+                {category.icon}
+                {category.label}
               </button>
             );
           })}
@@ -410,21 +256,17 @@ export default function Artists() {
             placeholder="Search artists, genres, labels..."
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            onFiltersChange={(filters) => {
-              setSelectedMainGenre(filters.selectedMainGenre);
-              setSelectedSubGenre(filters.selectedSubGenre);
-              setSelectedGenres(filters.selectedGenres);
-            }}
+            onFiltersChange={handleFiltersChange}
+            genreHierarchy={genreHierarchy}
           />
           <button 
             className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
-            onClick={() => toast({ title: "Add Artist", description: "Add a new artist coming soon!" })}
+            onClick={() => toast({ title: "Create Content", description: "Create new content coming soon!" })}
           >
             <span className="text-white text-xl font-bold">+</span>
           </button>
         </div>
-        
-        {/* Dynamic content based on selected category */}
+
         {renderCategoryContent()}
       </main>
       
