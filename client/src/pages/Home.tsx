@@ -122,7 +122,71 @@ export default function Home() {
         {/* For You tab content */}
         {activeTab === "for-you" && (
           <>
-            {/* Featured Discussions Section with filter buttons */}
+            {/* 1. Saved Threads Section */}
+            <div className="px-4 pt-2 pb-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Saved Threads</h2>
+                <button className="text-sm text-[#B3B3B3] hover:text-white">See All</button>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center p-3 bg-[#181818] rounded-lg">
+                  <div className="w-2 h-2 bg-pink-500 rounded-full mr-3"></div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white text-sm">Best Techno Albums of 2023 So Far</h3>
+                    <p className="text-xs text-[#B3B3B3]">Saved 2 days ago</p>
+                  </div>
+                </div>
+                <div className="flex items-center p-3 bg-[#181818] rounded-lg">
+                  <div className="w-2 h-2 bg-pink-500 rounded-full mr-3"></div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white text-sm">Underground Venues Worth Visiting</h3>
+                    <p className="text-xs text-[#B3B3B3]">Saved 1 week ago</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Most Commented On Section */}
+            <div className="px-4 pt-2 pb-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Most Commented On</h2>
+                <button 
+                  className="text-sm text-[#B3B3B3] hover:text-white"
+                  onClick={() => {
+                    toast({ title: "Filters", description: "Advanced filters coming soon" });
+                  }}
+                >
+                  Filters
+                </button>
+              </div>
+              
+              <div className="space-y-2">
+                <DiscussionItem 
+                  id={1}
+                  title="Most Innovative Electronic Artists of 2025"
+                  comments={243}
+                  timeAgo="4h ago"
+                  rank={1}
+                />
+                <DiscussionItem 
+                  id={2}
+                  title="Techno DJs That Define Berlin's Sound"
+                  comments={192}
+                  timeAgo="8h ago"
+                  rank={2}
+                />
+                <DiscussionItem 
+                  id={3}
+                  title="Artists Who Master Both Production & Vocals"
+                  comments={122}
+                  timeAgo="12h ago"
+                  rank={3}
+                />
+              </div>
+            </div>
+
+            {/* 3. Featured Discussions Section */}
             <div className="px-4 pt-2 pb-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Featured Discussions</h2>
@@ -152,141 +216,140 @@ export default function Home() {
                 ))}
               </div>
               
-              {/* Sample discussions with trophy icons */}
-              <div className="space-y-2 mb-3">
-                {/* Sample discussion rows with trophies */}
-                {activeDiscussionFilter === "artists" && (
-                  <>
-                    <DiscussionItem 
-                      id={1}
-                      title="Most Innovative Electronic Artists of 2025"
-                      comments={243}
-                      timeAgo="4h ago"
-                      rank={1}
-                    />
-                    
-                    <DiscussionItem 
-                      id={2}
-                      title="Techno DJs That Define Berlin's Sound"
-                      comments={192}
-                      timeAgo="8h ago"
-                      rank={2}
-                    />
-                    
-                    <DiscussionItem 
-                      id={3}
-                      title="Artists Who Master Both Production & Vocals"
-                      comments={122}
-                      timeAgo="12h ago"
-                      rank={3}
-                    />
-                  </>
-                )}
-                
-                {activeDiscussionFilter === "songs" && (
-                  <>
-                    <DiscussionItem 
-                      id={4}
-                      title="Tracks That Define The Berlin Underground"
-                      comments={318}
-                      timeAgo="2h ago"
-                      rank={1}
-                    />
-                    
-                    <DiscussionItem 
-                      id={5}
-                      title="Songs With The Most Innovative Sound Design"
-                      comments={205}
-                      timeAgo="6h ago"
-                      rank={2}
-                    />
-                    
-                    <DiscussionItem 
-                      id={6}
-                      title="Most Sampled Breaks In Electronic Music"
-                      comments={173}
-                      timeAgo="9h ago"
-                      rank={3}
-                    />
-                  </>
-                )}
-                
-                {activeDiscussionFilter === "playlists" && (
-                  <>
-                    <DiscussionItem 
-                      id={7}
-                      title="Watergate Closing Sets That Made History"
-                      comments={198}
-                      timeAgo="5h ago"
-                      rank={1}
-                    />
-                    
-                    <DiscussionItem 
-                      id={8}
-                      title="Essential Berghain Sound Playlists"
-                      comments={241}
-                      timeAgo="7h ago"
-                      rank={2}
-                    />
-                    
-                    <DiscussionItem 
-                      id={9}
-                      title="Track IDs From Top Festival Sets of 2025"
-                      comments={152}
-                      timeAgo="11h ago"
-                      rank={3}
-                    />
-                  </>
-                )}
-                
-                {activeDiscussionFilter === "new" && (
-                  <>
-                    <DiscussionItem 
-                      id={10}
-                      title="Just Released: Best Electronic Albums of May"
-                      comments={287}
-                      timeAgo="3h ago"
-                    />
-                    
-                    <DiscussionItem 
-                      id={11}
-                      title="Emerging Artists With Groundbreaking Sound"
-                      comments={168}
-                      timeAgo="6h ago"
-                    />
-                    
-                    <DiscussionItem 
-                      id={12}
-                      title="Fresh Releases From Berlin Underground"
-                      comments={132}
-                      timeAgo="10h ago"
-                    />
-                  </>
-                )}
+              <div className="space-y-2">
+                <DiscussionItem 
+                  id={4}
+                  title="Most Underrated Tracks of This Year"
+                  comments={156}
+                  timeAgo="6h ago"
+                  rank={1}
+                />
+                <DiscussionItem 
+                  id={5}
+                  title="Perfect Songs for Late Night Sets"
+                  comments={89}
+                  timeAgo="1d ago"
+                  rank={2}
+                />
               </div>
             </div>
-            
-            {/* What's This Song section */}
+
+            {/* 4. What's This Song Section */}
             <div className="mb-3">
               <WhatsThisSong />
             </div>
-            
-            {/* Trending Songs section */}
-            <div className="mb-3">
-              <div className="px-4 py-2">
-                <h2 className="text-xl font-bold">Trending Songs on Pulse</h2>
+
+            {/* 5. Trending Artists on Pulse Section */}
+            <div className="px-4 pt-4 pb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Trending Artists on Pulse</h2>
+                <button className="text-sm text-[#B3B3B3] hover:text-white">See All</button>
               </div>
               
-              <TrackIDs hideTitle={true} />
+              <div className="space-y-3">
+                <div className="bg-[#181818] rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#1E3A8A] to-[#7C2D12] rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">T</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white">Tripolism</h3>
+                      <p className="text-sm text-[#B3B3B3]">1.2M plays this week</p>
+                    </div>
+                    <button 
+                      className="px-4 py-2 bg-[#282828] rounded-full text-white text-sm border border-[#3E3E3E] hover:bg-[#3E3E3E]"
+                      onClick={() => toast({
+                        title: "Following",
+                        description: "Now following Tripolism"
+                      })}
+                    >
+                      Follow
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="bg-[#181818] rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#7E22CE] to-[#BE185D] rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">D</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white">DESIREE</h3>
+                      <p className="text-sm text-[#B3B3B3]">850K plays this week</p>
+                    </div>
+                    <button 
+                      className="px-4 py-2 bg-[#282828] rounded-full text-white text-sm border border-[#3E3E3E] hover:bg-[#3E3E3E]"
+                      onClick={() => toast({
+                        title: "Following",
+                        description: "Now following DESIREE"
+                      })}
+                    >
+                      Follow
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            {/* Hot Threads section */}
-            <div className="mb-6">
-              <Threads />
+
+            {/* 6. Trending Songs on Pulse Section */}
+            <div className="px-4 pt-2 pb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Trending Songs on Pulse</h2>
+                <button className="text-sm text-[#B3B3B3] hover:text-white">See All</button>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="bg-[#181818] rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-[#282828] rounded-lg overflow-hidden">
+                      <div className="w-full h-full bg-gradient-to-br from-[#FF6B35] to-[#F7931E]"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white">Flying Away With You</h3>
+                      <p className="text-sm text-[#B3B3B3]">WhoMadeWho, Tripolism</p>
+                      <p className="text-xs text-[#B3B3B3]">2.1M plays this week</p>
+                    </div>
+                    <button 
+                      className="px-3 py-1 bg-[#282828] rounded-full text-white text-xs border border-[#3E3E3E] hover:bg-[#3E3E3E]"
+                      onClick={() => toast({
+                        title: "Added to Queue",
+                        description: "Flying Away With You added to queue"
+                      })}
+                    >
+                      Play
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="bg-[#181818] rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-[#282828] rounded-lg overflow-hidden">
+                      <div className="w-full h-full bg-gradient-to-br from-[#8B5CF6] to-[#EC4899]"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white">King Steps (DESIREE Remix)</h3>
+                      <p className="text-sm text-[#B3B3B3]">Disclosure, Pa Salieu, DESIREE</p>
+                      <p className="text-xs text-[#B3B3B3]">1.8M plays this week</p>
+                    </div>
+                    <button 
+                      className="px-3 py-1 bg-[#282828] rounded-full text-white text-xs border border-[#3E3E3E] hover:bg-[#3E3E3E]"
+                      onClick={() => toast({
+                        title: "Added to Queue",
+                        description: "King Steps (DESIREE Remix) added to queue"
+                      })}
+                    >
+                      Play
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            {/* Places to Listen section */}
-            <div>
+
+            {/* 7. Places You Might Like Section */}
+            <div className="mb-3">
+              <div className="px-4 py-2">
+                <h2 className="text-xl font-bold">Places You Might Like</h2>
+              </div>
               <Venues />
             </div>
           </>
