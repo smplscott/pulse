@@ -49,10 +49,10 @@ export default function Badges() {
       unlocked: true,
       levels: [
         { level: 1, name: "Curious Listener", requirement: 25, icon: <Headphones className="h-4 w-4" />, color: "from-slate-400 to-slate-600" },
-        { level: 2, name: "Track Hunter", requirement: 100, icon: <Target className="h-4 w-4" />, color: "from-green-400 to-green-600" },
-        { level: 3, name: "Music Explorer", requirement: 250, icon: <Star className="h-4 w-4" />, color: "from-blue-400 to-blue-600" },
-        { level: 4, name: "Sonic Archaeologist", requirement: 500, icon: <Award className="h-4 w-4" />, color: "from-purple-400 to-purple-600" },
-        { level: 5, name: "Audio Mystic", requirement: 1000, icon: <Crown className="h-4 w-4" />, color: "from-yellow-400 to-yellow-600" }
+        { level: 2, name: "Track Hunter", requirement: 100, icon: <Target className="h-4 w-4" />, color: "from-[#10B981] to-[#34D399]" },
+        { level: 3, name: "Music Explorer", requirement: 250, icon: <Star className="h-4 w-4" />, color: "from-[#22C55E] to-[#84CC16]" },
+        { level: 4, name: "Sonic Archaeologist", requirement: 500, icon: <Award className="h-4 w-4" />, color: "from-[#84CC16] to-[#EAB308]" },
+        { level: 5, name: "Audio Mystic", requirement: 1000, icon: <Crown className="h-4 w-4" />, color: "from-[#EAB308] to-[#F59E0B]" }
       ]
     },
     {
@@ -65,10 +65,10 @@ export default function Badges() {
       unlocked: true,
       levels: [
         { level: 1, name: "Conversation Starter", requirement: 10, icon: <MessageCircle className="h-4 w-4" />, color: "from-slate-400 to-slate-600" },
-        { level: 2, name: "Thread Weaver", requirement: 50, icon: <Users className="h-4 w-4" />, color: "from-green-400 to-green-600" },
-        { level: 3, name: "Discussion Catalyst", requirement: 150, icon: <Flame className="h-4 w-4" />, color: "from-blue-400 to-blue-600" },
-        { level: 4, name: "Community Pillar", requirement: 400, icon: <Trophy className="h-4 w-4" />, color: "from-purple-400 to-purple-600" },
-        { level: 5, name: "Pulse Legend", requirement: 1000, icon: <Crown className="h-4 w-4" />, color: "from-yellow-400 to-yellow-600" }
+        { level: 2, name: "Thread Weaver", requirement: 50, icon: <Users className="h-4 w-4" />, color: "from-[#10B981] to-[#34D399]" },
+        { level: 3, name: "Discussion Catalyst", requirement: 150, icon: <Flame className="h-4 w-4" />, color: "from-[#22C55E] to-[#84CC16]" },
+        { level: 4, name: "Community Pillar", requirement: 400, icon: <Trophy className="h-4 w-4" />, color: "from-[#84CC16] to-[#EAB308]" },
+        { level: 5, name: "Pulse Legend", requirement: 1000, icon: <Crown className="h-4 w-4" />, color: "from-[#EAB308] to-[#F59E0B]" }
       ]
     },
     {
@@ -81,10 +81,10 @@ export default function Badges() {
       unlocked: false,
       levels: [
         { level: 1, name: "Music Sleuth", requirement: 5, icon: <Target className="h-4 w-4" />, color: "from-slate-400 to-slate-600" },
-        { level: 2, name: "Audio Detective", requirement: 25, icon: <Music className="h-4 w-4" />, color: "from-green-400 to-green-600" },
-        { level: 3, name: "Sonic Sherlock", requirement: 75, icon: <Star className="h-4 w-4" />, color: "from-blue-400 to-blue-600" },
-        { level: 4, name: "Track Oracle", requirement: 200, icon: <Award className="h-4 w-4" />, color: "from-purple-400 to-purple-600" },
-        { level: 5, name: "Music Sage", requirement: 500, icon: <Crown className="h-4 w-4" />, color: "from-yellow-400 to-yellow-600" }
+        { level: 2, name: "Audio Detective", requirement: 25, icon: <Music className="h-4 w-4" />, color: "from-[#10B981] to-[#34D399]" },
+        { level: 3, name: "Sonic Sherlock", requirement: 75, icon: <Star className="h-4 w-4" />, color: "from-[#22C55E] to-[#84CC16]" },
+        { level: 4, name: "Track Oracle", requirement: 200, icon: <Award className="h-4 w-4" />, color: "from-[#84CC16] to-[#EAB308]" },
+        { level: 5, name: "Music Sage", requirement: 500, icon: <Crown className="h-4 w-4" />, color: "from-[#EAB308] to-[#F59E0B]" }
       ]
     },
     {
@@ -97,10 +97,10 @@ export default function Badges() {
       unlocked: true,
       levels: [
         { level: 1, name: "Mix Maker", requirement: 3, icon: <Disc className="h-4 w-4" />, color: "from-slate-400 to-slate-600" },
-        { level: 2, name: "Vibe Architect", requirement: 10, icon: <Music className="h-4 w-4" />, color: "from-green-400 to-green-600" },
-        { level: 3, name: "Sonic Curator", requirement: 25, icon: <Star className="h-4 w-4" />, color: "from-blue-400 to-blue-600" },
-        { level: 4, name: "Playlist Virtuoso", requirement: 75, icon: <Award className="h-4 w-4" />, color: "from-purple-400 to-purple-600" },
-        { level: 5, name: "Mix Master", requirement: 200, icon: <Crown className="h-4 w-4" />, color: "from-yellow-400 to-yellow-600" }
+        { level: 2, name: "Vibe Architect", requirement: 10, icon: <Music className="h-4 w-4" />, color: "from-[#10B981] to-[#34D399]" },
+        { level: 3, name: "Sonic Curator", requirement: 25, icon: <Star className="h-4 w-4" />, color: "from-[#22C55E] to-[#84CC16]" },
+        { level: 4, name: "Playlist Virtuoso", requirement: 75, icon: <Award className="h-4 w-4" />, color: "from-[#84CC16] to-[#EAB308]" },
+        { level: 5, name: "Mix Master", requirement: 200, icon: <Crown className="h-4 w-4" />, color: "from-[#EAB308] to-[#F59E0B]" }
       ]
     }
   ];
@@ -114,7 +114,7 @@ export default function Badges() {
       icon: <Crown className="h-6 w-6" />,
       unlocked: true,
       unlockedDate: "Dec 2024",
-      color: "from-yellow-400 to-yellow-600"
+      color: "from-[#84CC16] to-[#EAB308]"
     },
     {
       id: "first-thread",
@@ -123,7 +123,7 @@ export default function Badges() {
       icon: <MessageCircle className="h-6 w-6" />,
       unlocked: true,
       unlockedDate: "Jan 2025",
-      color: "from-green-400 to-green-600"
+      color: "from-[#10B981] to-[#34D399]"
     },
     {
       id: "night-owl",
@@ -131,7 +131,7 @@ export default function Badges() {
       description: "Active during late night hours (2-6 AM)",
       icon: <Clock className="h-6 w-6" />,
       unlocked: false,
-      color: "from-indigo-400 to-indigo-600"
+      color: "from-[#EC4899] to-[#BE185D]"
     },
     {
       id: "genre-specialist",
@@ -140,7 +140,7 @@ export default function Badges() {
       icon: <Star className="h-6 w-6" />,
       unlocked: true,
       unlockedDate: "Feb 2025",
-      color: "from-purple-400 to-purple-600"
+      color: "from-[#EC4899] to-[#BE185D]"
     },
     {
       id: "festival-goer",
@@ -148,7 +148,7 @@ export default function Badges() {
       description: "Checked into 10+ venues/festivals",
       icon: <Users className="h-6 w-6" />,
       unlocked: false,
-      color: "from-pink-400 to-pink-600"
+      color: "from-[#EC4899] to-[#BE185D]"
     }
   ];
 
@@ -189,7 +189,7 @@ export default function Badges() {
               <p className="text-sm text-[#B3B3B3]">Active Badges</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold pink-gradient-text">
+              <div className="text-2xl font-bold" style={{ background: 'linear-gradient(to right, #EC4899, #BE185D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 {unlockedSpecialBadges.length}
               </div>
               <p className="text-sm text-[#B3B3B3]">Special Achievements</p>
