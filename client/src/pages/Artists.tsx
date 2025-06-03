@@ -185,6 +185,7 @@ export default function Artists() {
                           e.stopPropagation();
                           handleSave(artist.id, artist.name);
                         }}
+                        className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition-colors"
                       >
                         <Bookmark className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                       </button>
@@ -194,6 +195,7 @@ export default function Artists() {
                           e.stopPropagation();
                           handleLike(artist.id, artist.name);
                         }}
+                        className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition-colors"
                       >
                         <Smile className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                       </button>
@@ -203,6 +205,7 @@ export default function Artists() {
                           e.stopPropagation();
                           window.location.href = `/thread/artist_${artist.id}`;
                         }}
+                        className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition-colors"
                       >
                         <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                       </button>
