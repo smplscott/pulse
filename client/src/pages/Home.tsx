@@ -446,9 +446,12 @@ export default function Home() {
             </div>
 
             {/* 7. Places You Might Like Section */}
-            <div className="mb-3">
-              <div className="px-4 py-2">
+            <div className="px-4 pt-2 pb-4">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Places You Might Like</h2>
+                <Link href="/venues" className="text-sm text-[#B3B3B3] hover:text-white">
+                  Search More
+                </Link>
               </div>
               <Venues />
             </div>
