@@ -56,25 +56,33 @@ export default function Home() {
     { id: "house", label: "House" },
     { id: "ambient", label: "Ambient" },
     { id: "breakbeat", label: "Breakbeat" },
-    { id: "dnb", label: "Drum & Bass" },
     { id: "experimental", label: "Experimental" },
+    { id: "dnb", label: "D&B" },
   ];
   
-  // Subgenre filters based on selected genre (example for Techno)
+  const mainGenreFilters = [
+    { id: "electronic", label: "Electronic", subGenres: ["Techno", "House", "Ambient", "Experimental"] },
+    { id: "rock", label: "Rock", subGenres: ["Alternative", "Indie", "Progressive", "Post-Rock"] },
+    { id: "pop", label: "Pop", subGenres: ["Synth-Pop", "Dream Pop", "Electro-Pop", "Indie Pop"] },
+    { id: "hip-hop", label: "Hip-Hop", subGenres: ["Trap", "Lo-Fi", "Boom Bap", "Alternative"] },
+  ];
+  
   const subGenreFilters = [
-    { id: "hard-techno", label: "Hard Techno" },
     { id: "melodic-techno", label: "Melodic Techno" },
-    { id: "acid-techno", label: "Acid Techno" },
-    { id: "dub-techno", label: "Dub Techno" },
+    { id: "progressive-house", label: "Progressive House" },
     { id: "minimal-techno", label: "Minimal Techno" },
+    { id: "deep-house", label: "Deep House" },
+    { id: "acid-techno", label: "Acid Techno" },
+    { id: "tech-house", label: "Tech House" },
   ];
   
-  // Similar genres for selected subgenre (example)
   const similarGenres = [
-    { id: "industrial", label: "Industrial" },
-    { id: "ebm", label: "EBM" },
-    { id: "breakcore", label: "Breakcore" },
-    { id: "trance", label: "Trance" },
+    { id: "organic-house", label: "Organic House" },
+    { id: "downtempo", label: "Downtempo" },
+    { id: "tribal-house", label: "Tribal House" },
+    { id: "psytrance", label: "Psytrance" },
+    { id: "future-garage", label: "Future Garage" },
+    { id: "breakbeat", label: "Breakbeat" },
   ];
 
   return (
@@ -498,22 +506,24 @@ export default function Home() {
             {/* Logical progression filter - only shown when filter button is clicked */}
             {showGenreFilter && (
               <div className="bg-[#121212] px-4 py-3 mb-6 border border-[#3E3E3E] rounded-lg shadow-lg">
-                {/* Main Genre selection - always visible when filter is open */}
+                <h3 className="text-white text-sm font-medium mb-3">Filter by Genre</h3>
+                
+                {/* Main Genre selection */}
                 <div className="mb-3">
-                  <h3 className="text-white text-xs font-medium mb-2">Genres</h3>
+                  <h3 className="text-white text-xs font-medium mb-2">Main Genre</h3>
                   <div className="flex overflow-x-auto scrollbar-hide whitespace-nowrap pb-1">
-                    {genreFilters.map((filter, index) => (
+                    {mainGenreFilters.map((filter, index) => (
                       <button
                         key={filter.id}
                         className={cn(
                           "mr-2 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0",
-                          (selectedMainGenre === filter.label || (!selectedMainGenre && index === 0)) 
+                          selectedMainGenre === filter.label
                             ? "pink-gradient text-white" 
                             : "bg-[#282828] text-[#B3B3B3]"
                         )}
                         onClick={() => {
                           setSelectedMainGenre(filter.label);
-                          setSelectedSubGenre(null);
+                          setSelectedSubGenre(null); 
                           setSelectedSimilarGenres([]);
                         }}
                       >
@@ -631,14 +641,12 @@ export default function Home() {
                   </Badge>
                 )}
                 
-                {selectedSimilarGenres.map(genre => (
+                {selectedSimilarGenres.map((genre) => (
                   <Badge 
                     key={genre}
                     className="pink-gradient text-white flex items-center gap-1 px-2 py-1 text-xs"
                     onClick={() => {
-                      setSelectedSimilarGenres(prev => 
-                        prev.filter(g => g !== genre)
-                      );
+                      setSelectedSimilarGenres(prev => prev.filter(g => g !== genre));
                     }}
                   >
                     {genre}
