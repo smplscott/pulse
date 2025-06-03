@@ -294,10 +294,10 @@ export default function Badges() {
                                     {level.name}
                                   </span>
                                   {isCurrent && (
-                                    <Badge className="bg-green-500 text-white text-xs">Current</Badge>
+                                    <Badge className="bg-gradient-to-r from-[#10B981] to-[#34D399] text-white text-xs">Current</Badge>
                                   )}
                                   {isNext && (
-                                    <Badge className="bg-blue-500 text-white text-xs">Next</Badge>
+                                    <Badge className="bg-gradient-to-r from-[#EC4899] to-[#BE185D] text-white text-xs">Next</Badge>
                                   )}
                                 </div>
                                 <p className={cn(
@@ -310,13 +310,13 @@ export default function Badges() {
                                    'playlists created'}
                                 </p>
                                 {isNext && (
-                                  <p className="text-xs text-blue-400 mt-1">
+                                  <p className="text-xs mt-1" style={{ color: '#EC4899' }}>
                                     {level.requirement - category.currentProgress} more needed
                                   </p>
                                 )}
                               </div>
                               {isUnlocked && (
-                                <CheckCircle className="h-5 w-5 text-green-500" />
+                                <CheckCircle className="h-5 w-5" style={{ color: '#10B981' }} />
                               )}
                             </div>
                           );
@@ -337,7 +337,7 @@ export default function Badges() {
           {/* Unlocked Special Badges */}
           {unlockedSpecialBadges.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-lg font-medium mb-3 text-green-400">Unlocked</h3>
+              <h3 className="text-lg font-medium mb-3" style={{ color: '#10B981' }}>Unlocked</h3>
               <div className="grid grid-cols-1 gap-3">
                 {unlockedSpecialBadges.map((badge) => (
                   <div key={badge.id} className="bg-[#181818] rounded-lg p-4 border border-[#3E3E3E]">
@@ -352,12 +352,12 @@ export default function Badges() {
                         <h4 className="font-medium text-white">{badge.name}</h4>
                         <p className="text-sm text-[#B3B3B3]">{badge.description}</p>
                         {badge.unlockedDate && (
-                          <p className="text-xs text-green-400 mt-1">
+                          <p className="text-xs mt-1" style={{ color: '#10B981' }}>
                             Unlocked {badge.unlockedDate}
                           </p>
                         )}
                       </div>
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <CheckCircle className="h-5 w-5" style={{ color: '#10B981' }} />
                     </div>
                   </div>
                 ))}
