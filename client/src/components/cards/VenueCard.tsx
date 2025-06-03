@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { StarIcon, MessageCircleIcon, Plus, Smile } from "lucide-react";
+import { StarIcon, MessageCircleIcon, Plus, Smile, Bookmark } from "lucide-react";
 import { Venue } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -65,7 +65,7 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
                   e.stopPropagation();
                 }}
               >
-                <Plus className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
+                <Bookmark className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
               </button>
               
               <button 

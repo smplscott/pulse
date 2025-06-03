@@ -127,7 +127,7 @@ export default function Playlists() {
                       toast({ title: "Added", description: `Added "${playlist.title}" to your collection` });
                     }}
                   >
-                    <Plus className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+                    <Bookmark className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
                   </button>
                   
                   {/* Universal reaction button */}
@@ -180,7 +180,7 @@ export default function Playlists() {
                         toast({ title: "Added", description: `Added "${playlist.title}" to your collection` });
                       }}
                     >
-                      <Plus className="h-4 w-4 text-white" />
+                      <Bookmark className="h-4 w-4 text-white" />
                     </button>
                     <button 
                       className="w-8 h-8 rounded-full bg-[#000000AA] backdrop-blur-sm flex items-center justify-center hover:bg-[#282828]"
