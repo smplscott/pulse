@@ -240,19 +240,21 @@ export default function Playlists() {
       </div>
       
       <main className="px-4 pt-2 pb-4">
-        <div className="mb-4 flex items-center">
-          <SearchWithFilter
-            placeholder="Search sets, DJs, genres..."
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onFiltersChange={(filters) => {
-              setSelectedMainGenre(filters.selectedMainGenre);
-              setSelectedSubGenre(filters.selectedSubGenre);
-              setSelectedGenres(filters.selectedGenres);
-            }}
-          />
+        <div className="mb-4 flex items-center gap-2">
+          <div className="flex-1">
+            <SearchWithFilter
+              placeholder="Search sets, DJs, genres..."
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onFiltersChange={(filters) => {
+                setSelectedMainGenre(filters.selectedMainGenre);
+                setSelectedSubGenre(filters.selectedSubGenre);
+                setSelectedGenres(filters.selectedGenres);
+              }}
+            />
+          </div>
           <button 
-            className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
+            className="w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover flex-shrink-0"
             onClick={() => toast({ title: "Add Set", description: "Add a new set coming soon!" })}
           >
             <span className="text-white text-xl font-bold">+</span>

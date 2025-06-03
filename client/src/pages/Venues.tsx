@@ -172,19 +172,21 @@ export default function Venues() {
       <main className="px-4 pt-2 pb-4">
         {activeOption === "search" && (
           <>
-            <div className="mb-4 flex items-center">
-              <SearchWithFilter
-                placeholder="Search venues, locations, genres..."
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                onFiltersChange={(filters) => {
-                  setSelectedMainGenre(filters.selectedMainGenre);
-                  setSelectedSubGenre(filters.selectedSubGenre);
-                  setSelectedGenres(filters.selectedGenres);
-                }}
-              />
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex-1">
+                <SearchWithFilter
+                  placeholder="Search venues, locations, genres..."
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onFiltersChange={(filters) => {
+                    setSelectedMainGenre(filters.selectedMainGenre);
+                    setSelectedSubGenre(filters.selectedSubGenre);
+                    setSelectedGenres(filters.selectedGenres);
+                  }}
+                />
+              </div>
               <button 
-                className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
+                className="w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover flex-shrink-0"
                 onClick={() => toast({ title: "Add Place", description: "Add a new place with great music coming soon!" })}
               >
                 <span className="text-white text-xl font-bold">+</span>
