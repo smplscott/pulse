@@ -76,11 +76,11 @@ export default function Artists() {
     const matchesSearch = searchQuery === "" || 
       artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (artist.realName && artist.realName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (artist.bio && artist.bio.toLowerCase().includes(searchQuery.toLowerCase()));
+      (artist.story && artist.story.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    const matchesGenre = selectedGenres.length === 0 || 
+    const matchesGenre = !selectedGenres || selectedGenres.length === 0 || 
       selectedGenres.some(genre => 
-        artist.bio?.toLowerCase().includes(genre.toLowerCase()) ||
+        artist.story?.toLowerCase().includes(genre.toLowerCase()) ||
         artist.name.toLowerCase().includes(genre.toLowerCase())
       );
     
@@ -103,11 +103,11 @@ export default function Artists() {
   const handleFiltersChange = (filters: {
     selectedMainGenre: string | null;
     selectedSubGenre: string | null;
-    selectedSimilarGenres: string[];
+    selectedGenres: string[];
   }) => {
     setSelectedMainGenre(filters.selectedMainGenre);
     setSelectedSubGenre(filters.selectedSubGenre);
-    setSelectedGenres(filters.selectedSimilarGenres);
+    setSelectedGenres(filters.selectedGenres);
   };
 
   const categoryTabs: CategoryTab[] = [
@@ -163,7 +163,7 @@ export default function Artists() {
                 <Link key={artist.id} href={`/thread/artist_${artist.id}`}>
                   <div className="flex items-center p-3 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors">
                     <img
-                      src={artist.image || "/placeholder-artist.jpg"}
+                      src="/placeholder-artist.jpg"
                       alt={artist.name}
                       className="w-12 h-12 rounded-full object-cover mr-3"
                     />
@@ -257,7 +257,6 @@ export default function Artists() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onFiltersChange={handleFiltersChange}
-            genreHierarchy={genreHierarchy}
           />
           <button 
             className="ml-2 w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover"
