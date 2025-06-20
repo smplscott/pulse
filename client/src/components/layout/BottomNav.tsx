@@ -10,7 +10,7 @@ export default function BottomNav() {
     { icon: MapPinIcon, label: "Places", path: "/venues" },
     { icon: Music2Icon, label: "Songs", path: "/songs" },
     { icon: UserIcon, label: "Artists", path: "/artists" },
-    { icon: Disc3, label: "Sets", path: "/playlists" },
+    { icon: Disc3, label: "Sets", path: "/sets" },
   ];
 
   return (
