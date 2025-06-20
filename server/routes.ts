@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "./storage-simple";
 import { z } from "zod";
 import { insertUserSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema } from "@shared/schema";
 
