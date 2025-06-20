@@ -106,10 +106,10 @@ export class MemStorage implements IStorage {
     this.songRecommendationCurrentId = 1;
 
     // Initialize with some seed data
-    this.seedData();
+    this.seedData().catch(console.error);
   }
 
-  private seedData() {
+  private async seedData() {
     // Add seed data here for testing purposes
     const desiree = this.createArtist({
       name: "DESIREE",
@@ -329,8 +329,8 @@ export class MemStorage implements IStorage {
       recommendationsCount: 1
     });
 
-    // Add sets
-    this.createSet({
+    // Add sets with explicit types
+    const set1 = await this.createSet({
       title: "Tripolism's track IDs",
       description: "Tripolism's favorite tracks. Updated regularly. Curated by Tripolism.",
       curator: "Tripolism",
@@ -343,7 +343,7 @@ export class MemStorage implements IStorage {
       tags: ["techno", "house", "electronic", "track-ids"]
     });
 
-    this.createSet({
+    const set2 = await this.createSet({
       title: "&ME's track IDs",
       description: "&ME's favorite tracks. Updated regularly. Curated by &ME.",
       curator: "&ME",
@@ -356,7 +356,7 @@ export class MemStorage implements IStorage {
       tags: ["house", "techno", "track-ids"]
     });
 
-    this.createSet({
+    const set3 = await this.createSet({
       title: "DESIREE's track IDs",
       description: "DESIREE's favorite tracks. Updated regularly. Curated by DESIREE.",
       curator: "DESIREE",
@@ -368,6 +368,9 @@ export class MemStorage implements IStorage {
       type: "set",
       tags: ["r&b", "soul", "track-ids"]
     });
+
+    // Mark the first set as featured
+    await this.updateSet(set1.id, { featured: true });
   }
 
   // User operations

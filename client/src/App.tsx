@@ -13,13 +13,14 @@ import Library from "@/pages/Library";
 import Profile from "@/pages/Profile";
 import Artists from "@/pages/Artists";
 import Songs from "@/pages/Songs";
-import Playlists from "@/pages/Playlists";
+import Sets from "@/pages/Sets";
 import Badges from "@/pages/Badges";
 import Messages from "@/pages/Messages";
 import ArtistDetail from "@/pages/ArtistDetail";
 import SongDetail from "@/pages/SongDetail";
 import ThreadDetail from "@/pages/ThreadDetail";
 import VenueDetail from "@/pages/VenueDetail";
+import SetDetail from "@/pages/SetDetail";
 import CreateThread from "@/pages/CreateThread";
 import CreateSongRequest from "@/pages/CreateSongRequest";
 import NotFound from "@/pages/not-found";
@@ -38,11 +39,12 @@ function Router() {
       <Route path="/messages" component={Messages} />
       <Route path="/artists" component={Artists} />
       <Route path="/songs" component={Songs} />
-      <Route path="/playlists" component={Playlists} />
+      <Route path="/sets" component={Sets} />
       <Route path="/artist/:id" component={ArtistDetail} />
       <Route path="/song/:id" component={SongDetail} />
       <Route path="/thread/:id" component={ThreadDetail} />
       <Route path="/venue/:id" component={VenueDetail} />
+      <Route path="/sets/:id" component={SetDetail} />
       <Route path="/create-thread" component={CreateThread} />
       <Route path="/create-song-request" component={CreateSongRequest} />
       {/* Fallback to 404 */}
