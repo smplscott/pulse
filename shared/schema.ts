@@ -149,8 +149,8 @@ export const insertCommentSchema = createInsertSchema(comments).pick({
   content: true,
 });
 
-// Playlists table
-export const playlists = pgTable("playlists", {
+// Sets table (replaces playlists with enhanced social features)
+export const sets = pgTable("sets", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
@@ -161,11 +161,15 @@ export const playlists = pgTable("playlists", {
   songs: jsonb("songs").default('[]'),
   saves: integer("saves").default(0),
   genres: jsonb("genres").default('[]'),
+  type: text("type").default('set'), // 'set', 'mix', 'compilation'
+  tags: jsonb("tags").default('[]'),
+  featured: boolean("featured").default(false),
+  verified: boolean("verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertPlaylistSchema = createInsertSchema(playlists).pick({
+export const insertSetSchema = createInsertSchema(sets).pick({
   title: true,
   description: true,
   curator: true,
@@ -174,6 +178,8 @@ export const insertPlaylistSchema = createInsertSchema(playlists).pick({
   streamingLink: true,
   songs: true,
   genres: true,
+  type: true,
+  tags: true,
 });
 
 // Song recommendations for threads
@@ -213,8 +219,8 @@ export type InsertThread = z.infer<typeof insertThreadSchema>;
 export type Comment = typeof comments.$inferSelect;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 
-export type Playlist = typeof playlists.$inferSelect;
-export type InsertPlaylist = z.infer<typeof insertPlaylistSchema>;
+export type Set = typeof sets.$inferSelect;
+export type InsertSet = z.infer<typeof insertSetSchema>;
 
 export type SongRecommendation = typeof songRecommendations.$inferSelect;
 export type InsertSongRecommendation = z.infer<typeof insertSongRecommendationSchema>;

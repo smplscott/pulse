@@ -1,12 +1,12 @@
 import { 
-  users, artists, songs, venues, threads, comments, playlists, songRecommendations,
+  users, artists, songs, venues, threads, comments, sets, songRecommendations,
   type User, type InsertUser, 
   type Artist, type InsertArtist, 
   type Song, type InsertSong, 
   type Venue, type InsertVenue, 
   type Thread, type InsertThread, 
   type Comment, type InsertComment, 
-  type Playlist, type InsertPlaylist,
+  type Set, type InsertSet,
   type SongRecommendation, type InsertSongRecommendation 
 } from "@shared/schema";
 
@@ -52,12 +52,13 @@ export interface IStorage {
   createComment(comment: InsertComment): Promise<Comment>;
   upvoteComment(id: number): Promise<Comment | undefined>;
   
-  // Playlist operations
-  getPlaylist(id: number): Promise<Playlist | undefined>;
-  getPlaylistsByUser(userId: number): Promise<Playlist[]>;
-  getAllPlaylists(limit?: number): Promise<Playlist[]>;
-  createPlaylist(playlist: InsertPlaylist): Promise<Playlist>;
-  updatePlaylist(id: number, updates: Partial<Playlist>): Promise<Playlist | undefined>;
+  // Set operations
+  getSet(id: number): Promise<Set | undefined>;
+  getSetsByUser(userId: number): Promise<Set[]>;
+  getAllSets(limit?: number): Promise<Set[]>;
+  getFeaturedSets(limit?: number): Promise<Set[]>;
+  createSet(set: InsertSet): Promise<Set>;
+  updateSet(id: number, updates: Partial<Set>): Promise<Set | undefined>;
   
   // Song Recommendation operations
   getSongRecommendation(id: number): Promise<SongRecommendation | undefined>;
@@ -73,7 +74,7 @@ export class MemStorage implements IStorage {
   private venues: Map<number, Venue>;
   private threads: Map<number, Thread>;
   private comments: Map<number, Comment>;
-  private playlists: Map<number, Playlist>;
+  private sets: Map<number, Set>;
   private songRecommendations: Map<number, SongRecommendation>;
   
   private userCurrentId: number;
@@ -82,7 +83,7 @@ export class MemStorage implements IStorage {
   private venueCurrentId: number;
   private threadCurrentId: number;
   private commentCurrentId: number;
-  private playlistCurrentId: number;
+  private setCurrentId: number;
   private songRecommendationCurrentId: number;
 
   constructor() {
@@ -92,7 +93,7 @@ export class MemStorage implements IStorage {
     this.venues = new Map();
     this.threads = new Map();
     this.comments = new Map();
-    this.playlists = new Map();
+    this.sets = new Map();
     this.songRecommendations = new Map();
     
     this.userCurrentId = 1;
@@ -101,7 +102,7 @@ export class MemStorage implements IStorage {
     this.venueCurrentId = 1;
     this.threadCurrentId = 1;
     this.commentCurrentId = 1;
-    this.playlistCurrentId = 1;
+    this.setCurrentId = 1;
     this.songRecommendationCurrentId = 1;
 
     // Initialize with some seed data
@@ -328,41 +329,44 @@ export class MemStorage implements IStorage {
       recommendationsCount: 1
     });
 
-    // Add playlists
-    this.createPlaylist({
+    // Add sets
+    this.createSet({
       title: "Tripolism's track IDs",
       description: "Tripolism's favorite tracks. Updated regularly. Curated by Tripolism.",
       curator: "Tripolism",
       userId: 1,
       image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
       streamingLink: "https://open.spotify.com/playlist/sample",
-      saves: 1766,
       genres: ["Electronic", "House", "Techno"],
-      songs: [1, 2, 3]
+      songs: [1, 2, 3],
+      type: "set",
+      tags: ["techno", "house", "electronic", "track-ids"]
     });
 
-    this.createPlaylist({
+    this.createSet({
       title: "&ME's track IDs",
       description: "&ME's favorite tracks. Updated regularly. Curated by &ME.",
       curator: "&ME",
       userId: 1,
       image: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
       streamingLink: "https://open.spotify.com/playlist/sample",
-      saves: 69716,
       genres: ["House", "Techno", "Electronic"],
-      songs: [4, 5, 6]
+      songs: [4, 5, 6],
+      type: "set",
+      tags: ["house", "techno", "track-ids"]
     });
 
-    this.createPlaylist({
+    this.createSet({
       title: "DESIREE's track IDs",
       description: "DESIREE's favorite tracks. Updated regularly. Curated by DESIREE.",
       curator: "DESIREE",
       userId: 1,
       image: "https://pixabay.com/get/g90635263ffd0016cab56b4e1bc67ed1dc0ecb5500f0a4a14ae4d3c3c609dd0e77b1a8a75e680ab949a133e40d56c46ed5ee5082cc4843a1bb526c174fd0cc5e5_1280.jpg",
       streamingLink: "https://open.spotify.com/playlist/sample",
-      saves: 31254,
       genres: ["R&B", "Soul", "Electronic"],
-      songs: [2, 4, 6]
+      songs: [2, 4, 6],
+      type: "set",
+      tags: ["r&b", "soul", "track-ids"]
     });
   }
 
@@ -598,45 +602,54 @@ export class MemStorage implements IStorage {
     return updatedComment;
   }
 
-  // Playlist operations
-  async getPlaylist(id: number): Promise<Playlist | undefined> {
-    return this.playlists.get(id);
+  // Set operations
+  async getSet(id: number): Promise<Set | undefined> {
+    return this.sets.get(id);
   }
 
-  async getPlaylistsByUser(userId: number): Promise<Playlist[]> {
-    return Array.from(this.playlists.values())
-      .filter(playlist => playlist.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  async getSetsByUser(userId: number): Promise<Set[]> {
+    return Array.from(this.sets.values())
+      .filter(set => set.userId === userId)
+      .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime());
   }
 
-  async getAllPlaylists(limit: number = 50): Promise<Playlist[]> {
-    return Array.from(this.playlists.values())
+  async getAllSets(limit: number = 50): Promise<Set[]> {
+    return Array.from(this.sets.values())
       .sort((a, b) => b.saves - a.saves)
       .slice(0, limit);
   }
 
-  async createPlaylist(insertPlaylist: InsertPlaylist): Promise<Playlist> {
-    const id = this.playlistCurrentId++;
+  async getFeaturedSets(limit: number = 10): Promise<Set[]> {
+    return Array.from(this.sets.values())
+      .filter(set => set.featured)
+      .sort((a, b) => b.saves - a.saves)
+      .slice(0, limit);
+  }
+
+  async createSet(insertSet: InsertSet): Promise<Set> {
+    const id = this.setCurrentId++;
     const now = new Date();
-    const playlist: Playlist = { 
-      ...insertPlaylist, 
+    const set: Set = { 
+      ...insertSet, 
       id, 
-      saves: 0, 
+      saves: 0,
+      featured: false,
+      verified: false,
       createdAt: now, 
       updatedAt: now 
     };
-    this.playlists.set(id, playlist);
-    return playlist;
+    this.sets.set(id, set);
+    return set;
   }
 
-  async updatePlaylist(id: number, updates: Partial<Playlist>): Promise<Playlist | undefined> {
-    const playlist = this.playlists.get(id);
-    if (!playlist) return undefined;
+  async updateSet(id: number, updates: Partial<Set>): Promise<Set | undefined> {
+    const set = this.sets.get(id);
+    if (!set) return undefined;
     
     const now = new Date();
-    const updatedPlaylist = { ...playlist, ...updates, updatedAt: now };
-    this.playlists.set(id, updatedPlaylist);
-    return updatedPlaylist;
+    const updatedSet = { ...set, ...updates, updatedAt: now };
+    this.sets.set(id, updatedSet);
+    return updatedSet;
   }
 
   // Song Recommendation operations

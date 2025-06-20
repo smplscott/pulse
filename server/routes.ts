@@ -193,34 +193,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(comment);
   });
   
-  // Playlists routes
-  app.get("/api/playlists", async (_req: Request, res: Response) => {
-    const playlists = await storage.getAllPlaylists();
-    return res.json(playlists);
+  // Sets routes
+  app.get("/api/sets", async (_req: Request, res: Response) => {
+    const sets = await storage.getAllSets();
+    return res.json(sets);
   });
   
-  app.get("/api/playlists/:id", async (req: Request, res: Response) => {
+  app.get("/api/sets/featured", async (_req: Request, res: Response) => {
+    const sets = await storage.getFeaturedSets();
+    return res.json(sets);
+  });
+  
+  app.get("/api/sets/:id", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: "Invalid playlist ID" });
+      return res.status(400).json({ message: "Invalid set ID" });
     }
     
-    const playlist = await storage.getPlaylist(id);
-    if (!playlist) {
-      return res.status(404).json({ message: "Playlist not found" });
+    const set = await storage.getSet(id);
+    if (!set) {
+      return res.status(404).json({ message: "Set not found" });
     }
     
-    return res.json(playlist);
+    return res.json(set);
   });
   
-  app.get("/api/users/:userId/playlists", async (req: Request, res: Response) => {
+  app.get("/api/users/:userId/sets", async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId);
     if (isNaN(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
     }
     
-    const playlists = await storage.getPlaylistsByUser(userId);
-    return res.json(playlists);
+    const sets = await storage.getSetsByUser(userId);
+    return res.json(sets);
   });
   
   // Song Recommendations routes
