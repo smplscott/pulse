@@ -94,7 +94,7 @@ export default function SetDetail() {
       </header>
 
       <main className="pb-20">
-        {/* Horizontal Scrolling Sets */}
+        {/* Horizontal Scrolling Sets - Enhanced with track counts */}
         <div className="px-4 mb-6">
           <div className="flex space-x-4 overflow-x-auto pb-2">
             {isLoadingAllSets ? (
@@ -113,6 +113,12 @@ export default function SetDetail() {
                         alt={setItem.title}
                         className="h-full w-full object-cover"
                       />
+                      {/* Track count overlay */}
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">
+                          {Array.isArray(setItem.songs) ? setItem.songs.length : 3}
+                        </span>
+                      </div>
                       {setItem.id === Number(id) && (
                         <div className="absolute -bottom-1 -right-1 bg-pink-500 rounded-full p-1">
                           <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -142,7 +148,10 @@ export default function SetDetail() {
                 </Badge>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
-                {set.description || `${set.curator}'s favorite tracks. Updated regularly. Curated by ${set.curator}.`}
+                {set.description && set.description.length > 20 
+                  ? set.description 
+                  : `${set.curator}'s favorite tracks. Updated regularly. Curated by ${set.curator}.`
+                }
               </p>
             </div>
           </div>

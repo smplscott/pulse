@@ -49,10 +49,10 @@ export default function Sets() {
             </Button>
           </div>
 
-          {/* Featured Sets Section - Enhanced with track counts and stories */}
+          {/* Featured Sets Section */}
           {featuredSets && featuredSets.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Featured Track IDs</h2>
+              <h2 className="text-xl font-semibold mb-4">Featured Sets</h2>
               <div className="flex space-x-4 overflow-x-auto pb-4">
                 {isLoadingFeatured ? (
                   Array.from({ length: 3 }).map((_, i) => (
@@ -64,25 +64,18 @@ export default function Sets() {
                 ) : (
                   featuredSets.map((set) => (
                     <Link key={set.id} href={`/sets/${set.id}`}>
-                      <div className="flex-shrink-0 text-center cursor-pointer group">
+                      <div className="flex-shrink-0 text-center cursor-pointer">
                         <div className="relative">
                           <img
                             src={set.image || "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300"}
                             alt={set.title}
-                            className="h-24 w-24 rounded-full object-cover border-2 border-[#5271ff] group-hover:border-[#4a63e8] transition-colors"
+                            className="h-24 w-24 rounded-full object-cover border-2 border-[#5271ff]"
                           />
                           <div className="absolute -bottom-1 -right-1 bg-[#5271ff] rounded-full p-1">
                             <div className="w-2 h-2 bg-white rounded-full"></div>
                           </div>
-                          {/* Track count badge */}
-                          <div className="absolute -top-1 -left-1 bg-black/80 rounded-full px-2 py-1">
-                            <span className="text-xs text-white font-semibold">{Array.isArray(set.songs) ? set.songs.length : 0}</span>
-                          </div>
                         </div>
-                        <p className="text-xs text-center mt-2 max-w-[80px] truncate font-medium">{set.curator}</p>
-                        <p className="text-xs text-gray-400 text-center max-w-[80px] truncate">
-                          {(set.saves || 0).toLocaleString()} saves
-                        </p>
+                        <p className="text-xs text-center mt-2 max-w-[80px] truncate">{set.curator}</p>
                       </div>
                     </Link>
                   ))
