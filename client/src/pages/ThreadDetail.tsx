@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Thread, User, Comment, SongRecommendation, Song, Artist, Venue, Playlist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -294,6 +295,17 @@ export default function ThreadDetail() {
                       )}
                     </div>
                   </div>
+                  
+                  {/* Song Credits Link - only shown for song threads */}
+                  {isSongThread && (
+                    <div className="self-start">
+                      <Link href={`/credits/${contentId}`}>
+                        <button className="bg-transparent border border-[#333] text-gray-300 hover:bg-[#333] hover:text-white text-xs px-3 py-1 rounded">
+                          Credits
+                        </button>
+                      </Link>
+                    </div>
+                  )}
                   
                   {/* Artist badge - moved to top right for better spacing */}
                   {isArtistThread && (
