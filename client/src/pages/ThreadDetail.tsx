@@ -296,12 +296,17 @@ export default function ThreadDetail() {
                     </div>
                   </div>
                   
-                  {/* Song Credits Link - only shown for song threads */}
+                  {/* Song Action Buttons - only shown for song threads */}
                   {isSongThread && (
-                    <div className="self-start">
+                    <div className="self-start flex space-x-2">
                       <Link href={`/credits/${contentId}`}>
                         <button className="bg-transparent border border-[#333] text-gray-300 hover:bg-[#333] hover:text-white text-xs px-3 py-1 rounded">
                           Credits
+                        </button>
+                      </Link>
+                      <Link href={`/samples/${contentId}`}>
+                        <button className="bg-transparent border border-[#333] text-gray-300 hover:bg-[#333] hover:text-white text-xs px-3 py-1 rounded">
+                          Samples
                         </button>
                       </Link>
                     </div>

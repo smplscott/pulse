@@ -24,6 +24,7 @@ import SetDetail from "@/pages/SetDetail";
 import CreateThread from "@/pages/CreateThread";
 import CreateSongRequest from "@/pages/CreateSongRequest";
 import Credits from "@/pages/Credits";
+import Samples from "@/pages/Samples";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/venue/:id" component={VenueDetail} />
       <Route path="/sets/:id" component={SetDetail} />
       <Route path="/credits/:id" component={Credits} />
+      <Route path="/samples/:id" component={Samples} />
       <Route path="/create-thread" component={CreateThread} />
       <Route path="/create-song-request" component={CreateSongRequest} />
       {/* Fallback to 404 */}
