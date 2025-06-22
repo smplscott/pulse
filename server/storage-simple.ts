@@ -167,6 +167,80 @@ export class MemStorage implements IStorage {
     this.sets.set(set1.id, set1);
     this.sets.set(set2.id, set2);
     this.sets.set(set3.id, set3);
+
+    // Create sample songs
+    const song1: Song = {
+      id: this.songCurrentId++,
+      title: "Break on Through (To the Other Side)",
+      artist: "The Doors",
+      albumArt: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      genre: "Rock",
+      subGenres: ["Psychedelic Rock", "Classic Rock"],
+      releaseDate: new Date("1967-01-04"),
+      features: ["Jim Morrison", "Robby Krieger", "Ray Manzarek", "John Densmore"],
+      sample: null,
+      story: "The opening track from The Doors' debut album, featuring Morrison's iconic vocals and Krieger's innovative guitar work.",
+      dialects: [],
+      streamingLinks: { spotify: "https://open.spotify.com/track/example1" },
+      ranking: 1,
+      createdAt: new Date()
+    };
+
+    const song2: Song = {
+      id: this.songCurrentId++,
+      title: "Riders on the Storm",
+      artist: "The Doors",
+      albumArt: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      genre: "Rock",
+      subGenres: ["Psychedelic Rock", "Jazz Rock"],
+      releaseDate: new Date("1971-04-19"),
+      features: ["Jim Morrison", "Robby Krieger", "Ray Manzarek", "John Densmore"],
+      sample: null,
+      story: "The last song recorded with Jim Morrison, featuring storm sound effects and jazz influences.",
+      dialects: [],
+      streamingLinks: { spotify: "https://open.spotify.com/track/example2" },
+      ranking: 2,
+      createdAt: new Date()
+    };
+
+    const song3: Song = {
+      id: this.songCurrentId++,
+      title: "Light My Fire",
+      artist: "The Doors", 
+      albumArt: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      genre: "Rock",
+      subGenres: ["Psychedelic Rock", "Classic Rock"],
+      releaseDate: new Date("1967-04-24"),
+      features: ["Jim Morrison", "Robby Krieger", "Ray Manzarek", "John Densmore"],
+      sample: null,
+      story: "Written by Robby Krieger, this became The Doors' biggest hit and signature song.",
+      dialects: [],
+      streamingLinks: { spotify: "https://open.spotify.com/track/example3" },
+      ranking: 3,
+      createdAt: new Date()
+    };
+
+    const song4: Song = {
+      id: this.songCurrentId++,
+      title: "Blinding Lights",
+      artist: "The Weeknd",
+      albumArt: "https://images.unsplash.com/photo-1571974599782-87624638275c?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      genre: "Pop",
+      subGenres: ["Synthpop", "Electropop"],
+      releaseDate: new Date("2019-11-29"),
+      features: ["The Weeknd", "Max Martin", "Oscar Holter"],
+      sample: null,
+      story: "A synth-heavy track that dominated charts worldwide and became one of the biggest hits of 2020.",
+      dialects: [],
+      streamingLinks: { spotify: "https://open.spotify.com/track/example4" },
+      ranking: 4,
+      createdAt: new Date()
+    };
+
+    this.songs.set(song1.id, song1);
+    this.songs.set(song2.id, song2);
+    this.songs.set(song3.id, song3);
+    this.songs.set(song4.id, song4);
   }
 
   // User operations
@@ -273,11 +347,51 @@ export class MemStorage implements IStorage {
   async createArtist(artist: InsertArtist): Promise<Artist> { throw new Error("Not implemented"); }
   async updateArtist(id: number, updates: Partial<Artist>): Promise<Artist | undefined> { return undefined; }
 
-  async getSong(id: number): Promise<Song | undefined> { return undefined; }
-  async getSongsByArtist(artistName: string): Promise<Song[]> { return []; }
-  async getAllSongs(limit?: number): Promise<Song[]> { return []; }
-  async createSong(song: InsertSong): Promise<Song> { throw new Error("Not implemented"); }
-  async updateSong(id: number, updates: Partial<Song>): Promise<Song | undefined> { return undefined; }
+  async getSong(id: number): Promise<Song | undefined> {
+    return this.songs.get(id);
+  }
+
+  async getSongsByArtist(artistName: string): Promise<Song[]> {
+    return Array.from(this.songs.values()).filter(song => 
+      song.artist.toLowerCase().includes(artistName.toLowerCase())
+    );
+  }
+
+  async getAllSongs(limit: number = 50): Promise<Song[]> {
+    const songs = Array.from(this.songs.values());
+    return songs.slice(0, limit);
+  }
+
+  async createSong(insertSong: InsertSong): Promise<Song> {
+    const id = this.songCurrentId++;
+    const now = new Date();
+    const song: Song = { 
+      ...insertSong, 
+      id, 
+      createdAt: now,
+      features: insertSong.features || [],
+      sample: insertSong.sample || null,
+      story: insertSong.story || null,
+      dialects: insertSong.dialects || [],
+      streamingLinks: insertSong.streamingLinks || {},
+      ranking: insertSong.ranking || null,
+      genre: insertSong.genre || null,
+      subGenres: insertSong.subGenres || [],
+      albumArt: insertSong.albumArt || null,
+      releaseDate: insertSong.releaseDate || null
+    };
+    this.songs.set(id, song);
+    return song;
+  }
+
+  async updateSong(id: number, updates: Partial<Song>): Promise<Song | undefined> {
+    const song = this.songs.get(id);
+    if (!song) return undefined;
+    
+    const updatedSong = { ...song, ...updates };
+    this.songs.set(id, updatedSong);
+    return updatedSong;
+  }
 
   async getVenue(id: number): Promise<Venue | undefined> { return undefined; }
   async getAllVenues(limit?: number): Promise<Venue[]> { return []; }
