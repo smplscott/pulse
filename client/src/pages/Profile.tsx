@@ -86,14 +86,14 @@ export default function Profile() {
                 </div>
               </div>
               
-              {/* Badges */}
+              {/* Achievements */}
               <div className="w-full mb-2">
-                <p className="text-sm font-medium mb-2">Badges</p>
+                <p className="text-sm font-medium mb-2">Community Achievements</p>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="status" className="green-gradient text-[#5b5b5b]">The Witness</Badge>
-                  <Badge variant="status" className="pink-gradient">Tastemaker</Badge>
+                  <Badge variant="status" className="green-gradient text-[#5b5b5b]">IRL Witness</Badge>
+                  <Badge variant="status" className="pink-gradient">Pulse Crew</Badge>
                   <Badge variant="status" className="bg-[#FF8C00]">Threadstarter</Badge>
-                  <Badge variant="status" className="bg-gradient-to-r from-[#450af5] to-[#c4efd9]">Early One</Badge>
+                  <Badge variant="status" className="bg-gradient-to-r from-[#450af5] to-[#c4efd9]">OG Member</Badge>
                   <Badge variant="status" className="bg-[#3E3E3E]">+3 more</Badge>
                 </div>
               </div>

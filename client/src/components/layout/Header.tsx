@@ -17,7 +17,7 @@ export default function Header({ username, profileImage }: HeaderProps) {
         <span className="green-gradient text-xs px-2 py-0.5 rounded-full">BETA</span>
       </div>
       <div className="flex items-center space-x-4">
-        <Link href="/badges">
+        <Link href="/achievements">
           <button className="text-[#B3B3B3] hover:text-white">
             <Award className="h-5 w-5" />
           </button>

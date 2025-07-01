@@ -14,7 +14,7 @@ import Profile from "@/pages/Profile";
 import Artists from "@/pages/Artists";
 import Songs from "@/pages/Songs";
 import Sets from "@/pages/Sets";
-import Badges from "@/pages/Badges";
+import CommunityAchievements from "@/pages/CommunityAchievements";
 import Messages from "@/pages/Messages";
 import ArtistDetail from "@/pages/ArtistDetail";
 import SongDetail from "@/pages/SongDetail";
@@ -37,7 +37,7 @@ function Router() {
       <Route path="/venues" component={Venues} />
       <Route path="/library" component={Library} />
       <Route path="/profile" component={Profile} />
-      <Route path="/badges" component={Badges} />
+      <Route path="/achievements" component={CommunityAchievements} />
       <Route path="/messages" component={Messages} />
       <Route path="/artists" component={Artists} />
       <Route path="/songs" component={Songs} />
