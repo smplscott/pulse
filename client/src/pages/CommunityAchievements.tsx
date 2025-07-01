@@ -345,10 +345,9 @@ export default function CommunityAchievements() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className={cn(
-                          "text-lg font-mono",
                           track.unlocked ? "text-white" : "text-[#444]"
                         )}>
-                          {currentLevel?.emoji || "○"}
+                          {renderIcon(track.emoji)}
                         </div>
                         <div>
                           <div className={cn(
@@ -407,7 +406,11 @@ export default function CommunityAchievements() {
                             )}
                           >
                             <div className="flex items-center space-x-2">
-                              <span className="font-mono">{level.emoji}</span>
+                              <div className={cn(
+                                level.level <= track.currentLevel ? "text-white" : "text-[#444]"
+                              )}>
+                                {renderIcon(track.emoji, "h-3 w-3")}
+                              </div>
                               <span>{level.name}</span>
                             </div>
                             <span className="text-[#666]">{level.requirement}pts</span>
@@ -432,8 +435,8 @@ export default function CommunityAchievements() {
                   <div key={achievement.id} className="bg-[#111] border border-[#222] p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="text-lg font-mono text-white">
-                          {achievement.emoji}
+                        <div className="text-white">
+                          {renderIcon(achievement.emoji)}
                         </div>
                         <div>
                           <div className="font-medium text-sm text-white">
@@ -461,8 +464,8 @@ export default function CommunityAchievements() {
                 {lockedAchievements.map((achievement) => (
                   <div key={achievement.id} className="bg-[#0a0a0a] border border-[#1a1a1a] p-4">
                     <div className="flex items-center space-x-3">
-                      <div className="text-lg font-mono text-[#444]">
-                        <Minus className="h-4 w-4" />
+                      <div className="text-[#444]">
+                        {renderIcon(achievement.emoji)}
                       </div>
                       <div>
                         <div className="font-medium text-sm text-[#666]">
