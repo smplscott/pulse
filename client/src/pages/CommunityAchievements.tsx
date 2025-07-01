@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, ChevronDown, ChevronUp, Minus } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, Minus, MessageCircle, Search, Music, Headphones, MapPin, Mic, Users, Zap, Crown, Trophy, CheckCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -44,104 +44,104 @@ export default function CommunityAchievements() {
   const progressiveTracks: ProgressiveTrack[] = [
     {
       id: "community-contributor",
-      name: "Community Voice",
+      name: "Community Contributor",
       description: "Threads ×4pts + Comments ×1pt",
-      emoji: "—",
+      emoji: "MessageCircle",
       currentLevel: 2,
       currentPoints: 127,
       pointsFormula: "Threads × 4 + Comments × 1",
       unlocked: true,
       levels: [
-        { level: 1, name: "Lurker", requirement: 25, emoji: "○", color: "", description: "Breaking the silence" },
-        { level: 2, name: "Regular", requirement: 100, emoji: "●", color: "", description: "Part of the conversation" },
-        { level: 3, name: "Contributor", requirement: 300, emoji: "◉", color: "", description: "Driving discussion" },
-        { level: 4, name: "Curator", requirement: 750, emoji: "◎", color: "", description: "Shaping dialogue" },
-        { level: 5, name: "Voice", requirement: 1500, emoji: "◈", color: "", description: "Community authority" }
+        { level: 1, name: "Thread Starter", requirement: 25, emoji: "MessageCircle", color: "", description: "Breaking the silence" },
+        { level: 2, name: "The Conversationalist", requirement: 100, emoji: "MessageCircle", color: "", description: "Part of the conversation" },
+        { level: 3, name: "Community Glue", requirement: 300, emoji: "MessageCircle", color: "", description: "Driving discussion" },
+        { level: 4, name: "Thread Architect", requirement: 750, emoji: "MessageCircle", color: "", description: "Shaping dialogue" },
+        { level: 5, name: "Pulse/The Moderator", requirement: 1500, emoji: "MessageCircle", color: "", description: "Community authority" }
       ]
     },
     {
       id: "sample-identification",
-      name: "Sample Hunter",
+      name: "Sample Identification",
       description: "Sample IDs ×5pts",
-      emoji: "—",
+      emoji: "Search",
       currentLevel: 1,
       currentPoints: 8,
       pointsFormula: "Sample IDs × 5",
       unlocked: true,
       levels: [
-        { level: 1, name: "Digger", requirement: 5, emoji: "○", color: "", description: "First connections made" },
-        { level: 2, name: "Tracker", requirement: 25, emoji: "●", color: "", description: "Following the trail" },
-        { level: 3, name: "Archaeologist", requirement: 75, emoji: "◉", color: "", description: "Unearthing history" },
-        { level: 4, name: "Oracle", requirement: 200, emoji: "◎", color: "", description: "Deep knowledge" },
-        { level: 5, name: "Keeper", requirement: 500, emoji: "◈", color: "", description: "Guardian of samples" }
+        { level: 1, name: "Sample Spotter", requirement: 5, emoji: "Search", color: "", description: "First connections made" },
+        { level: 2, name: "Sample Scholar", requirement: 25, emoji: "Search", color: "", description: "Following the trail" },
+        { level: 3, name: "Sample Master", requirement: 75, emoji: "Search", color: "", description: "Unearthing history" },
+        { level: 4, name: "Sample God", requirement: 200, emoji: "Search", color: "", description: "Deep knowledge" },
+        { level: 5, name: "Sample Oracle", requirement: 500, emoji: "Search", color: "", description: "Guardian of samples" }
       ]
     },
     {
       id: "discovery-assistance",
-      name: "Music Guide", 
+      name: "Discovery Assistance", 
       description: "Successful recs ×3pts",
-      emoji: "—",
+      emoji: "Music",
       currentLevel: 0,
       currentPoints: 0,
       pointsFormula: "Successful Recommendations × 3",
       unlocked: false,
       levels: [
-        { level: 1, name: "Scout", requirement: 10, emoji: "○", color: "", description: "Spotting connections" },
-        { level: 2, name: "Connector", requirement: 50, emoji: "●", color: "", description: "Reliable taste" },
-        { level: 3, name: "Navigator", requirement: 150, emoji: "◉", color: "", description: "Guiding others" },
-        { level: 4, name: "Tastemaker", requirement: 400, emoji: "◎", color: "", description: "Influencing taste" },
-        { level: 5, name: "Prophet", requirement: 1000, emoji: "◈", color: "", description: "Shaping culture" }
+        { level: 1, name: "Match Starter", requirement: 10, emoji: "Music", color: "", description: "Spotting connections" },
+        { level: 2, name: "Reliable Source", requirement: 50, emoji: "Music", color: "", description: "Reliable taste" },
+        { level: 3, name: "Rec Engine", requirement: 150, emoji: "Music", color: "", description: "Guiding others" },
+        { level: 4, name: "The Prodigy", requirement: 400, emoji: "Music", color: "", description: "Influencing taste" },
+        { level: 5, name: "Culture Curator", requirement: 1000, emoji: "Music", color: "", description: "Shaping culture" }
       ]
     },
     {
       id: "id-hunter",
-      name: "Track Sleuth",
+      name: "ID Hunter",
       description: "Setlist IDs ×2pts",
-      emoji: "—",
+      emoji: "Headphones",
       currentLevel: 0,
       currentPoints: 0,
       pointsFormula: "Setlist Track IDs × 2",
       unlocked: false,
       levels: [
-        { level: 1, name: "Listener", requirement: 10, emoji: "○", color: "", description: "Active ears" },
-        { level: 2, name: "Hunter", requirement: 50, emoji: "●", color: "", description: "On the hunt" },
-        { level: 3, name: "Detective", requirement: 150, emoji: "◉", color: "", description: "Solving mysteries" },
-        { level: 4, name: "Specialist", requirement: 400, emoji: "◎", color: "", description: "Expert identification" },
-        { level: 5, name: "Legend", requirement: 1000, emoji: "◈", color: "", description: "Mythical knowledge" }
+        { level: 1, name: "ID Newbie", requirement: 10, emoji: "Headphones", color: "", description: "Active ears" },
+        { level: 2, name: "ID Seeker", requirement: 50, emoji: "Headphones", color: "", description: "On the hunt" },
+        { level: 3, name: "ID Source", requirement: 150, emoji: "Headphones", color: "", description: "Solving mysteries" },
+        { level: 4, name: "ID Inspector", requirement: 400, emoji: "Headphones", color: "", description: "Expert identification" },
+        { level: 5, name: "ID Royalty", requirement: 1000, emoji: "Headphones", color: "", description: "Mythical knowledge" }
       ]
     },
     {
       id: "irl-listener",
-      name: "Scene Witness",
+      name: "IRL Listener / The Witness",
       description: "Venue threads ×10pts + comments ×1pt",
-      emoji: "—",
+      emoji: "MapPin",
       currentLevel: 1,
       currentPoints: 42,
       pointsFormula: "Venue Threads × 10 + Venue Comments × 1",
       unlocked: true,
       levels: [
-        { level: 1, name: "Observer", requirement: 25, emoji: "○", color: "", description: "Taking it in" },
-        { level: 2, name: "Reporter", requirement: 100, emoji: "●", color: "", description: "Documenting moments" },
-        { level: 3, name: "Chronicler", requirement: 300, emoji: "◉", color: "", description: "Recording history" },
-        { level: 4, name: "Journalist", requirement: 750, emoji: "◎", color: "", description: "Professional witness" },
-        { level: 5, name: "Archivist", requirement: 1500, emoji: "◈", color: "", description: "Keeper of memories" }
+        { level: 1, name: "IRL Observer", requirement: 25, emoji: "MapPin", color: "", description: "Taking it in" },
+        { level: 2, name: "IRL Witness", requirement: 100, emoji: "MapPin", color: "", description: "Documenting moments" },
+        { level: 3, name: "IRL Guide", requirement: 300, emoji: "MapPin", color: "", description: "Recording history" },
+        { level: 4, name: "IRL Journalist", requirement: 750, emoji: "MapPin", color: "", description: "Professional witness" },
+        { level: 5, name: "IRL Icon", requirement: 1500, emoji: "MapPin", color: "", description: "Keeper of memories" }
       ]
     },
     {
       id: "live-show-critic",
-      name: "Show Critic",
+      name: "Live Show Critic",
       description: "Live reviews ×5pts",
-      emoji: "—",
+      emoji: "Mic",
       currentLevel: 0,
       currentPoints: 0,
       pointsFormula: "Live Reviews × 5",
       unlocked: false,
       levels: [
-        { level: 1, name: "Attendee", requirement: 5, emoji: "○", color: "", description: "Present and engaged" },
-        { level: 2, name: "Reviewer", requirement: 25, emoji: "●", color: "", description: "Sharing thoughts" },
-        { level: 3, name: "Analyst", requirement: 75, emoji: "◉", color: "", description: "Deep critique" },
-        { level: 4, name: "Authority", requirement: 200, emoji: "◎", color: "", description: "Trusted voice" },
-        { level: 5, name: "Institution", requirement: 500, emoji: "◈", color: "", description: "Definitive judgment" }
+        { level: 1, name: "Showgoer", requirement: 5, emoji: "Mic", color: "", description: "Present and engaged" },
+        { level: 2, name: "Crowd Critic", requirement: 25, emoji: "Mic", color: "", description: "Sharing thoughts" },
+        { level: 3, name: "Stage Analyst", requirement: 75, emoji: "Mic", color: "", description: "Deep critique" },
+        { level: 4, name: "Top Reviewer", requirement: 200, emoji: "Mic", color: "", description: "Trusted voice" },
+        { level: 5, name: "Live Authority", requirement: 500, emoji: "Mic", color: "", description: "Definitive judgment" }
       ]
     }
   ];
@@ -151,18 +151,36 @@ export default function CommunityAchievements() {
     {
       id: "pulse-crew",
       name: "Pulse Crew",
-      description: "Core community member",
-      emoji: "◈",
+      description: "Internal/core advocate badge for collaborators",
+      emoji: "Zap",
       unlocked: true,
       unlockedDate: "Dec 2024",
       color: "",
       category: 'crew'
     },
     {
+      id: "the-plug",
+      name: "The Plug",
+      description: "Invited 25+ members to the community",
+      emoji: "Users",
+      unlocked: false,
+      color: "",
+      category: 'community'
+    },
+    {
+      id: "culture-catalyst",
+      name: "Culture Catalyst",
+      description: "Invited 100+ members to the community",
+      emoji: "Users",
+      unlocked: false,
+      color: "",
+      category: 'community'
+    },
+    {
       id: "og-member",
-      name: "OG",
-      description: "Beta member",
-      emoji: "◎",
+      name: "OG Member Badge",
+      description: "Joined during the beta phase",
+      emoji: "Crown",
       unlocked: true,
       unlockedDate: "Dec 2024",
       color: "",
@@ -170,28 +188,28 @@ export default function CommunityAchievements() {
     },
     {
       id: "first-thread",
-      name: "First Post",
-      description: "Started a thread",
-      emoji: "●",
+      name: "First Thread Created",
+      description: "Created your first discussion thread",
+      emoji: "MessageCircle",
       unlocked: true,
       unlockedDate: "Jan 2025",
       color: "",
       category: 'milestone'
     },
     {
-      id: "the-plug",
-      name: "The Plug",
-      description: "Invited 25+ members",
-      emoji: "◉",
-      unlocked: false,
-      color: "",
-      category: 'community'
-    },
-    {
       id: "deep-listener",
       name: "Deep Listener",
-      description: "Quality context/backstory",
-      emoji: "◈",
+      description: "Recognized by our team for a deeply contextual note or backstory",
+      emoji: "Headphones",
+      unlocked: false,
+      color: "",
+      category: 'milestone'
+    },
+    {
+      id: "certified-review",
+      name: "Certified Review",
+      description: "Wrote a review that became community-certified quality",
+      emoji: "CheckCircle",
       unlocked: false,
       color: "",
       category: 'milestone'
@@ -199,8 +217,8 @@ export default function CommunityAchievements() {
     {
       id: "threadstarter",
       name: "Threadstarter",
-      description: "100+ engagement thread",
-      emoji: "◎",
+      description: "Started popular thread with 100+ engagements",
+      emoji: "Trophy",
       unlocked: false,
       color: "",
       category: 'milestone'
@@ -222,6 +240,26 @@ export default function CommunityAchievements() {
     const nextLevel = getNextLevel(track);
     if (!nextLevel) return 100;
     return (track.currentPoints / nextLevel.requirement) * 100;
+  };
+
+  const renderIcon = (iconName: string, className: string = "h-4 w-4") => {
+    const iconMap: { [key: string]: any } = {
+      MessageCircle,
+      Search,
+      Music,
+      Headphones,
+      MapPin,
+      Mic,
+      Users,
+      Zap,
+      Crown,
+      Trophy,
+      CheckCircle,
+      Minus
+    };
+    
+    const IconComponent = iconMap[iconName];
+    return IconComponent ? <IconComponent className={className} /> : <Minus className={className} />;
   };
 
   return (
