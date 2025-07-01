@@ -339,84 +339,126 @@ export default function CommunityAchievements() {
               return (
                 <div key={track.id}>
                   <button
-                    className="w-full bg-[#111] border border-[#222] p-4 text-left hover:bg-[#1a1a1a] transition-colors"
+                    className={cn(
+                      "w-full border p-4 text-left transition-colors",
+                      track.unlocked 
+                        ? "bg-[#111] border-[#222] hover:bg-[#1a1a1a]" 
+                        : "bg-[#0a0a0a] border-[#1a1a1a] hover:bg-[#111] opacity-60"
+                    )}
                     onClick={() => setActiveTrack(isExpanded ? null : track.id)}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start space-x-4 flex-1 min-w-0">
                         <div className={cn(
+                          "flex-shrink-0 mt-1",
                           track.unlocked ? "text-white" : "text-[#444]"
                         )}>
-                          {renderIcon(track.emoji)}
+                          {track.unlocked ? renderIcon(track.emoji) : renderIcon("Minus")}
                         </div>
-                        <div>
-                          <div className={cn(
-                            "font-medium text-sm",
-                            track.unlocked ? "text-white" : "text-[#666]"
-                          )}>
-                            {track.name}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className={cn(
+                              "font-medium text-sm truncate",
+                              track.unlocked ? "text-white" : "text-[#666]"
+                            )}>
+                              {track.name}
+                            </div>
+                            {!track.unlocked && (
+                              <div className="px-2 py-1 bg-[#1a1a1a] border border-[#333] rounded text-xs text-[#666] flex-shrink-0">
+                                LOCKED
+                              </div>
+                            )}
                           </div>
-                          <div className="text-xs text-[#666]">
+                          <div className="text-xs text-[#666] mb-3">
                             {track.description}
                           </div>
+                          {track.unlocked && (
+                            <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded p-2">
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs text-[#999]">Current Level</div>
+                                <div className="text-xs text-[#666]">
+                                  {track.currentPoints}pts
+                                </div>
+                              </div>
+                              <div className="text-sm font-medium text-white mt-1">
+                                {currentLevel?.name || "Not Started"}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        {track.unlocked && (
-                          <div className="text-right">
-                            <div className="text-sm font-medium text-white">
-                              {currentLevel?.name || "—"}
-                            </div>
-                            <div className="text-xs text-[#666]">
-                              {track.currentPoints}pts
-                            </div>
-                          </div>
-                        )}
-                        <div className={cn(
-                          "transition-transform",
-                          isExpanded ? "rotate-180" : ""
-                        )}>
-                          <ChevronDown className="h-4 w-4 text-[#666]" />
-                        </div>
+                      <div className={cn(
+                        "flex-shrink-0 transition-transform mt-1",
+                        isExpanded ? "rotate-180" : ""
+                      )}>
+                        <ChevronDown className="h-4 w-4 text-[#666]" />
                       </div>
                     </div>
                   </button>
                   
                   {isExpanded && (
-                    <div className="bg-[#0a0a0a] border-l-2 border-[#333] p-4">
+                    <div className="border-t border-[#1a1a1a] bg-[#0a0a0a] p-4">
                       {track.unlocked && nextLevel && (
-                        <div className="mb-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs text-[#666] uppercase tracking-wide">Progress</span>
-                            <span className="text-xs text-[#666]">{track.currentPoints}/{nextLevel.requirement}pts</span>
+                        <div className="mb-6">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs text-[#999] uppercase tracking-wider font-medium">Next Level Progress</span>
+                            <span className="text-xs text-[#666] font-mono">{track.currentPoints}/{nextLevel.requirement}pts</span>
                           </div>
-                          <Progress value={progressPercentage} className="h-1" />
+                          <Progress value={progressPercentage} className="h-2" />
+                          <div className="text-xs text-[#666] mt-2">
+                            {nextLevel.requirement - track.currentPoints} points to unlock: {nextLevel.name}
+                          </div>
                         </div>
                       )}
                       
-                      <div className="space-y-2">
+                      <div className="space-y-1">
+                        <div className="text-xs text-[#999] uppercase tracking-wider font-medium mb-3">All Levels</div>
                         {track.levels.map((level, idx) => (
                           <div 
                             key={level.level}
                             className={cn(
-                              "flex items-center justify-between p-2 text-xs",
+                              "flex items-center justify-between p-3 rounded border",
                               level.level <= track.currentLevel 
-                                ? "text-white" 
-                                : "text-[#444]"
+                                ? "bg-[#111] border-[#222] text-white" 
+                                : "bg-[#050505] border-[#1a1a1a] text-[#444]",
+                              level.level === track.currentLevel && "ring-1 ring-[#333]"
                             )}
                           >
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-3">
                               <div className={cn(
-                                level.level <= track.currentLevel ? "text-white" : "text-[#444]"
+                                "flex items-center justify-center w-6 h-6 rounded-full border text-xs",
+                                level.level <= track.currentLevel 
+                                  ? "bg-white text-black border-white" 
+                                  : "bg-transparent text-[#444] border-[#333]"
                               )}>
-                                {renderIcon(track.emoji, "h-3 w-3")}
+                                {level.level}
                               </div>
-                              <span>{level.name}</span>
+                              <div>
+                                <div className={cn(
+                                  "text-sm font-medium",
+                                  level.level === track.currentLevel && "text-white"
+                                )}>
+                                  {level.name}
+                                </div>
+                                <div className="text-xs text-[#666]">{level.description}</div>
+                              </div>
                             </div>
-                            <span className="text-[#666]">{level.requirement}pts</span>
+                            <div className="text-right">
+                              <div className="text-xs text-[#666] font-mono">{level.requirement}pts</div>
+                              {level.level === track.currentLevel && (
+                                <div className="text-xs text-white font-medium">CURRENT</div>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
+                      
+                      {!track.unlocked && (
+                        <div className="mt-4 p-3 bg-[#1a1a1a] border border-[#333] rounded text-center">
+                          <div className="text-sm text-[#666] mb-1">Track Locked</div>
+                          <div className="text-xs text-[#555]">Complete requirements to unlock this achievement track</div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -427,31 +469,36 @@ export default function CommunityAchievements() {
 
         {/* Special Achievements Section */}
         {activeSection === 'achievements' && (
-          <div className="space-y-3">
+          <div className="space-y-6">
             {unlockedAchievements.length > 0 && (
               <div className="space-y-3">
-                <div className="text-xs text-[#666] uppercase tracking-wide px-1">Unlocked</div>
+                <div className="text-xs text-[#999] uppercase tracking-wider font-medium px-1">Unlocked Achievements</div>
                 {unlockedAchievements.map((achievement) => (
-                  <div key={achievement.id} className="bg-[#111] border border-[#222] p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="text-white">
+                  <div key={achievement.id} className="bg-[#111] border border-[#222] p-4 rounded">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start space-x-4 flex-1">
+                        <div className="text-white flex-shrink-0 mt-1">
                           {renderIcon(achievement.emoji)}
                         </div>
-                        <div>
-                          <div className="font-medium text-sm text-white">
-                            {achievement.name}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="font-medium text-sm text-white">
+                              {achievement.name}
+                            </div>
+                            <div className="px-2 py-1 bg-[#0a0a0a] border border-[#333] rounded text-xs text-[#999] flex-shrink-0">
+                              {achievement.category.toUpperCase()}
+                            </div>
                           </div>
-                          <div className="text-xs text-[#666]">
+                          <div className="text-xs text-[#666] mb-2">
                             {achievement.description}
                           </div>
+                          {achievement.unlockedDate && (
+                            <div className="text-xs text-[#888] bg-[#0a0a0a] border border-[#1a1a1a] rounded px-2 py-1 inline-block">
+                              Unlocked {achievement.unlockedDate}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      {achievement.unlockedDate && (
-                        <div className="text-xs text-[#666]">
-                          {achievement.unlockedDate}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -460,19 +507,26 @@ export default function CommunityAchievements() {
             
             {lockedAchievements.length > 0 && (
               <div className="space-y-3">
-                <div className="text-xs text-[#666] uppercase tracking-wide px-1 pt-6">Locked</div>
+                <div className="text-xs text-[#666] uppercase tracking-wider font-medium px-1">Locked Achievements</div>
                 {lockedAchievements.map((achievement) => (
-                  <div key={achievement.id} className="bg-[#0a0a0a] border border-[#1a1a1a] p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-[#444]">
-                        {renderIcon(achievement.emoji)}
-                      </div>
-                      <div>
-                        <div className="font-medium text-sm text-[#666]">
-                          {achievement.name}
+                  <div key={achievement.id} className="bg-[#0a0a0a] border border-[#1a1a1a] p-4 rounded opacity-60">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start space-x-4 flex-1">
+                        <div className="text-[#444] flex-shrink-0 mt-1">
+                          {renderIcon("Minus")}
                         </div>
-                        <div className="text-xs text-[#444]">
-                          {achievement.description}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="font-medium text-sm text-[#666]">
+                              {achievement.name}
+                            </div>
+                            <div className="px-2 py-1 bg-[#1a1a1a] border border-[#333] rounded text-xs text-[#555] flex-shrink-0">
+                              LOCKED
+                            </div>
+                          </div>
+                          <div className="text-xs text-[#555]">
+                            {achievement.description}
+                          </div>
                         </div>
                       </div>
                     </div>
