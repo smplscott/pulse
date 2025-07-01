@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Users, Search, Music, Target, MapPin, Star, Crown, Trophy, CheckCircle, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Users, Search, Music, Target, MapPin, Star, Crown, Trophy, CheckCircle, Lock, ChevronDown, ChevronUp, Sparkles, Zap, Award, Share, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -247,217 +247,256 @@ export default function CommunityAchievements() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#121212] to-[#1a1a1a] text-white pb-20 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-2xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-40 left-1/3 w-20 h-20 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-full blur-2xl animate-pulse delay-2000"></div>
+      </div>
+
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-[#121212] border-b border-[#3E3E3E] px-4 py-3">
-        <div className="flex items-center space-x-3">
-          <Link href="/">
-            <button className="text-[#B3B3B3] hover:text-white">
-              <ArrowLeft className="h-5 w-5" />
+      <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-gradient-to-r from-yellow-500/30 to-purple-500/30 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Link href="/">
+              <button className="text-[#B3B3B3] hover:text-white transition-colors">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            </Link>
+            <div className="flex items-center space-x-2">
+              <div className="text-2xl">🏆</div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 bg-clip-text text-transparent">
+                Trophy Case
+              </h1>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button className="p-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 transition-all">
+              <Share className="h-4 w-4" />
             </button>
-          </Link>
-          <h1 className="text-xl font-bold">🏆 Community Achievements</h1>
+          </div>
         </div>
       </div>
 
-      <main className="px-4 pt-6">
-        {/* Stats Overview */}
-        <div className="bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a] rounded-xl p-6 mb-6 border border-[#3E3E3E]">
-          <h2 className="text-lg font-bold mb-4 flex items-center">
-            <Trophy className="h-5 w-5 mr-2 text-yellow-500" />
-            Trophy Room Overview
-          </h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">
-                {progressiveTracks.filter(track => track.unlocked).length}
-              </div>
-              <p className="text-sm text-[#B3B3B3]">Active Tracks</p>
+      <main className="px-4 pt-8 relative z-10">
+        {/* Hero Stats with Glowing Effects */}
+        <div className="relative mb-12">
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/30 via-orange-500/30 to-yellow-500/30 rounded-3xl blur-2xl"></div>
+          <div className="relative bg-gradient-to-br from-black/60 via-gray-900/60 to-black/60 rounded-3xl p-8 border border-yellow-500/30 backdrop-blur-xl">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent mb-2">
+                Achievement Master
+              </h2>
+              <p className="text-gray-400">Your legendary status in the Pulse community</p>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">
-                {progressiveTracks.reduce((sum, track) => sum + track.currentLevel, 0)}
+            
+            <div className="grid grid-cols-3 gap-6">
+              <div className="text-center group">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/40 to-emerald-500/40 rounded-2xl blur-lg group-hover:blur-xl transition-all"></div>
+                  <div className="relative bg-gradient-to-br from-green-900/50 to-emerald-900/50 rounded-2xl p-6 border border-green-500/30">
+                    <div className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                      {progressiveTracks.filter(track => track.unlocked).length}
+                    </div>
+                    <p className="text-sm text-green-300 font-medium">Active Tracks</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-[#B3B3B3]">Total Levels</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-pink-400">
-                {unlockedAchievements.length}
+              
+              <div className="text-center group">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/40 to-violet-500/40 rounded-2xl blur-lg group-hover:blur-xl transition-all"></div>
+                  <div className="relative bg-gradient-to-br from-purple-900/50 to-violet-900/50 rounded-2xl p-6 border border-purple-500/30">
+                    <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent">
+                      {progressiveTracks.reduce((sum, track) => sum + track.currentLevel, 0)}
+                    </div>
+                    <p className="text-sm text-purple-300 font-medium">Total Levels</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-[#B3B3B3]">Special Badges</p>
+              
+              <div className="text-center group">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500/40 to-rose-500/40 rounded-2xl blur-lg group-hover:blur-xl transition-all"></div>
+                  <div className="relative bg-gradient-to-br from-pink-900/50 to-rose-900/50 rounded-2xl p-6 border border-pink-500/30">
+                    <div className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">
+                      {unlockedAchievements.length}
+                    </div>
+                    <p className="text-sm text-pink-300 font-medium">Rare Badges</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Section Toggle */}
-        <div className="flex bg-[#181818] rounded-lg p-1 mb-6 border border-[#3E3E3E]">
-          <button
-            onClick={() => setActiveSection('progressive')}
-            className={cn(
-              "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors",
-              activeSection === 'progressive' 
-                ? "bg-[#5271ff] text-white" 
-                : "text-[#B3B3B3] hover:text-white"
-            )}
-          >
-            Progressive Tracks
-          </button>
-          <button
-            onClick={() => setActiveSection('achievements')}
-            className={cn(
-              "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors",
-              activeSection === 'achievements' 
-                ? "bg-[#5271ff] text-white" 
-                : "text-[#B3B3B3] hover:text-white"
-            )}
-          >
-            Special Achievements
-          </button>
+        {/* Section Toggle with Premium Design */}
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-2xl blur-lg"></div>
+            <div className="relative bg-black/60 backdrop-blur-xl rounded-2xl p-2 border border-gray-700/50">
+              <div className="flex">
+                <button
+                  onClick={() => setActiveSection('progressive')}
+                  className={cn(
+                    "px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center space-x-2",
+                    activeSection === 'progressive' 
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25" 
+                      : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                  )}
+                >
+                  <Zap className="h-4 w-4" />
+                  <span>Progressive Mastery</span>
+                </button>
+                <button
+                  onClick={() => setActiveSection('achievements')}
+                  className={cn(
+                    "px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center space-x-2",
+                    activeSection === 'achievements' 
+                      ? "bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-yellow-500/25" 
+                      : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                  )}
+                >
+                  <Award className="h-4 w-4" />
+                  <span>Legendary Badges</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Progressive Tracks Section */}
         {activeSection === 'progressive' && (
-          <div className="space-y-4">
-            {progressiveTracks.map((track) => {
+          <div className="space-y-8">
+            {progressiveTracks.map((track, index) => {
               const currentLevel = getCurrentLevel(track);
               const nextLevel = getNextLevel(track);
               const isExpanded = activeTrack === track.id;
               const progressPercentage = getProgressPercentage(track);
 
               return (
-                <div key={track.id} className="bg-[#181818] rounded-xl border border-[#3E3E3E] overflow-hidden">
-                  <button
-                    className="w-full p-6 text-left hover:bg-[#1a1a1a] transition-colors"
-                    onClick={() => setActiveTrack(isExpanded ? null : track.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className={cn(
-                          "text-4xl p-3 rounded-xl",
-                          track.unlocked ? "bg-[#282828]" : "bg-[#1a1a1a] grayscale"
-                        )}>
-                          {track.unlocked ? track.emoji : '🔒'}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg flex items-center">
-                            {track.name}
-                            {track.unlocked && currentLevel && (
-                              <span className="ml-2 text-2xl">{currentLevel.emoji}</span>
-                            )}
-                          </h3>
-                          <p className="text-sm text-[#B3B3B3] mb-2">{track.description}</p>
-                          {track.unlocked && (
-                            <div>
-                              <div className="flex items-center justify-between text-xs text-[#B3B3B3] mb-2">
-                                <span>
-                                  {currentLevel ? `${currentLevel.name} (Level ${currentLevel.level})` : 'Not started'}
-                                </span>
-                                {nextLevel && (
-                                  <span>
-                                    {track.currentPoints}/{nextLevel.requirement} points
-                                  </span>
+                <div key={track.id} className="group relative">
+                  {/* Glowing background effect */}
+                  <div className={cn(
+                    "absolute inset-0 rounded-3xl blur-2xl transition-all duration-500",
+                    track.unlocked 
+                      ? "bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 group-hover:from-blue-500/30 group-hover:via-purple-500/30 group-hover:to-pink-500/30"
+                      : "bg-gradient-to-r from-gray-600/10 to-gray-800/10"
+                  )}></div>
+                  
+                  <div className="relative bg-black/40 backdrop-blur-xl rounded-3xl border border-gray-700/50 overflow-hidden">
+                    <button
+                      className="w-full p-8 text-left hover:bg-white/5 transition-all duration-300"
+                      onClick={() => setActiveTrack(isExpanded ? null : track.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-6">
+                          {/* Track Icon with Level Badge */}
+                          <div className="relative">
+                            {track.unlocked ? (
+                              <div className="relative">
+                                <div className={cn(
+                                  "text-6xl p-4 rounded-2xl transition-all duration-300 group-hover:scale-110",
+                                  `bg-gradient-to-br ${currentLevel?.color || 'from-gray-400 to-gray-600'}`
+                                )}>
+                                  <div className="text-white">{track.emoji}</div>
+                                </div>
+                                {currentLevel && (
+                                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full p-2 border-2 border-black">
+                                    <div className="text-lg">{currentLevel.emoji}</div>
+                                  </div>
                                 )}
                               </div>
-                              {nextLevel && (
-                                <Progress 
-                                  value={progressPercentage} 
-                                  className="h-2"
-                                />
+                            ) : (
+                              <div className="text-6xl p-4 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 opacity-50">
+                                <div className="text-gray-600">🔒</div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className={cn(
+                                "text-2xl font-bold",
+                                track.unlocked 
+                                  ? "bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
+                                  : "text-gray-600"
+                              )}>
+                                {track.name}
+                              </h3>
+                              {track.unlocked && !nextLevel && (
+                                <div className="flex items-center space-x-1 px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full">
+                                  <Crown className="h-4 w-4 text-black" />
+                                  <span className="text-xs font-bold text-black">MAXED</span>
+                                </div>
                               )}
-                              {!nextLevel && (
-                                <div className="flex items-center text-xs text-yellow-500">
-                                  <Crown className="h-3 w-3 mr-1" />
-                                  <span>MAX LEVEL ACHIEVED</span>
+                            </div>
+                            
+                            <p className={cn(
+                              "text-sm mb-4",
+                              track.unlocked ? "text-gray-300" : "text-gray-600"
+                            )}>
+                              {track.description}
+                            </p>
+                            
+                            {track.unlocked && (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-sm font-medium text-white">
+                                      {currentLevel ? currentLevel.name : 'Not started'}
+                                    </span>
+                                    <span className="text-xs px-2 py-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-white">
+                                      Level {track.currentLevel}
+                                    </span>
+                                  </div>
+                                  {nextLevel && (
+                                    <span className="text-sm text-gray-400">
+                                      {track.currentPoints}/{nextLevel.requirement} points
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {nextLevel && (
+                                  <div className="relative">
+                                    <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+                                      <div 
+                                        className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-1000 ease-out"
+                                        style={{ width: `${progressPercentage}%` }}
+                                      ></div>
+                                    </div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-full animate-pulse"></div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4">
+                          {track.unlocked && (
+                            <div className="text-right">
+                              <div className="text-sm text-gray-400">Next Goal</div>
+                              {nextLevel ? (
+                                <div className="text-lg font-bold text-white">{nextLevel.name}</div>
+                              ) : (
+                                <div className="text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                                  Complete!
                                 </div>
                               )}
                             </div>
                           )}
+                          <div className={cn(
+                            "transition-transform duration-300",
+                            isExpanded ? "rotate-180" : ""
+                          )}>
+                            <ChevronDown className="h-6 w-6 text-gray-400" />
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge className={cn(
-                          "text-xs",
-                          track.unlocked 
-                            ? `bg-gradient-to-r ${currentLevel?.color || 'from-gray-400 to-gray-600'} text-white`
-                            : "bg-[#282828] text-[#666]"
-                        )}>
-                          {track.unlocked ? `Level ${track.currentLevel}` : 'Locked'}
-                        </Badge>
-                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Expanded view showing all levels */}
-                  {isExpanded && track.unlocked && (
-                    <div className="border-t border-[#3E3E3E] p-6">
-                      <div className="mb-4">
-                        <h4 className="font-medium mb-2">Points Formula</h4>
-                        <p className="text-sm text-[#B3B3B3] bg-[#2a2a2a] p-2 rounded font-mono">
-                          {track.pointsFormula}
-                        </p>
-                      </div>
-                      <h4 className="font-medium mb-4">All Levels</h4>
-                      <div className="space-y-3">
-                        {track.levels.map((level) => {
-                          const isUnlocked = level.level <= track.currentLevel;
-                          const isCurrent = level.level === track.currentLevel;
-                          const isNext = level.level === track.currentLevel + 1;
-
-                          return (
-                            <div key={level.level} className={cn(
-                              "flex items-center space-x-4 p-4 rounded-xl",
-                              isUnlocked ? "bg-[#282828]" : "bg-[#1a1a1a]"
-                            )}>
-                              <div className="text-3xl">
-                                {isUnlocked ? level.emoji : '🔒'}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className={cn(
-                                    "font-medium",
-                                    isUnlocked ? "text-white" : "text-[#666]"
-                                  )}>
-                                    {level.name}
-                                  </span>
-                                  {isCurrent && (
-                                    <Badge className="bg-gradient-to-r from-[#10B981] to-[#34D399] text-white text-xs">
-                                      CURRENT
-                                    </Badge>
-                                  )}
-                                  {isNext && (
-                                    <Badge className="bg-gradient-to-r from-[#EC4899] to-[#BE185D] text-white text-xs">
-                                      NEXT
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className={cn(
-                                  "text-sm mb-1",
-                                  isUnlocked ? "text-[#B3B3B3]" : "text-[#666]"
-                                )}>
-                                  {level.description}
-                                </p>
-                                <p className={cn(
-                                  "text-xs",
-                                  isUnlocked ? "text-[#888]" : "text-[#555]"
-                                )}>
-                                  {level.requirement} points required
-                                </p>
-                                {isNext && (
-                                  <p className="text-xs mt-1 text-pink-400">
-                                    {level.requirement - track.currentPoints} more points needed
-                                  </p>
-                                )}
-                              </div>
-                              {isUnlocked && (
-                                <CheckCircle className="h-5 w-5 text-green-500" />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -466,97 +505,12 @@ export default function CommunityAchievements() {
 
         {/* Special Achievements Section */}
         {activeSection === 'achievements' && (
-          <div className="space-y-6">
-            {/* Unlocked Achievements */}
-            {unlockedAchievements.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium mb-4 text-green-400 flex items-center">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  Unlocked Achievements
-                </h3>
-                <div className="grid grid-cols-1 gap-4">
-                  {['crew', 'community', 'milestone'].map(category => {
-                    const categoryAchievements = unlockedAchievements.filter(a => a.category === category);
-                    if (categoryAchievements.length === 0) return null;
-                    
-                    return (
-                      <div key={category}>
-                        <h4 className="text-sm font-medium text-[#B3B3B3] mb-2 uppercase tracking-wide">
-                          {category === 'crew' ? '⚡ Pulse Crew' : 
-                           category === 'community' ? '🤝 Community Building' : 
-                           '🎯 Milestones'}
-                        </h4>
-                        <div className="space-y-2">
-                          {categoryAchievements.map((achievement) => (
-                            <div key={achievement.id} className="bg-[#181818] rounded-lg p-4 border border-[#3E3E3E]">
-                              <div className="flex items-center space-x-4">
-                                <div className={cn(
-                                  "p-3 rounded-lg bg-gradient-to-r text-2xl",
-                                  achievement.color
-                                )}>
-                                  {achievement.emoji}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2 mb-1">
-                                    <span className="font-medium text-white">{achievement.name}</span>
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                  </div>
-                                  <p className="text-sm text-[#B3B3B3] mb-1">{achievement.description}</p>
-                                  {achievement.unlockedDate && (
-                                    <p className="text-xs text-green-400">Unlocked {achievement.unlockedDate}</p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Locked Achievements */}
-            {lockedAchievements.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium mb-4 text-[#666] flex items-center">
-                  <Lock className="h-5 w-5 mr-2" />
-                  Locked Achievements
-                </h3>
-                <div className="grid grid-cols-1 gap-4">
-                  {['crew', 'community', 'milestone'].map(category => {
-                    const categoryAchievements = lockedAchievements.filter(a => a.category === category);
-                    if (categoryAchievements.length === 0) return null;
-                    
-                    return (
-                      <div key={category}>
-                        <h4 className="text-sm font-medium text-[#666] mb-2 uppercase tracking-wide">
-                          {category === 'crew' ? '⚡ Pulse Crew' : 
-                           category === 'community' ? '🤝 Community Building' : 
-                           '🎯 Milestones'}
-                        </h4>
-                        <div className="space-y-2">
-                          {categoryAchievements.map((achievement) => (
-                            <div key={achievement.id} className="bg-[#1a1a1a] rounded-lg p-4 border border-[#333] opacity-60">
-                              <div className="flex items-center space-x-4">
-                                <div className="p-3 rounded-lg bg-[#2a2a2a] text-2xl grayscale">
-                                  🔒
-                                </div>
-                                <div className="flex-1">
-                                  <span className="font-medium text-[#666]">{achievement.name}</span>
-                                  <p className="text-sm text-[#555]">{achievement.description}</p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+          <div className="text-center py-20">
+            <div className="mb-8">
+              <div className="text-6xl mb-4">🚧</div>
+              <h3 className="text-2xl font-bold text-gray-400 mb-2">Coming Soon</h3>
+              <p className="text-gray-500">Special achievements section is being redesigned with stunning visuals</p>
+            </div>
           </div>
         )}
       </main>
