@@ -303,6 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         starRating: z.number().int().min(1).max(5).optional().nullable(),
         songId: z.number().int().optional().nullable(),
         artistId: z.number().int().optional().nullable(),
+        setId: z.number().int().optional().nullable(),
       });
       const threadData = schema.parse({ ...req.body, userId });
       const thread = await storage.createThread(threadData);

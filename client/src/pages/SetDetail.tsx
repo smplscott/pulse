@@ -117,10 +117,7 @@ export default function SetDetail() {
     queryKey: ["/api/threads"],
   });
 
-  const setTitle = set?.title?.toLowerCase() || "";
-  const setThreads = threads?.filter(t =>
-    t.type === "set" || (setTitle.length > 3 && t.title.toLowerCase().includes(setTitle))
-  ).slice(0, 3);
+  const setThreads = threads?.filter(t => t.setId === setId).slice(0, 3);
 
   const submitMutation = useMutation({
     mutationFn: () =>

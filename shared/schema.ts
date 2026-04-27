@@ -125,6 +125,7 @@ export const threads = pgTable("threads", {
   threadType: text("thread_type").notNull().default("topic"), // new_music | listening_now | live_show_review | topic
   songId: integer("song_id"),
   artistId: integer("artist_id"),
+  setId: integer("set_id"),
   starRating: integer("star_rating"), // 1-5, for live_show_review only
   status: text("status").default("active"),
   upvotes: integer("upvotes").default(0),
@@ -142,6 +143,7 @@ export const insertThreadSchema = createInsertSchema(threads).pick({
   threadType: true,
   songId: true,
   artistId: true,
+  setId: true,
   starRating: true,
   status: true,
 });
