@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { MusicSet } from "@shared/schema";
-import { ListMusic } from "lucide-react";
+import TrackIDCard from "@/components/cards/TrackIDCard";
 
 interface TrackIDsProps {
   hideTitle?: boolean;
@@ -64,28 +64,7 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
       )}
       <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
         {sets.map((set) => (
-          <Link key={set.id} href={`/sets/${set.id}`}>
-            <div className="flex-shrink-0 w-40 bg-[#181818] rounded-lg overflow-hidden cursor-pointer hover:bg-[#282828] transition">
-              <div className="relative">
-                {set.image ? (
-                  <img src={set.image} alt={set.title} className="w-full h-40 object-cover" />
-                ) : (
-                  <div className="w-full h-40 bg-[#282828] flex items-center justify-center">
-                    <ListMusic className="h-12 w-12 text-[#B3B3B3]" />
-                  </div>
-                )}
-                <div className="absolute top-2 right-2">
-                  <span className="text-xs bg-[#4ade80] text-black px-2 py-0.5 rounded-sm font-semibold">
-                    Track IDs
-                  </span>
-                </div>
-              </div>
-              <div className="p-3">
-                <p className="font-semibold text-sm truncate">{set.title}</p>
-                <p className="text-xs text-[#B3B3B3] mt-0.5">by {set.curator}</p>
-              </div>
-            </div>
-          </Link>
+          <TrackIDCard key={set.id} set={set} />
         ))}
       </div>
     </section>

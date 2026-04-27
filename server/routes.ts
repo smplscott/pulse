@@ -495,6 +495,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof Error && error.message === "Already voted on this track ID") {
         return res.status(409).json({ message: error.message });
       }
+      if (error instanceof Error && error.message === "Track ID is locked or removed") {
+        return res.status(422).json({ message: error.message });
+      }
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
       }
