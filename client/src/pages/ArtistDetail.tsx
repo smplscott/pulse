@@ -13,15 +13,15 @@ const COUNTRY_EMOJIS: Record<string, string> = {
   IT: "🇮🇹", ES: "🇪🇸", ZA: "🇿🇦", MX: "🇲🇽", AR: "🇦🇷",
 };
 
-type SimilarArtist = { name: string; genre: string; country: string };
+type SimilarArtist = { name: string; genre: string; country: string; verified?: boolean };
 type DiscographyItem = { title: string; year: string; type: string; albumArt?: string | null };
 type AlbumItem = { title: string; year: string; tracks: number };
 type FeaturedItem = { title: string; label: string; year: string };
 
 const MOCK_SIMILAR_ARTISTS: SimilarArtist[] = [
-  { name: "Aphex Twin", genre: "Electronic", country: "GB" },
-  { name: "Four Tet", genre: "Electronic", country: "GB" },
-  { name: "Floating Points", genre: "Electronic", country: "GB" },
+  { name: "Aphex Twin", genre: "Electronic", country: "GB", verified: true },
+  { name: "Four Tet", genre: "Electronic", country: "GB", verified: true },
+  { name: "Floating Points", genre: "Electronic", country: "GB", verified: false },
 ];
 
 const MOCK_SINGLES: DiscographyItem[] = [
@@ -218,7 +218,10 @@ export default function ArtistDetail() {
                 <div className="w-14 h-14 rounded-full bg-[#282828] mx-auto mb-2 flex items-center justify-center">
                   <Music2 className="h-7 w-7 text-[#B3B3B3]" />
                 </div>
-                <p className="text-xs font-medium truncate mb-0.5">{a.name}</p>
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <p className="text-xs font-medium truncate">{a.name}</p>
+                  {a.verified && <CheckCircle className="h-3 w-3 text-[#5271ff] flex-shrink-0" />}
+                </div>
                 <p className="text-xs text-[#666] mb-2">{COUNTRY_EMOJIS[a.country] || ""} {a.genre}</p>
                 <div className="flex items-center justify-center gap-1">
                   <button

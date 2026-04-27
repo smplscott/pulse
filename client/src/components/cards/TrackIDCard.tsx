@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { MusicSet } from "@shared/schema";
 import { ListMusic, MessageCircleIcon } from "lucide-react";
 
@@ -8,6 +8,7 @@ type TrackIDCardProps = {
 };
 
 export default function TrackIDCard({ set, className }: TrackIDCardProps) {
+  const [, navigate] = useLocation();
   return (
     <Link href={`/sets/${set.id}`}>
       <div className={`flex-shrink-0 w-40 bg-[#181818] rounded-lg overflow-hidden cursor-pointer hover:bg-[#282828] transition ${className || ""}`}>
@@ -38,6 +39,7 @@ export default function TrackIDCard({ set, className }: TrackIDCardProps) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                navigate(`/sets/${set.id}`);
               }}
             >
               <MessageCircleIcon className="h-3 w-3 mr-1" />

@@ -143,24 +143,32 @@ export default function SongDetail() {
           </div>
         )}
 
-        {/* Engagement stats bar */}
-        <div className="flex items-center gap-0 bg-[#1a1a1a] rounded-xl overflow-hidden divide-x divide-[#282828]">
-          <div className="flex-1 flex flex-col items-center py-3 gap-1">
-            <MessageCircle className="h-4 w-4 text-[#B3B3B3]" />
-            <span className="text-sm font-semibold">5</span>
-            <span className="text-xs text-[#666]">Comments</span>
-          </div>
-          <div className="flex-1 flex flex-col items-center py-3 gap-1">
-            <Bookmark className="h-4 w-4 text-[#B3B3B3]" />
-            <span className="text-sm font-semibold">23</span>
-            <span className="text-xs text-[#666]">Saves</span>
-          </div>
-          <div className="flex-1 flex flex-col items-center py-3 gap-1">
-            <Smile className="h-4 w-4 text-[#B3B3B3]" />
-            <span className="text-sm font-semibold">47</span>
-            <span className="text-xs text-[#666]">Reactions</span>
-          </div>
-        </div>
+        {/* Engagement stats bar — derived from song thread data */}
+        {(() => {
+          const allThreads = threads?.filter(t => t.songId === songId) ?? [];
+          const totalComments = allThreads.reduce((sum, t) => sum + (t.commentsCount ?? 0), 0);
+          const totalSaves = allThreads.reduce((sum, t) => sum + (t.savesCount ?? 0), 0);
+          const totalReactions = allThreads.reduce((sum, t) => sum + (t.upvotes ?? 0), 0);
+          return (
+            <div className="flex items-center gap-0 bg-[#1a1a1a] rounded-xl overflow-hidden divide-x divide-[#282828]">
+              <div className="flex-1 flex flex-col items-center py-3 gap-1">
+                <MessageCircle className="h-4 w-4 text-[#B3B3B3]" />
+                <span className="text-sm font-semibold">{totalComments}</span>
+                <span className="text-xs text-[#666]">Comments</span>
+              </div>
+              <div className="flex-1 flex flex-col items-center py-3 gap-1">
+                <Bookmark className="h-4 w-4 text-[#B3B3B3]" />
+                <span className="text-sm font-semibold">{totalSaves}</span>
+                <span className="text-xs text-[#666]">Saves</span>
+              </div>
+              <div className="flex-1 flex flex-col items-center py-3 gap-1">
+                <Smile className="h-4 w-4 text-[#B3B3B3]" />
+                <span className="text-sm font-semibold">{totalReactions}</span>
+                <span className="text-xs text-[#666]">Reactions</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Credits button */}
         <button
