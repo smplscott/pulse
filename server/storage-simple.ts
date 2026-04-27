@@ -1,3 +1,5 @@
+import { scrypt, randomBytes } from "crypto";
+import { promisify } from "util";
 import { 
   User, InsertUser, 
   Artist, InsertArtist,
@@ -8,6 +10,14 @@ import {
   Set, InsertSet,
   SongRecommendation, InsertSongRecommendation
 } from "@shared/schema";
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 export interface IStorage {
   // User operations
@@ -87,16 +97,17 @@ export class MemStorage implements IStorage {
   private songRecommendationCurrentId = 1;
 
   constructor() {
-    this.seedData();
+    void this.seedData();
   }
 
-  private seedData() {
-    // Create basic test user
+  private async seedData() {
+    const hashedPassword = await hashPassword("testpass123");
+    // Create basic test user (login: testuser / testpass123 or test@pulse.fm / testpass123)
     const user: User = {
       id: this.userCurrentId++,
       username: "testuser",
       email: "test@pulse.fm",
-      password: "password",
+      password: hashedPassword,
       displayName: "Test User",
       bio: "Music lover and avid listener.",
       profilePicture: null,
