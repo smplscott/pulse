@@ -33,7 +33,7 @@ function TrackIdRow({ track, setId }: { track: TrackIdWithVote; setId: number })
     mutationFn: (voteType: "confirm" | "disagree") =>
       apiRequest("POST", `/api/track-ids/${track.id}/vote`, { voteType }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sets", setId.toString(), "track-ids"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/sets/${setId}/track-ids`] });
     },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : "You may have already voted on this track.";
@@ -109,8 +109,7 @@ export default function SetDetail() {
   });
 
   const { data: trackIds, isLoading: isLoadingTrackIds } = useQuery<TrackIdWithVote[]>({
-    queryKey: ["/api/sets", id, "track-ids"],
-    queryFn: () => fetch(`/api/sets/${setId}/track-ids`).then(r => r.json()),
+    queryKey: [`/api/sets/${id}/track-ids`],
     enabled: !isNaN(setId),
   });
 
@@ -124,7 +123,7 @@ export default function SetDetail() {
     mutationFn: () =>
       apiRequest("POST", `/api/sets/${setId}/track-ids`, { title: newTitle, artist: newArtist }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sets", id, "track-ids"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/sets/${id}/track-ids`] });
       setNewTitle("");
       setNewArtist("");
       setShowSubmitForm(false);
