@@ -4,10 +4,8 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Artist, Song, Thread } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, Music2, ExternalLink, CheckCircle, MessageCircle, Bookmark } from "lucide-react";
+import { ChevronLeft, Music2, ExternalLink, CheckCircle, MessageCircle, Bookmark, Smile } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 
 const COUNTRY_EMOJIS: Record<string, string> = {
   US: "🇺🇸", GB: "🇬🇧", DE: "🇩🇪", FR: "🇫🇷", CA: "🇨🇦", AU: "🇦🇺",
@@ -15,24 +13,29 @@ const COUNTRY_EMOJIS: Record<string, string> = {
   IT: "🇮🇹", ES: "🇪🇸", ZA: "🇿🇦", MX: "🇲🇽", AR: "🇦🇷",
 };
 
-const MOCK_SIMILAR_ARTISTS = [
+type SimilarArtist = { name: string; genre: string; country: string };
+type DiscographyItem = { title: string; year: string; type: string; albumArt?: string | null };
+type AlbumItem = { title: string; year: string; tracks: number };
+type FeaturedItem = { title: string; label: string; year: string };
+
+const MOCK_SIMILAR_ARTISTS: SimilarArtist[] = [
   { name: "Aphex Twin", genre: "Electronic", country: "GB" },
   { name: "Four Tet", genre: "Electronic", country: "GB" },
   { name: "Floating Points", genre: "Electronic", country: "GB" },
 ];
 
-const MOCK_SINGLES = [
+const MOCK_SINGLES: DiscographyItem[] = [
   { title: "Self Portrait", year: "2024", type: "Single" },
   { title: "Glue", year: "2023", type: "Single" },
   { title: "Meli", year: "2022", type: "EP" },
 ];
 
-const MOCK_ALBUMS = [
+const MOCK_ALBUMS: AlbumItem[] = [
   { title: "Isles", year: "2021", tracks: 10 },
   { title: "Bicep", year: "2017", tracks: 11 },
 ];
 
-const MOCK_FEATURED = [
+const MOCK_FEATURED: FeaturedItem[] = [
   { title: "Fabric Presents: Bicep", label: "Fabric", year: "2018" },
   { title: "Resident Advisor Podcast 478", label: "RA", year: "2016" },
 ];
@@ -62,7 +65,18 @@ export default function ArtistDetail() {
     ? COUNTRY_EMOJIS[artist.firstDiscoveredIn] || "🌍"
     : null;
 
-  const streamingLinks = Array.isArray(artist?.streamingLinks) ? artist!.streamingLinks as { platform: string; url: string }[] : [];
+  const streamingLinks = Array.isArray(artist?.streamingLinks)
+    ? (artist!.streamingLinks as { platform: string; url: string }[])
+    : [];
+
+  const singlesEPs: DiscographyItem[] = songs && songs.length > 0
+    ? songs.map(s => ({
+        title: s.title,
+        year: s.releaseDate ? new Date(s.releaseDate).getFullYear().toString() : "—",
+        type: "Single",
+        albumArt: s.albumArt,
+      }))
+    : MOCK_SINGLES;
 
   if (isLoading) {
     return (
@@ -101,7 +115,6 @@ export default function ArtistDetail() {
     <div className="min-h-screen bg-black text-white pb-32">
       <Header />
 
-      {/* Sticky header */}
       <div className="sticky top-0 z-30 bg-black/90 backdrop-blur px-4 py-3 flex items-center gap-3 border-b border-[#222]">
         <Link href="/artists">
           <button className="text-[#B3B3B3] hover:text-white transition">
@@ -178,13 +191,15 @@ export default function ArtistDetail() {
           {artistThreads && artistThreads.length > 0 ? (
             <div className="space-y-2">
               {artistThreads.map(t => (
-                <div key={t.id} className="bg-[#1a1a1a] rounded-lg p-3">
-                  <p className="text-sm font-medium mb-1 line-clamp-1">{t.title}</p>
-                  <div className="flex items-center gap-3 text-xs text-[#666]">
-                    <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{t.commentsCount}</span>
-                    <span className="flex items-center gap-1"><Bookmark className="h-3 w-3" />{t.savesCount}</span>
+                <Link key={t.id} href={`/thread/${t.id}`}>
+                  <div className="bg-[#1a1a1a] hover:bg-[#222] rounded-lg p-3 cursor-pointer transition">
+                    <p className="text-sm font-medium mb-1 line-clamp-1">{t.title}</p>
+                    <div className="flex items-center gap-3 text-xs text-[#666]">
+                      <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{t.commentsCount}</span>
+                      <span className="flex items-center gap-1"><Bookmark className="h-3 w-3" />{t.savesCount}</span>
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
@@ -199,12 +214,26 @@ export default function ArtistDetail() {
           <h2 className="text-base font-semibold mb-3">Similar Artists</h2>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {MOCK_SIMILAR_ARTISTS.map((a, i) => (
-              <div key={i} className="flex-shrink-0 w-24 text-center">
-                <div className="w-16 h-16 rounded-full bg-[#282828] mx-auto mb-2 flex items-center justify-center">
-                  <Music2 className="h-8 w-8 text-[#B3B3B3]" />
+              <div key={i} className="flex-shrink-0 w-28 bg-[#1a1a1a] rounded-lg p-3 text-center">
+                <div className="w-14 h-14 rounded-full bg-[#282828] mx-auto mb-2 flex items-center justify-center">
+                  <Music2 className="h-7 w-7 text-[#B3B3B3]" />
                 </div>
-                <p className="text-xs font-medium truncate">{a.name}</p>
-                <p className="text-xs text-[#666]">{COUNTRY_EMOJIS[a.country] || ""} {a.genre}</p>
+                <p className="text-xs font-medium truncate mb-0.5">{a.name}</p>
+                <p className="text-xs text-[#666] mb-2">{COUNTRY_EMOJIS[a.country] || ""} {a.genre}</p>
+                <div className="flex items-center justify-center gap-1">
+                  <button
+                    onClick={() => toast({ title: "Saved", description: `${a.name} added to your artists` })}
+                    className="w-6 h-6 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <Bookmark className="h-3 w-3 text-[#B3B3B3]" />
+                  </button>
+                  <button
+                    onClick={() => toast({ title: "Comments", description: `Open thread for ${a.name}` })}
+                    className="w-6 h-6 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <MessageCircle className="h-3 w-3 text-[#B3B3B3]" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -214,11 +243,11 @@ export default function ArtistDetail() {
         <div>
           <h2 className="text-base font-semibold mb-3">Singles & EPs</h2>
           <div className="space-y-2">
-            {(songs && songs.length > 0 ? songs.map(s => ({ title: s.title, year: s.releaseDate ? new Date(s.releaseDate).getFullYear().toString() : "—", type: "Single", albumArt: s.albumArt })) : MOCK_SINGLES).map((s, i) => (
+            {singlesEPs.map((s, i) => (
               <div key={i} className="flex items-center gap-3 bg-[#1a1a1a] rounded-lg p-3">
                 <div className="w-10 h-10 rounded bg-[#282828] flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {(s as any).albumArt ? (
-                    <img src={(s as any).albumArt} alt={s.title} className="w-full h-full object-cover" />
+                  {s.albumArt ? (
+                    <img src={s.albumArt} alt={s.title} className="w-full h-full object-cover" />
                   ) : (
                     <Music2 className="h-5 w-5 text-[#B3B3B3]" />
                   )}
@@ -226,6 +255,26 @@ export default function ArtistDetail() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{s.title}</p>
                   <p className="text-xs text-[#666]">{s.year} · {s.type}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => toast({ title: "Saved", description: `"${s.title}" added to library` })}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <Bookmark className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  </button>
+                  <button
+                    onClick={() => toast({ title: "React", description: `Reacted to "${s.title}"` })}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <Smile className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  </button>
+                  <button
+                    onClick={() => toast({ title: "Comment", description: `Open thread for "${s.title}"` })}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -245,6 +294,20 @@ export default function ArtistDetail() {
                   <p className="text-sm font-medium truncate">{a.title}</p>
                   <p className="text-xs text-[#666]">{a.year} · {a.tracks} tracks</p>
                 </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => toast({ title: "Saved", description: `"${a.title}" added to library` })}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <Bookmark className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  </button>
+                  <button
+                    onClick={() => toast({ title: "Comment", description: `Open thread for "${a.title}"` })}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -262,6 +325,20 @@ export default function ArtistDetail() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{f.title}</p>
                   <p className="text-xs text-[#666]">{f.label} · {f.year}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => toast({ title: "Saved", description: `"${f.title}" saved` })}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <Bookmark className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  </button>
+                  <button
+                    onClick={() => toast({ title: "Comment", description: `Open thread for "${f.title}"` })}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-[#282828] hover:bg-[#3E3E3E] transition"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  </button>
                 </div>
               </div>
             ))}

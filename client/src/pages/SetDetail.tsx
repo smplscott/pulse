@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
-import { MusicSet } from "@shared/schema";
-import { ChevronLeft, Plus, CheckCircle2, XCircle, Lock, Music2, Users, ListMusic } from "lucide-react";
+import { MusicSet, Thread } from "@shared/schema";
+import { ChevronLeft, Plus, CheckCircle2, XCircle, Lock, Music2, Users, ListMusic, MessageCircle, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +111,15 @@ export default function SetDetail() {
     queryFn: () => fetch(`/api/sets/${setId}/track-ids`).then(r => r.json()),
     enabled: !isNaN(setId),
   });
+
+  const { data: threads } = useQuery<Thread[]>({
+    queryKey: ["/api/threads"],
+  });
+
+  const setTitle = set?.title?.toLowerCase() || "";
+  const setThreads = threads?.filter(t =>
+    t.type === "set" || (setTitle.length > 3 && t.title.toLowerCase().includes(setTitle))
+  ).slice(0, 3);
 
   const submitMutation = useMutation({
     mutationFn: () =>
@@ -281,6 +290,39 @@ export default function SetDetail() {
             <span className="flex items-center gap-1 text-red-400"><XCircle className="h-3 w-3" /> 5 disagrees = removed</span>
           </div>
         )}
+
+        {/* Discussion */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Discussion</h2>
+            <Link href="/threads">
+              <button className="text-xs text-[#5271ff] hover:underline">See all</button>
+            </Link>
+          </div>
+          {setThreads && setThreads.length > 0 ? (
+            <div className="space-y-2">
+              {setThreads.map(t => (
+                <Link key={t.id} href={`/thread/${t.id}`}>
+                  <div className="bg-[#1a1a1a] hover:bg-[#222] rounded-lg p-3 cursor-pointer transition">
+                    <p className="text-sm font-medium mb-1 line-clamp-2">{t.title}</p>
+                    <div className="flex items-center gap-3 text-xs text-[#666]">
+                      <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{t.commentsCount}</span>
+                      <span className="flex items-center gap-1"><Bookmark className="h-3 w-3" />{t.savesCount}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-[#1a1a1a] rounded-lg p-5 text-center">
+              <MessageCircle className="h-8 w-8 text-[#333] mx-auto mb-2" />
+              <p className="text-sm text-[#666]">No discussions yet for this set.</p>
+              <Link href="/create-thread">
+                <button className="mt-2 text-xs text-[#5271ff] hover:underline">Start a thread</button>
+              </Link>
+            </div>
+          )}
+        </div>
       </main>
 
       <BottomNav />

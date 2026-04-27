@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import { Song, Artist } from "@shared/schema";
+import { Song, Artist, Thread } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, Music2, MessageCircle, Bookmark, Smile, ExternalLink, CreditCard, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -36,6 +36,12 @@ export default function SongDetail() {
     queryKey: [`/api/artists/name/${song?.artist}`],
     enabled: !!song?.artist,
   });
+
+  const { data: threads } = useQuery<Thread[]>({
+    queryKey: ["/api/threads"],
+  });
+
+  const songThreads = threads?.filter(t => t.songId === songId).slice(0, 3);
 
   const streamingLinks = (song?.streamingLinks && typeof song.streamingLinks === "object" && !Array.isArray(song.streamingLinks))
     ? Object.entries(song.streamingLinks as Record<string, string>).map(([platform, url]) => ({ platform, url }))
@@ -172,6 +178,39 @@ export default function SongDetail() {
             <p className="text-sm text-[#B3B3B3] leading-relaxed">{song.story}</p>
           </div>
         )}
+
+        {/* Discussion threads */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold">Discussion</h2>
+            <Link href="/threads">
+              <button className="text-xs text-[#5271ff] hover:underline">See all</button>
+            </Link>
+          </div>
+          {songThreads && songThreads.length > 0 ? (
+            <div className="space-y-2">
+              {songThreads.map(t => (
+                <Link key={t.id} href={`/thread/${t.id}`}>
+                  <div className="bg-[#1a1a1a] hover:bg-[#222] rounded-lg p-3 cursor-pointer transition">
+                    <p className="text-sm font-medium mb-1 line-clamp-2">{t.title}</p>
+                    <div className="flex items-center gap-3 text-xs text-[#666]">
+                      <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{t.commentsCount}</span>
+                      <span className="flex items-center gap-1"><Bookmark className="h-3 w-3" />{t.savesCount}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-[#1a1a1a] rounded-lg p-4 text-center">
+              <MessageCircle className="h-8 w-8 text-[#333] mx-auto mb-2" />
+              <p className="text-sm text-[#666]">No discussions yet for this song.</p>
+              <Link href="/create-thread">
+                <button className="mt-2 text-xs text-[#5271ff] hover:underline">Start a thread</button>
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Similar Songs */}
         <div>
