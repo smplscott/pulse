@@ -201,6 +201,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(songs);
   });
   
+  app.get("/api/songs/artist/:artistName", async (req: Request, res: Response) => {
+    const artistName = req.params.artistName;
+    const songs = await storage.getSongsByArtist(artistName);
+    return res.json(songs);
+  });
+
   app.get("/api/songs/:id", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -213,12 +219,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     return res.json(song);
-  });
-  
-  app.get("/api/songs/artist/:artistName", async (req: Request, res: Response) => {
-    const artistName = req.params.artistName;
-    const songs = await storage.getSongsByArtist(artistName);
-    return res.json(songs);
   });
   
   // Venues routes
