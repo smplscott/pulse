@@ -40,8 +40,9 @@ export default function Signup() {
   const onSubmit = async (data: SignupForm) => {
     try {
       await registerUser(data.username, data.email, data.password);
-    } catch (err: any) {
-      toast({ title: "Sign up failed", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Sign up failed";
+      toast({ title: "Sign up failed", description: message, variant: "destructive" });
     }
   };
 

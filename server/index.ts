@@ -10,8 +10,14 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+const sessionSecret = process.env.SESSION_SECRET || (
+  process.env.NODE_ENV === "production"
+    ? (() => { throw new Error("SESSION_SECRET environment variable is required in production"); })()
+    : "pulse-dev-secret-key"
+);
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || "pulse-dev-secret-key",
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   store: new MemoryStore({ checkPeriod: 86400000 }),

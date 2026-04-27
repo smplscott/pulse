@@ -32,8 +32,9 @@ export default function Login() {
   const onSubmit = async (data: LoginForm) => {
     try {
       await login(data.identifier, data.password);
-    } catch (err: any) {
-      toast({ title: "Login failed", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Login failed";
+      toast({ title: "Login failed", description: message, variant: "destructive" });
     }
   };
 
