@@ -20,30 +20,19 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { SearchIcon, Music2Icon, MicVocalIcon, X, Star, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ThreadType = "new_music" | "listening_now" | "live_show_review" | "topic";
+type ThreadType = "new_music" | "listening_now" | "live_show_review";
+type Step = "search" | "type" | "form_topic" | "form_linked";
 
-interface ThreadTypeOption {
-  id: ThreadType;
-  label: string;
-  description: string;
-  requiresSearch: boolean;
-  color: string;
-  bgColor: string;
-}
-
-const THREAD_TYPES: ThreadTypeOption[] = [
-  { id: "new_music", label: "New Music / Discoveries", description: "Share new finds & music you've discovered", requiresSearch: true, color: "text-[#c2f970]", bgColor: "bg-[#c2f970]/10 border-[#c2f970]/30" },
-  { id: "listening_now", label: "Listening Right Now", description: "What are you listening to at this moment?", requiresSearch: true, color: "text-blue-400", bgColor: "bg-blue-500/10 border-blue-500/30" },
-  { id: "live_show_review", label: "Live Show Review", description: "Review a live performance or set", requiresSearch: false, color: "text-orange-400", bgColor: "bg-orange-500/10 border-orange-500/30" },
-  { id: "topic", label: "Topic", description: "Start a general music discussion", requiresSearch: false, color: "text-purple-400", bgColor: "bg-purple-500/10 border-purple-500/30" },
+const LINKED_THREAD_TYPES: { id: ThreadType; label: string; description: string; color: string; bgColor: string }[] = [
+  { id: "new_music", label: "New Music / Discoveries", description: "Share a new find or discovery", color: "text-[#c2f970]", bgColor: "bg-[#c2f970]/10 border-[#c2f970]/30" },
+  { id: "listening_now", label: "Listening Right Now", description: "What are you listening to?", color: "text-blue-400", bgColor: "bg-blue-500/10 border-blue-500/30" },
+  { id: "live_show_review", label: "Live Show Review ★", description: "Review a live performance or set", color: "text-orange-400", bgColor: "bg-orange-500/10 border-orange-500/30" },
 ];
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(200),
   content: z.string().min(1, "Please add some details").max(2000),
-  starRating: z.number().int().min(1).max(5).optional().nullable(),
 });
-
 type FormValues = z.infer<typeof formSchema>;
 
 type SearchResult = { type: "song"; item: Song } | { type: "artist"; item: Artist };
@@ -56,10 +45,11 @@ interface Props {
 export default function NewThreadDialog({ open, onOpenChange }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [step, setStep] = useState<"type" | "search" | "form">("type");
-  const [selectedType, setSelectedType] = useState<ThreadTypeOption | null>(null);
+
+  const [step, setStep] = useState<Step>("search");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+  const [selectedType, setSelectedType] = useState<ThreadType | null>(null);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [starRating, setStarRating] = useState(0);
 
@@ -75,21 +65,21 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { title: "", content: "", starRating: null },
+    defaultValues: { title: "", content: "" },
   });
 
   const createThread = useMutation({
     mutationFn: (data: FormValues) => {
-      const payload = {
+      const isTopic = step === "form_topic";
+      return apiRequest("POST", "/api/threads", {
         title: data.title,
         content: data.content,
-        threadType: selectedType!.id,
+        threadType: isTopic ? "topic" : selectedType,
         type: "discussion",
-        starRating: selectedType?.id === "live_show_review" ? starRating || null : null,
+        starRating: selectedType === "live_show_review" ? (starRating || null) : null,
         songId: selectedResult?.type === "song" ? (selectedResult.item as Song).id : null,
         artistId: selectedResult?.type === "artist" ? (selectedResult.item as Artist).id : null,
-      };
-      return apiRequest("POST", "/api/threads", payload);
+      });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["/api/threads/featured"] });
@@ -101,38 +91,34 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
       handleClose();
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : "Failed to create thread";
-      toast({ title: "Error", description: msg, variant: "destructive" });
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to create thread", variant: "destructive" });
     },
   });
 
   function handleClose() {
-    setStep("type");
-    setSelectedType(null);
+    setStep("search");
     setSearchQuery("");
     setSelectedResult(null);
+    setSelectedType(null);
     setStarRating(0);
     form.reset();
     onOpenChange(false);
   }
 
-  function handleTypeSelect(type: ThreadTypeOption) {
-    setSelectedType(type);
-    if (type.requiresSearch) {
-      setStep("search");
-    } else {
-      setStep("form");
-    }
-  }
-
   function handleSelectResult(result: SearchResult) {
     setSelectedResult(result);
-    setStep("form");
+    setStep("type");
   }
 
-  function handleSkipSearch() {
+  function handleSelectType(type: ThreadType) {
+    setSelectedType(type);
+    setStep("form_linked");
+  }
+
+  function handleTopicsShortcut() {
     setSelectedResult(null);
-    setStep("form");
+    setSelectedType(null);
+    setStep("form_topic");
   }
 
   function onSubmit(values: FormValues) {
@@ -145,18 +131,26 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
     ...((searchResults?.artists || []).map(a => ({ type: "artist" as const, item: a }))),
   ];
 
-  const stepTitle = step === "type" ? "New Thread" : step === "search" ? "Link a Song or Artist" : "Create Thread";
+  const stepTitle =
+    step === "search" ? "New Thread" :
+    step === "type" ? "Choose Type" :
+    "Create Thread";
+
+  function handleBack() {
+    if (step === "type") { setStep("search"); setSelectedResult(null); }
+    else if (step === "form_linked") { setStep("type"); setSelectedType(null); setStarRating(0); }
+    else if (step === "form_topic") { setStep("search"); }
+  }
+
+  const selectedTypeMeta = LINKED_THREAD_TYPES.find(t => t.id === selectedType);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-[#1a1a1a] border-[#3E3E3E] text-white max-w-md w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            {step !== "type" && (
-              <button
-                onClick={() => setStep(step === "form" && selectedType?.requiresSearch ? "search" : "type")}
-                className="p-1 hover:bg-[#282828] rounded-lg transition-colors"
-              >
+            {step !== "search" && (
+              <button onClick={handleBack} className="p-1 hover:bg-[#282828] rounded-lg transition-colors">
                 <ChevronLeft className="h-5 w-5 text-[#B3B3B3]" />
               </button>
             )}
@@ -164,25 +158,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
           </div>
         </DialogHeader>
 
-        {step === "type" && (
-          <div className="space-y-2 pt-2">
-            <p className="text-sm text-[#B3B3B3] mb-4">What kind of thread do you want to start?</p>
-            {THREAD_TYPES.map((type) => (
-              <button
-                key={type.id}
-                className={cn(
-                  "w-full text-left p-4 rounded-xl border transition-all hover:border-opacity-60",
-                  type.bgColor
-                )}
-                onClick={() => handleTypeSelect(type)}
-              >
-                <p className={cn("font-semibold text-sm", type.color)}>{type.label}</p>
-                <p className="text-xs text-[#B3B3B3] mt-0.5">{type.description}</p>
-              </button>
-            ))}
-          </div>
-        )}
-
+        {/* Step 1: Search */}
         {step === "search" && (
           <div className="pt-2">
             <p className="text-sm text-[#B3B3B3] mb-3">Search for the song or artist you want to discuss.</p>
@@ -199,13 +175,13 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
             </div>
 
             {isSearching && (
-              <div className="text-center py-4">
-                <div className="w-5 h-5 border-2 border-[#c2f970] border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="flex justify-center py-4">
+                <div className="w-5 h-5 border-2 border-[#c2f970] border-t-transparent rounded-full animate-spin" />
               </div>
             )}
 
             {!isSearching && allResults.length > 0 && (
-              <div className="space-y-1 max-h-64 overflow-y-auto">
+              <div className="space-y-1 max-h-56 overflow-y-auto mb-4">
                 {allResults.map((result, i) => (
                   <button
                     key={i}
@@ -215,10 +191,9 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
                     <div className="w-9 h-9 rounded-lg bg-[#3E3E3E] flex items-center justify-center flex-shrink-0">
                       {result.type === "song"
                         ? <Music2Icon className="h-4 w-4 text-[#B3B3B3]" />
-                        : <MicVocalIcon className="h-4 w-4 text-[#B3B3B3]" />
-                      }
+                        : <MicVocalIcon className="h-4 w-4 text-[#B3B3B3]" />}
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-white truncate">
                         {result.type === "song" ? (result.item as Song).title : (result.item as Artist).name}
                       </p>
@@ -235,64 +210,96 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
             )}
 
             {!isSearching && searchQuery.length > 1 && allResults.length === 0 && (
-              <p className="text-sm text-[#B3B3B3] text-center py-4">No results found</p>
+              <p className="text-sm text-[#B3B3B3] text-center py-4 mb-4">No results found</p>
             )}
 
-            <button
-              className="w-full mt-4 py-2 text-sm text-[#B3B3B3] hover:text-white transition-colors underline underline-offset-2"
-              onClick={handleSkipSearch}
-            >
-              Skip — continue without linking
-            </button>
+            <div className="border-t border-[#3E3E3E] pt-4">
+              <p className="text-xs text-[#B3B3B3] mb-2 text-center">or start a general discussion</p>
+              <button
+                className="w-full py-3 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition-colors text-left px-4"
+                onClick={handleTopicsShortcut}
+              >
+                <p className="text-sm font-semibold text-purple-400">Topics</p>
+                <p className="text-xs text-[#B3B3B3] mt-0.5">Start a general music discussion — no song or artist needed</p>
+              </button>
+            </div>
           </div>
         )}
 
-        {step === "form" && (
+        {/* Step 2: Type picker (after selecting a song/artist) */}
+        {step === "type" && selectedResult && (
           <div className="pt-2">
-            {selectedType && (
-              <div className="flex items-center gap-2 mb-4">
-                <span className={cn("text-xs font-medium px-2 py-1 rounded-full border", selectedType.bgColor, selectedType.color)}>
-                  {selectedType.label}
-                </span>
-                {selectedResult && (
-                  <div className="flex items-center gap-1.5 bg-[#282828] rounded-full px-2 py-1">
-                    {selectedResult.type === "song"
-                      ? <Music2Icon className="h-3 w-3 text-[#B3B3B3]" />
-                      : <MicVocalIcon className="h-3 w-3 text-[#B3B3B3]" />
-                    }
-                    <span className="text-xs text-white truncate max-w-[140px]">
-                      {selectedResult.type === "song"
-                        ? (selectedResult.item as Song).title
-                        : (selectedResult.item as Artist).name
-                      }
-                    </span>
-                    <button onClick={() => setSelectedResult(null)}>
-                      <X className="h-3 w-3 text-[#B3B3B3] hover:text-white" />
-                    </button>
-                  </div>
-                )}
+            <div className="flex items-center gap-2 mb-4 p-3 bg-[#282828] rounded-lg">
+              <div className="w-8 h-8 rounded-lg bg-[#3E3E3E] flex items-center justify-center flex-shrink-0">
+                {selectedResult.type === "song"
+                  ? <Music2Icon className="h-4 w-4 text-[#B3B3B3]" />
+                  : <MicVocalIcon className="h-4 w-4 text-[#B3B3B3]" />}
               </div>
-            )}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-white truncate">
+                  {selectedResult.type === "song" ? (selectedResult.item as Song).title : (selectedResult.item as Artist).name}
+                </p>
+                <p className="text-xs text-[#B3B3B3] truncate">
+                  {selectedResult.type === "song" ? (selectedResult.item as Song).artist : "Artist"}
+                </p>
+              </div>
+              <button onClick={() => { setSelectedResult(null); setStep("search"); }}>
+                <X className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
+              </button>
+            </div>
 
-            {selectedType?.id === "live_show_review" && (
+            <p className="text-sm text-[#B3B3B3] mb-3">What kind of thread is this?</p>
+            <div className="space-y-2">
+              {LINKED_THREAD_TYPES.map((type) => (
+                <button
+                  key={type.id}
+                  className={cn("w-full text-left p-4 rounded-xl border transition-all hover:border-opacity-60", type.bgColor)}
+                  onClick={() => handleSelectType(type.id)}
+                >
+                  <p className={cn("font-semibold text-sm", type.color)}>{type.label}</p>
+                  <p className="text-xs text-[#B3B3B3] mt-0.5">{type.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 3a: Form for linked thread types */}
+        {step === "form_linked" && (
+          <div className="pt-2">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              {selectedTypeMeta && (
+                <span className={cn("text-xs font-medium px-2 py-1 rounded-full border", selectedTypeMeta.bgColor, selectedTypeMeta.color)}>
+                  {selectedTypeMeta.label}
+                </span>
+              )}
+              {selectedResult && (
+                <div className="flex items-center gap-1.5 bg-[#282828] rounded-full px-2 py-1">
+                  {selectedResult.type === "song"
+                    ? <Music2Icon className="h-3 w-3 text-[#B3B3B3]" />
+                    : <MicVocalIcon className="h-3 w-3 text-[#B3B3B3]" />}
+                  <span className="text-xs text-white truncate max-w-[140px]">
+                    {selectedResult.type === "song"
+                      ? (selectedResult.item as Song).title
+                      : (selectedResult.item as Artist).name}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {selectedType === "live_show_review" && (
               <div className="mb-4">
                 <p className="text-sm text-[#B3B3B3] mb-2">Your rating</p>
                 <div className="flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <button
                       key={i}
+                      type="button"
                       onMouseEnter={() => setHoveredStar(i + 1)}
                       onMouseLeave={() => setHoveredStar(0)}
                       onClick={() => setStarRating(i + 1)}
                     >
-                      <Star
-                        className={cn(
-                          "h-7 w-7 transition-colors",
-                          (hoveredStar || starRating) > i
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-[#3E3E3E]"
-                        )}
-                      />
+                      <Star className={cn("h-7 w-7 transition-colors", (hoveredStar || starRating) > i ? "text-yellow-400 fill-yellow-400" : "text-[#3E3E3E]")} />
                     </button>
                   ))}
                 </div>
@@ -301,47 +308,61 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[#B3B3B3] text-sm">Title</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Give your thread a title..."
-                          className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormField control={form.control} name="title" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[#B3B3B3] text-sm">Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Give your thread a title..." className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="content" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[#B3B3B3] text-sm">Details</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Share your thoughts..." className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] min-h-[100px] resize-none" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <Button type="submit" className="w-full bg-[#c2f970] text-black font-semibold hover:bg-[#aee05a]" disabled={createThread.isPending}>
+                  {createThread.isPending ? "Posting..." : "Post Thread"}
+                </Button>
+              </form>
+            </Form>
+          </div>
+        )}
 
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[#B3B3B3] text-sm">Details</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="What's on your mind? Share your thoughts..."
-                          className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] min-h-[100px] resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full bg-[#c2f970] text-black font-semibold hover:bg-[#aee05a] transition-colors"
-                  disabled={createThread.isPending}
-                >
+        {/* Step 3b: Form for Topics (no linked entity) */}
+        {step === "form_topic" && (
+          <div className="pt-2">
+            <div className="mb-4">
+              <span className="text-xs font-medium px-2 py-1 rounded-full border bg-purple-500/10 border-purple-500/30 text-purple-400">
+                Topic
+              </span>
+            </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField control={form.control} name="title" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[#B3B3B3] text-sm">Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Give your thread a title..." className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3]" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="content" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[#B3B3B3] text-sm">Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="What do you want to discuss?" className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] min-h-[100px] resize-none" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <Button type="submit" className="w-full bg-[#c2f970] text-black font-semibold hover:bg-[#aee05a]" disabled={createThread.isPending}>
                   {createThread.isPending ? "Posting..." : "Post Thread"}
                 </Button>
               </form>
