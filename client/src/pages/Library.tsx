@@ -4,7 +4,7 @@ import TabNavigator from "@/components/layout/TabNavigator";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Playlist, Song } from "@shared/schema";
+import { MusicSet, Song } from "@shared/schema";
 import { Link } from "wouter";
 import { Clock, Music, CalendarDays, ListMusic, Smile } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,8 +21,8 @@ export default function Library() {
     { label: "Live Venues", path: "/venues" },
   ];
 
-  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery<Playlist[]>({
-    queryKey: [`/api/users/${userId}/playlists`],
+  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery<MusicSet[]>({
+    queryKey: ["/api/sets"],
   });
 
   const { data: songs, isLoading: isLoadingSongs } = useQuery<Song[]>({
@@ -151,7 +151,7 @@ export default function Library() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {playlists.map((playlist) => (
-                    <TrackIDCard key={playlist.id} playlist={playlist} className="w-full" />
+                    <TrackIDCard key={playlist.id} set={playlist} className="w-full" />
                   ))}
                 </div>
               </>

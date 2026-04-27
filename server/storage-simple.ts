@@ -7,8 +7,10 @@ import type {
   Venue, InsertVenue,
   Thread, InsertThread,
   Comment, InsertComment,
-  Set, InsertSet,
-  SongRecommendation, InsertSongRecommendation
+  MusicSet, InsertSet,
+  SongRecommendation, InsertSongRecommendation,
+  TrackId, InsertTrackId,
+  TrackIdVote, InsertTrackIdVote
 } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
@@ -64,19 +66,25 @@ export interface IStorage {
   createComment(comment: InsertComment): Promise<Comment>;
   upvoteComment(id: number): Promise<Comment | undefined>;
   
-  // Set operations
-  getSet(id: number): Promise<Set | undefined>;
-  getSetsByUser(userId: number): Promise<Set[]>;
-  getAllSets(limit?: number): Promise<Set[]>;
-  getFeaturedSets(limit?: number): Promise<Set[]>;
-  createSet(set: InsertSet): Promise<Set>;
-  updateSet(id: number, updates: Partial<Set>): Promise<Set | undefined>;
+  // MusicSet operations
+  getSet(id: number): Promise<MusicSet | undefined>;
+  getSetsByUser(userId: number): Promise<MusicSet[]>;
+  getAllSets(limit?: number): Promise<MusicSet[]>;
+  getFeaturedSets(limit?: number): Promise<MusicSet[]>;
+  createSet(set: InsertSet): Promise<MusicSet>;
+  updateSet(id: number, updates: Partial<MusicSet>): Promise<MusicSet | undefined>;
   
   // Song Recommendation operations
   getSongRecommendation(id: number): Promise<SongRecommendation | undefined>;
   getSongRecommendationsByThread(threadId: number): Promise<SongRecommendation[]>;
   createSongRecommendation(recommendation: InsertSongRecommendation): Promise<SongRecommendation>;
   upvoteSongRecommendation(id: number): Promise<SongRecommendation | undefined>;
+
+  // TrackId operations
+  getTrackIdsBySet(setId: number): Promise<TrackId[]>;
+  createTrackId(trackId: InsertTrackId): Promise<TrackId>;
+  getTrackIdVote(userId: number, trackId: number): Promise<TrackIdVote | undefined>;
+  castTrackIdVote(vote: InsertTrackIdVote): Promise<{ trackId: TrackId; vote: TrackIdVote }>;
 }
 
 export class MemStorage implements IStorage {
@@ -86,8 +94,10 @@ export class MemStorage implements IStorage {
   private venues: Map<number, Venue> = new Map();
   private threads: Map<number, Thread> = new Map();
   private comments: Map<number, Comment> = new Map();
-  private sets: Map<number, Set> = new Map();
+  private sets: Map<number, MusicSet> = new Map();
   private songRecommendations: Map<number, SongRecommendation> = new Map();
+  private trackIdsMap: Map<number, TrackId> = new Map();
+  private trackIdVotesMap: Map<number, TrackIdVote> = new Map();
   
   private userCurrentId = 1;
   private artistCurrentId = 1;
@@ -97,6 +107,8 @@ export class MemStorage implements IStorage {
   private commentCurrentId = 1;
   private setCurrentId = 1;
   private songRecommendationCurrentId = 1;
+  private trackIdCurrentId = 1;
+  private trackIdVoteCurrentId = 1;
 
   constructor() {
     void this.seedData();
@@ -123,7 +135,7 @@ export class MemStorage implements IStorage {
     this.users.set(user.id, user);
 
     // Create basic sets
-    const set1: Set = {
+    const set1: MusicSet = {
       id: this.setCurrentId++,
       title: "Tripolism's track IDs",
       description: "Tripolism's favorite tracks. Updated regularly. Curated by Tripolism.",
@@ -138,11 +150,14 @@ export class MemStorage implements IStorage {
       saves: 1200,
       featured: true,
       verified: false,
+      city: "Berlin",
+      country: "Germany",
+      eventDate: "2024-03-15",
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    const set2: Set = {
+    const set2: MusicSet = {
       id: this.setCurrentId++,
       title: "&ME's track IDs",
       description: "&ME's favorite tracks. Updated regularly. Curated by &ME.",
@@ -157,11 +172,14 @@ export class MemStorage implements IStorage {
       saves: 856,
       featured: false,
       verified: true,
+      city: "Amsterdam",
+      country: "Netherlands",
+      eventDate: "2024-02-10",
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    const set3: Set = {
+    const set3: MusicSet = {
       id: this.setCurrentId++,
       title: "DESIREE's track IDs",
       description: "DESIREE's favorite tracks. Updated regularly. Curated by DESIREE.",
@@ -176,6 +194,9 @@ export class MemStorage implements IStorage {
       saves: 742,
       featured: false,
       verified: false,
+      city: "London",
+      country: "UK",
+      eventDate: "2024-01-20",
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -367,6 +388,111 @@ export class MemStorage implements IStorage {
     for (const thread of seedThreads) {
       this.threads.set(thread.id, thread);
     }
+
+    // Seed artists
+    const artist1: Artist = {
+      id: this.artistCurrentId++,
+      name: "The Doors",
+      realName: "Jim Morrison, Ray Manzarek, Robby Krieger, John Densmore",
+      firstDiscoveredIn: "US",
+      firstAlbumReleaseDate: new Date("1967-01-04"),
+      sample: null,
+      story: "The Doors were an American rock band formed in Los Angeles in 1965. The band consisted of vocalist Jim Morrison, keyboardist Ray Manzarek, guitarist Robby Krieger, and drummer John Densmore. They are one of the most controversial and influential rock acts of the 1960s.",
+      streamingLinks: [{ platform: "Spotify", url: "https://open.spotify.com/artist/22WZ7M66p7UkEBnCXHBf0F" }],
+      ranking: 1,
+      genres: ["Rock", "Psychedelic Rock", "Classic Rock"],
+      profilePicture: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      verified: true,
+      createdAt: new Date()
+    };
+    const artist2: Artist = {
+      id: this.artistCurrentId++,
+      name: "The Weeknd",
+      realName: "Abel Makkonen Tesfaye",
+      firstDiscoveredIn: "CA",
+      firstAlbumReleaseDate: new Date("2013-05-28"),
+      sample: null,
+      story: "Abel Makkonen Tesfaye, known professionally as the Weeknd, is a Canadian singer, songwriter, and record producer. He is known for his sonic versatility and dark lyricism, with his music drawing from R&B, pop, synth-pop, and alternative R&B.",
+      streamingLinks: [{ platform: "Spotify", url: "https://open.spotify.com/artist/1Xyo4u8uXC1ZmMpatF05PJ" }],
+      ranking: 2,
+      genres: ["Pop", "R&B", "Synth-pop"],
+      profilePicture: "https://images.unsplash.com/photo-1571974599782-87624638275c?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      verified: true,
+      createdAt: new Date()
+    };
+    const artist3: Artist = {
+      id: this.artistCurrentId++,
+      name: "Bicep",
+      realName: "Matt McBriar & Andy Ferguson",
+      firstDiscoveredIn: "GB",
+      firstAlbumReleaseDate: new Date("2017-09-01"),
+      sample: null,
+      story: "Bicep is a Northern Irish electronic music duo consisting of Matt McBriar and Andy Ferguson. Based in London, they rose to fame through their blog 'Feel My Bicep' before pursuing music production. Known for their emotive take on house and electronic music.",
+      streamingLinks: [{ platform: "Spotify", url: "https://open.spotify.com/artist/73A3bLnfnz5LoQCtml5zrN" }],
+      ranking: 3,
+      genres: ["Electronic", "House", "Techno"],
+      profilePicture: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      verified: true,
+      createdAt: new Date()
+    };
+    this.artists.set(artist1.id, artist1);
+    this.artists.set(artist2.id, artist2);
+    this.artists.set(artist3.id, artist3);
+
+    // Seed track IDs for sets
+    const seedTrackIds: TrackId[] = [
+      {
+        id: this.trackIdCurrentId++,
+        setId: set1.id,
+        title: "Pangaea",
+        artist: "Bicep",
+        submittedBy: user.id,
+        confirmCount: 5,
+        disagreeCount: 0,
+        locked: true,
+        removed: false,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.trackIdCurrentId++,
+        setId: set1.id,
+        title: "See Me Now (Original Mix)",
+        artist: "Kerri Chandler",
+        submittedBy: user.id,
+        confirmCount: 3,
+        disagreeCount: 1,
+        locked: false,
+        removed: false,
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.trackIdCurrentId++,
+        setId: set1.id,
+        title: "Mystery of Love",
+        artist: "Larry Heard",
+        submittedBy: user.id,
+        confirmCount: 1,
+        disagreeCount: 2,
+        locked: false,
+        removed: false,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.trackIdCurrentId++,
+        setId: set2.id,
+        title: "Offshore",
+        artist: "Bicep",
+        submittedBy: user.id,
+        confirmCount: 4,
+        disagreeCount: 0,
+        locked: false,
+        removed: false,
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      },
+    ];
+    for (const tid of seedTrackIds) {
+      this.trackIdsMap.set(tid.id, tid);
+    }
   }
 
   // User operations
@@ -411,16 +537,16 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  // Set operations
-  async getSet(id: number): Promise<Set | undefined> {
+  // MusicSet operations
+  async getSet(id: number): Promise<MusicSet | undefined> {
     return this.sets.get(id);
   }
 
-  async getSetsByUser(userId: number): Promise<Set[]> {
+  async getSetsByUser(userId: number): Promise<MusicSet[]> {
     return Array.from(this.sets.values()).filter(set => set.userId === userId);
   }
 
-  async getAllSets(limit: number = 50): Promise<Set[]> {
+  async getAllSets(limit: number = 50): Promise<MusicSet[]> {
     const allSets = Array.from(this.sets.values());
     return allSets.slice(0, limit).sort((a, b) => {
       const aTime = a.createdAt?.getTime() || 0;
@@ -429,7 +555,7 @@ export class MemStorage implements IStorage {
     });
   }
 
-  async getFeaturedSets(limit: number = 10): Promise<Set[]> {
+  async getFeaturedSets(limit: number = 10): Promise<MusicSet[]> {
     const featuredSets = Array.from(this.sets.values()).filter(set => set.featured);
     return featuredSets.slice(0, limit).sort((a, b) => {
       const aSaves = a.saves || 0;
@@ -438,10 +564,10 @@ export class MemStorage implements IStorage {
     });
   }
 
-  async createSet(insertSet: InsertSet): Promise<Set> {
+  async createSet(insertSet: InsertSet): Promise<MusicSet> {
     const id = this.setCurrentId++;
     const now = new Date();
-    const set: Set = { 
+    const set: MusicSet = { 
       id,
       title: insertSet.title,
       description: insertSet.description || null,
@@ -453,6 +579,9 @@ export class MemStorage implements IStorage {
       songs: insertSet.songs || [],
       type: insertSet.type || null,
       tags: insertSet.tags || [],
+      city: insertSet.city || null,
+      country: insertSet.country || null,
+      eventDate: insertSet.eventDate || null,
       saves: 0,
       featured: false,
       verified: false,
@@ -463,7 +592,7 @@ export class MemStorage implements IStorage {
     return set;
   }
 
-  async updateSet(id: number, updates: Partial<Set>): Promise<Set | undefined> {
+  async updateSet(id: number, updates: Partial<MusicSet>): Promise<MusicSet | undefined> {
     const set = this.sets.get(id);
     if (!set) return undefined;
     const updated = { ...set, ...updates, updatedAt: new Date() };
@@ -471,13 +600,47 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  // Stub implementations for other methods
-  async getArtist(id: number): Promise<Artist | undefined> { return undefined; }
-  async getArtistByName(name: string): Promise<Artist | undefined> { return undefined; }
-  async getAllArtists(): Promise<Artist[]> { return []; }
-  async getFeaturedArtists(limit?: number): Promise<Artist[]> { return []; }
-  async createArtist(artist: InsertArtist): Promise<Artist> { throw new Error("Not implemented"); }
-  async updateArtist(id: number, updates: Partial<Artist>): Promise<Artist | undefined> { return undefined; }
+  async getArtist(id: number): Promise<Artist | undefined> {
+    return this.artists.get(id);
+  }
+  async getArtistByName(name: string): Promise<Artist | undefined> {
+    return Array.from(this.artists.values()).find(a => a.name.toLowerCase() === name.toLowerCase());
+  }
+  async getAllArtists(): Promise<Artist[]> {
+    return Array.from(this.artists.values()).sort((a, b) => (a.ranking || 0) - (b.ranking || 0));
+  }
+  async getFeaturedArtists(limit: number = 10): Promise<Artist[]> {
+    return Array.from(this.artists.values())
+      .filter(a => a.verified)
+      .slice(0, limit);
+  }
+  async createArtist(insertArtist: InsertArtist): Promise<Artist> {
+    const id = this.artistCurrentId++;
+    const artist: Artist = {
+      ...insertArtist,
+      id,
+      createdAt: new Date(),
+      realName: insertArtist.realName || null,
+      firstDiscoveredIn: insertArtist.firstDiscoveredIn || null,
+      firstAlbumReleaseDate: insertArtist.firstAlbumReleaseDate || null,
+      sample: insertArtist.sample || null,
+      story: insertArtist.story || null,
+      streamingLinks: insertArtist.streamingLinks || [],
+      ranking: 0,
+      genres: insertArtist.genres || [],
+      profilePicture: insertArtist.profilePicture || null,
+      verified: insertArtist.verified || false,
+    };
+    this.artists.set(id, artist);
+    return artist;
+  }
+  async updateArtist(id: number, updates: Partial<Artist>): Promise<Artist | undefined> {
+    const artist = this.artists.get(id);
+    if (!artist) return undefined;
+    const updated = { ...artist, ...updates };
+    this.artists.set(id, updated);
+    return updated;
+  }
 
   async getSong(id: number): Promise<Song | undefined> {
     return this.songs.get(id);
@@ -506,7 +669,7 @@ export class MemStorage implements IStorage {
       story: insertSong.story || null,
       dialects: insertSong.dialects || [],
       streamingLinks: insertSong.streamingLinks || {},
-      ranking: insertSong.ranking || null,
+      ranking: null,
       genre: insertSong.genre || null,
       subGenres: insertSong.subGenres || [],
       albumArt: insertSong.albumArt || null,
@@ -674,6 +837,68 @@ export class MemStorage implements IStorage {
     const updated = { ...rec, upvotes: (rec.upvotes || 0) + 1 };
     this.songRecommendations.set(id, updated);
     return updated;
+  }
+
+  async getTrackIdsBySet(setId: number): Promise<TrackId[]> {
+    return Array.from(this.trackIdsMap.values())
+      .filter(t => t.setId === setId && !t.removed)
+      .sort((a, b) => (b.confirmCount || 0) - (a.confirmCount || 0));
+  }
+
+  async createTrackId(insertTrackId: InsertTrackId): Promise<TrackId> {
+    const id = this.trackIdCurrentId++;
+    const trackId: TrackId = {
+      id,
+      setId: insertTrackId.setId,
+      title: insertTrackId.title,
+      artist: insertTrackId.artist,
+      submittedBy: insertTrackId.submittedBy,
+      confirmCount: 0,
+      disagreeCount: 0,
+      locked: false,
+      removed: false,
+      createdAt: new Date(),
+    };
+    this.trackIdsMap.set(id, trackId);
+    return trackId;
+  }
+
+  async getTrackIdVote(userId: number, trackId: number): Promise<TrackIdVote | undefined> {
+    return Array.from(this.trackIdVotesMap.values()).find(
+      v => v.userId === userId && v.trackId === trackId
+    );
+  }
+
+  async castTrackIdVote(insertVote: InsertTrackIdVote): Promise<{ trackId: TrackId; vote: TrackIdVote }> {
+    const existing = await this.getTrackIdVote(insertVote.userId, insertVote.trackId);
+    if (existing) throw new Error("Already voted on this track ID");
+
+    const trackId = this.trackIdsMap.get(insertVote.trackId);
+    if (!trackId) throw new Error("Track ID not found");
+    if (trackId.locked || trackId.removed) throw new Error("Track ID is locked or removed");
+
+    const id = this.trackIdVoteCurrentId++;
+    const vote: TrackIdVote = {
+      id,
+      userId: insertVote.userId,
+      trackId: insertVote.trackId,
+      voteType: insertVote.voteType,
+      createdAt: new Date(),
+    };
+    this.trackIdVotesMap.set(id, vote);
+
+    const newConfirmCount = (trackId.confirmCount || 0) + (insertVote.voteType === "confirm" ? 1 : 0);
+    const newDisagreeCount = (trackId.disagreeCount || 0) + (insertVote.voteType === "disagree" ? 1 : 0);
+    const updatedTrackId: TrackId = {
+      ...trackId,
+      confirmCount: newConfirmCount,
+      disagreeCount: newDisagreeCount,
+      locked: newConfirmCount >= 5,
+      removed: newDisagreeCount >= 5,
+    };
+    this.trackIdsMap.set(trackId.id, updatedTrackId);
+
+    return { trackId: updatedTrackId, vote };
   }
 }
 

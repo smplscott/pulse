@@ -2,295 +2,273 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import MusicPlayer from "@/components/layout/MusicPlayer";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { Artist, Song } from "@shared/schema";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Artist, Song, Thread } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, PlayCircle, Link as LinkIcon, Share2, ArrowUpCircle, Music2, ListMusic, Calendar, PlayIcon, Send } from "lucide-react";
-import { useMusic } from "@/hooks/useMusic";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, Music2, ExternalLink, CheckCircle, MessageCircle, Bookmark } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
+const COUNTRY_EMOJIS: Record<string, string> = {
+  US: "🇺🇸", GB: "🇬🇧", DE: "🇩🇪", FR: "🇫🇷", CA: "🇨🇦", AU: "🇦🇺",
+  JP: "🇯🇵", KR: "🇰🇷", BR: "🇧🇷", NG: "🇳🇬", SE: "🇸🇪", NL: "🇳🇱",
+  IT: "🇮🇹", ES: "🇪🇸", ZA: "🇿🇦", MX: "🇲🇽", AR: "🇦🇷",
+};
+
+const MOCK_SIMILAR_ARTISTS = [
+  { name: "Aphex Twin", genre: "Electronic", country: "GB" },
+  { name: "Four Tet", genre: "Electronic", country: "GB" },
+  { name: "Floating Points", genre: "Electronic", country: "GB" },
+];
+
+const MOCK_SINGLES = [
+  { title: "Self Portrait", year: "2024", type: "Single" },
+  { title: "Glue", year: "2023", type: "Single" },
+  { title: "Meli", year: "2022", type: "EP" },
+];
+
+const MOCK_ALBUMS = [
+  { title: "Isles", year: "2021", tracks: 10 },
+  { title: "Bicep", year: "2017", tracks: 11 },
+];
+
+const MOCK_FEATURED = [
+  { title: "Fabric Presents: Bicep", label: "Fabric", year: "2018" },
+  { title: "Resident Advisor Podcast 478", label: "RA", year: "2016" },
+];
 
 export default function ArtistDetail() {
-  const params = useParams<{ id: string }>();
-  const artistId = parseInt(params.id);
+  const { id } = useParams<{ id: string }>();
+  const artistId = parseInt(id);
   const { toast } = useToast();
-  const { playSong } = useMusic();
 
-  const { data: artist, isLoading: isLoadingArtist } = useQuery<Artist>({
+  const { data: artist, isLoading } = useQuery<Artist>({
     queryKey: [`/api/artists/${artistId}`],
+    enabled: !isNaN(artistId),
   });
 
-  const { data: songs, isLoading: isLoadingSongs } = useQuery<Song[]>({
+  const { data: songs } = useQuery<Song[]>({
     queryKey: [`/api/songs/artist/${artist?.name}`],
     enabled: !!artist?.name,
   });
 
-  // Handler for playing all songs
-  const handlePlayAll = () => {
-    if (songs && songs.length > 0) {
-      playSong(songs[0]);
-      toast({
-        title: "Now Playing",
-        description: `${songs[0].title} by ${songs[0].artist}`,
-      });
-    }
-  };
+  const { data: threads } = useQuery<Thread[]>({
+    queryKey: ["/api/threads"],
+  });
 
-  // Handler for following/unfollowing the artist
-  const handleFollowToggle = () => {
-    toast({
-      title: "Following Artist",
-      description: `You're now following ${artist?.name}`,
-    });
-  };
+  const artistThreads = threads?.filter(t => t.artistId === artistId).slice(0, 3);
 
-  // Handler for sharing artist profile
-  const handleShare = () => {
-    // In a real app, this would use the Web Share API or similar
-    toast({
-      title: "Share Link",
-      description: "Artist profile link copied to clipboard",
-    });
-  };
+  const countryEmoji = artist?.firstDiscoveredIn
+    ? COUNTRY_EMOJIS[artist.firstDiscoveredIn] || "🌍"
+    : null;
+
+  const streamingLinks = Array.isArray(artist?.streamingLinks) ? artist!.streamingLinks as { platform: string; url: string }[] : [];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white pb-32">
+        <Header />
+        <div className="px-4 pt-4 space-y-4">
+          <Skeleton className="h-6 w-32" />
+          <div className="flex gap-4">
+            <Skeleton className="w-20 h-20 rounded-xl" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-7 w-40" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-24 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (!artist) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[#B3B3B3] mb-4">Artist not found</p>
+          <Link href="/artists"><button className="text-[#5271ff] hover:underline">← Back to Artists</button></Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen pb-32">
+    <div className="min-h-screen bg-black text-white pb-32">
       <Header />
-      
-      {isLoadingArtist ? (
-        <div className="pt-4 px-4">
-          <div className="flex items-center mb-4">
-            <ChevronLeft className="h-6 w-6 mr-2" />
-            <Skeleton className="h-6 w-40" />
-          </div>
-          <Skeleton className="h-64 w-full mb-4" />
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-32 mb-4" />
-          <div className="flex space-x-4 mb-6">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <Skeleton className="h-10 w-10 rounded-full" />
-          </div>
-        </div>
-      ) : artist ? (
-        <>
-          <div className="pt-4 px-4">
-            <div className="flex items-center justify-between mb-4">
-              <Link href="/">
-                <div className="flex items-center cursor-pointer">
-                  <ChevronLeft className="h-6 w-6 mr-2" />
-                </div>
-              </Link>
-              <span className="text-xl font-medium text-center flex-1">Artist Thread</span>
-              <button className="w-8 h-8 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#5c5c7b]">
-                  <circle cx="12" cy="12" r="1"></circle>
-                  <circle cx="19" cy="12" r="1"></circle>
-                  <circle cx="5" cy="12" r="1"></circle>
-                </svg>
-              </button>
-            </div>
-            
-            <div className="flex items-start px-2 mb-6">
-              <div className="w-20 h-20 rounded-xl overflow-hidden mr-4 flex-shrink-0">
-                {artist.profilePicture ? (
-                  <img
-                    src={artist.profilePicture}
-                    alt={artist.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#282828] flex items-center justify-center">
-                    <Music2 className="h-10 w-10 text-[#B3B3B3]" />
-                  </div>
-                )}
+
+      {/* Sticky header */}
+      <div className="sticky top-0 z-30 bg-black/90 backdrop-blur px-4 py-3 flex items-center gap-3 border-b border-[#222]">
+        <Link href="/artists">
+          <button className="text-[#B3B3B3] hover:text-white transition">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+        </Link>
+        <span className="font-semibold truncate">{artist.name}</span>
+      </div>
+
+      <div className="px-4 py-5 space-y-7">
+        {/* Artist card */}
+        <div className="flex items-start gap-4">
+          <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-[#282828]">
+            {artist.profilePicture ? (
+              <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Music2 className="h-10 w-10 text-[#B3B3B3]" />
               </div>
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-1">{artist.name}</h1>
-                <p className="text-sm text-[#A0A0A0] mb-3">
-                  {artist.genres && artist.genres.length > 0
-                    ? `Electronic / ${artist.genres[0]}`
-                    : "Electronic"}
-                </p>
-                <button className="artist-badge text-sm font-medium px-4 py-2 rounded-lg">
-                  Artist
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex items-center mb-6 space-x-4">
-              <button 
-                className="flex-1 pink-gradient pink-gradient-hover text-white py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center"
-                onClick={handlePlayAll}
-              >
-                <PlayCircle className="h-4 w-4 mr-2" />
-                Play Popular Tracks
-              </button>
-              <button 
-                className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center"
-                onClick={handleFollowToggle}
-              >
-                <ArrowUpCircle className="h-5 w-5 text-white" />
-              </button>
-              <button 
-                className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center"
-                onClick={handleShare}
-              >
-                <Share2 className="h-5 w-5 text-white" />
-              </button>
-            </div>
+            )}
           </div>
-          
-          {artist.story && (
-            <div className="px-4 mb-6">
-              <h2 className="text-lg font-semibold mb-2">About</h2>
-              <p className="text-sm text-[#B3B3B3]">{artist.story}</p>
-            </div>
-          )}
-          
-          <div className="overflow-x-auto px-4 mb-4">
-            <div className="flex space-x-4">
-              <button className="artist-tab-active px-5 py-2 rounded-full text-sm font-medium">
-                Singles & EPs
-              </button>
-              <button className="text-[#B3B3B3] hover:text-white px-5 py-2 text-sm font-medium">
-                Albums
-              </button>
-              <button className="text-[#B3B3B3] hover:text-white px-5 py-2 text-sm font-medium">
-                Live Performances
-              </button>
-              <button className="text-[#B3B3B3] hover:text-white px-5 py-2 text-sm font-medium">
-                Featured On
-              </button>
-            </div>
-          </div>
-          
-          <Tabs defaultValue="tracks" className="px-4">
-            <TabsList className="hidden w-full bg-[#181818] border border-[#3E3E3E]">
-              <TabsTrigger value="tracks" className="flex-1">
-                Tracks
-              </TabsTrigger>
-              <TabsTrigger value="releases" className="flex-1">
-                Releases
-              </TabsTrigger>
-              <TabsTrigger value="events" className="flex-1">
-                Events
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="tracks" className="mt-4 space-y-2">
-              {isLoadingSongs ? (
-                <>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-14 w-full" />
-                  ))}
-                </>
-              ) : songs && songs.length > 0 ? (
-                songs.map((song, index) => (
-                  <div 
-                    key={song.id} 
-                    className="bg-[#181818] hover:bg-[#282828] rounded-md p-3 flex items-center cursor-pointer transition"
-                    onClick={() => playSong(song)}
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center mr-3 text-[#B3B3B3]">
-                      {index + 1}
-                    </div>
-                    <div className="w-8 h-8 bg-[#282828] rounded overflow-hidden mr-3">
-                      {song.albumArt ? (
-                        <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-[#3E3E3E] flex items-center justify-center">
-                          <Music2 className="h-4 w-4 text-[#B3B3B3]" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm line-clamp-1">{song.title}</p>
-                      <p className="text-xs text-[#B3B3B3] line-clamp-1">
-                        {song.features && song.features.length > 0
-                          ? `feat. ${song.features.join(", ")}`
-                          : song.genre || "Single"}
-                      </p>
-                    </div>
-                    <PlayIcon className="h-5 w-5 text-[#B3B3B3] hover:text-white" />
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <Music2 className="h-12 w-12 text-[#B3B3B3] mx-auto mb-3" />
-                  <p className="text-[#B3B3B3]">No tracks available</p>
-                </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h1 className="text-2xl font-bold">{artist.name}</h1>
+              {artist.verified && (
+                <CheckCircle className="h-5 w-5 text-[#5271ff] flex-shrink-0" />
               )}
-            </TabsContent>
-            
-            <TabsContent value="releases" className="mt-4">
-              <div className="text-center py-8">
-                <ListMusic className="h-12 w-12 text-[#B3B3B3] mx-auto mb-3" />
-                <p className="text-[#B3B3B3]">No albums or EPs available</p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="events" className="mt-4">
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-[#B3B3B3] mx-auto mb-3" />
-                <p className="text-[#B3B3B3]">No upcoming events</p>
-              </div>
-            </TabsContent>
-          </Tabs>
-          
-          {artist.streamingLinks && artist.streamingLinks.length > 0 && (
-            <div className="px-4 mt-6">
-              <h2 className="text-lg font-semibold mb-2">Listen On</h2>
-              <div className="flex space-x-3">
-                {artist.streamingLinks.map((link, index) => (
-                  <a 
-                    key={index} 
-                    href={link.url} 
-                    target="_blank" 
+            </div>
+            {countryEmoji && artist.firstDiscoveredIn && (
+              <p className="text-sm text-[#B3B3B3] mb-2">
+                {countryEmoji} {artist.firstDiscoveredIn}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-1 mb-3">
+              {(artist.genres as string[] || []).map((g, i) => (
+                <span key={i} className="text-xs bg-[#282828] text-[#B3B3B3] px-2 py-0.5 rounded-full">{g}</span>
+              ))}
+            </div>
+            {streamingLinks.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {streamingLinks.map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#282828] p-3 rounded-lg flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                    className="flex items-center gap-1 text-xs bg-[#282828] hover:bg-[#3E3E3E] text-[#B3B3B3] hover:text-white px-2 py-1 rounded transition"
                   >
-                    <span className="text-sm">{link.platform}</span>
-                    <LinkIcon className="h-4 w-4 ml-2" />
+                    {link.platform}
+                    <ExternalLink className="h-3 w-3" />
                   </a>
                 ))}
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bio */}
+        {artist.story && (
+          <div>
+            <h2 className="text-base font-semibold mb-2">About</h2>
+            <p className="text-sm text-[#B3B3B3] leading-relaxed">{artist.story}</p>
+          </div>
+        )}
+
+        {/* Threads */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold">Threads</h2>
+            <Link href="/">
+              <button className="text-xs text-[#5271ff] hover:underline">See all</button>
+            </Link>
+          </div>
+          {artistThreads && artistThreads.length > 0 ? (
+            <div className="space-y-2">
+              {artistThreads.map(t => (
+                <div key={t.id} className="bg-[#1a1a1a] rounded-lg p-3">
+                  <p className="text-sm font-medium mb-1 line-clamp-1">{t.title}</p>
+                  <div className="flex items-center gap-3 text-xs text-[#666]">
+                    <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{t.commentsCount}</span>
+                    <span className="flex items-center gap-1"><Bookmark className="h-3 w-3" />{t.savesCount}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-[#1a1a1a] rounded-lg p-4 text-center">
+              <p className="text-sm text-[#666]">No threads yet for this artist.</p>
             </div>
           )}
-        </>
-      ) : (
-        <div className="pt-4 px-4 text-center">
-          <Link href="/">
-            <div className="flex items-center mb-4 cursor-pointer">
-              <ChevronLeft className="h-6 w-6 mr-2" />
-              <span className="text-lg font-medium">Back</span>
-            </div>
-          </Link>
-          <p className="text-[#B3B3B3]">Artist not found</p>
         </div>
-      )}
-      
-      {/* Chat input fixed at bottom */}
-      <div className="fixed bottom-[72px] left-0 right-0 border-t border-[#222222] bg-black px-3 py-2 z-40">
-        <form className="flex items-center space-x-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder="Message the group..."
-              className="w-full bg-[#121212] border border-[#333333] rounded-full py-2 pl-3 pr-8 outline-none text-white placeholder:text-[#707070] text-sm"
-            />
+
+        {/* Similar Artists */}
+        <div>
+          <h2 className="text-base font-semibold mb-3">Similar Artists</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {MOCK_SIMILAR_ARTISTS.map((a, i) => (
+              <div key={i} className="flex-shrink-0 w-24 text-center">
+                <div className="w-16 h-16 rounded-full bg-[#282828] mx-auto mb-2 flex items-center justify-center">
+                  <Music2 className="h-8 w-8 text-[#B3B3B3]" />
+                </div>
+                <p className="text-xs font-medium truncate">{a.name}</p>
+                <p className="text-xs text-[#666]">{COUNTRY_EMOJIS[a.country] || ""} {a.genre}</p>
+              </div>
+            ))}
           </div>
-          <button 
-            type="submit"
-            className="w-8 h-8 flex items-center justify-center pink-gradient rounded-full"
-          >
-            <Send className="h-4 w-4 text-white" />
-          </button>
-        </form>
+        </div>
+
+        {/* Singles & EPs */}
+        <div>
+          <h2 className="text-base font-semibold mb-3">Singles & EPs</h2>
+          <div className="space-y-2">
+            {(songs && songs.length > 0 ? songs.map(s => ({ title: s.title, year: s.releaseDate ? new Date(s.releaseDate).getFullYear().toString() : "—", type: "Single", albumArt: s.albumArt })) : MOCK_SINGLES).map((s, i) => (
+              <div key={i} className="flex items-center gap-3 bg-[#1a1a1a] rounded-lg p-3">
+                <div className="w-10 h-10 rounded bg-[#282828] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {(s as any).albumArt ? (
+                    <img src={(s as any).albumArt} alt={s.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <Music2 className="h-5 w-5 text-[#B3B3B3]" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{s.title}</p>
+                  <p className="text-xs text-[#666]">{s.year} · {s.type}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Albums */}
+        <div>
+          <h2 className="text-base font-semibold mb-3">Albums</h2>
+          <div className="space-y-2">
+            {MOCK_ALBUMS.map((a, i) => (
+              <div key={i} className="flex items-center gap-3 bg-[#1a1a1a] rounded-lg p-3">
+                <div className="w-10 h-10 rounded bg-[#282828] flex items-center justify-center flex-shrink-0">
+                  <Music2 className="h-5 w-5 text-[#B3B3B3]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{a.title}</p>
+                  <p className="text-xs text-[#666]">{a.year} · {a.tracks} tracks</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Featured On */}
+        <div>
+          <h2 className="text-base font-semibold mb-3">Featured On</h2>
+          <div className="space-y-2">
+            {MOCK_FEATURED.map((f, i) => (
+              <div key={i} className="flex items-center gap-3 bg-[#1a1a1a] rounded-lg p-3">
+                <div className="w-10 h-10 rounded bg-[#282828] flex items-center justify-center flex-shrink-0">
+                  <Music2 className="h-5 w-5 text-[#B3B3B3]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{f.title}</p>
+                  <p className="text-xs text-[#666]">{f.label} · {f.year}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-      
-      <MusicPlayer />
+
       <BottomNav />
     </div>
   );

@@ -6,7 +6,7 @@ import {
   type Venue, type InsertVenue, 
   type Thread, type InsertThread, 
   type Comment, type InsertComment, 
-  type Set, type InsertSet,
+  type MusicSet, type InsertSet,
   type SongRecommendation, type InsertSongRecommendation 
 } from "@shared/schema";
 
@@ -53,13 +53,13 @@ export interface IStorage {
   createComment(comment: InsertComment): Promise<Comment>;
   upvoteComment(id: number): Promise<Comment | undefined>;
   
-  // Set operations
-  getSet(id: number): Promise<Set | undefined>;
-  getSetsByUser(userId: number): Promise<Set[]>;
-  getAllSets(limit?: number): Promise<Set[]>;
-  getFeaturedSets(limit?: number): Promise<Set[]>;
-  createSet(set: InsertSet): Promise<Set>;
-  updateSet(id: number, updates: Partial<Set>): Promise<Set | undefined>;
+  // MusicSet operations
+  getSet(id: number): Promise<MusicSet | undefined>;
+  getSetsByUser(userId: number): Promise<MusicSet[]>;
+  getAllSets(limit?: number): Promise<MusicSet[]>;
+  getFeaturedSets(limit?: number): Promise<MusicSet[]>;
+  createSet(set: InsertSet): Promise<MusicSet>;
+  updateSet(id: number, updates: Partial<MusicSet>): Promise<MusicSet | undefined>;
   
   // Song Recommendation operations
   getSongRecommendation(id: number): Promise<SongRecommendation | undefined>;
@@ -75,7 +75,7 @@ export class MemStorage implements IStorage {
   private venues: Map<number, Venue>;
   private threads: Map<number, Thread>;
   private comments: Map<number, Comment>;
-  private sets: Map<number, Set>;
+  private sets: Map<number, MusicSet>;
   private songRecommendations: Map<number, SongRecommendation>;
   
   private userCurrentId: number;
@@ -616,34 +616,34 @@ export class MemStorage implements IStorage {
     return updatedComment;
   }
 
-  // Set operations
-  async getSet(id: number): Promise<Set | undefined> {
+  // MusicSet operations
+  async getSet(id: number): Promise<MusicSet | undefined> {
     return this.sets.get(id);
   }
 
-  async getSetsByUser(userId: number): Promise<Set[]> {
+  async getSetsByUser(userId: number): Promise<MusicSet[]> {
     return Array.from(this.sets.values())
       .filter(set => set.userId === userId)
       .sort((a, b) => b.createdAt!.getTime() - a.createdAt!.getTime());
   }
 
-  async getAllSets(limit: number = 50): Promise<Set[]> {
+  async getAllSets(limit: number = 50): Promise<MusicSet[]> {
     return Array.from(this.sets.values())
       .sort((a, b) => b.saves - a.saves)
       .slice(0, limit);
   }
 
-  async getFeaturedSets(limit: number = 10): Promise<Set[]> {
+  async getFeaturedSets(limit: number = 10): Promise<MusicSet[]> {
     return Array.from(this.sets.values())
       .filter(set => set.featured)
       .sort((a, b) => b.saves - a.saves)
       .slice(0, limit);
   }
 
-  async createSet(insertSet: InsertSet): Promise<Set> {
+  async createSet(insertSet: InsertSet): Promise<MusicSet> {
     const id = this.setCurrentId++;
     const now = new Date();
-    const set: Set = { 
+    const set: MusicSet = { 
       ...insertSet, 
       id, 
       saves: 0,
@@ -656,7 +656,7 @@ export class MemStorage implements IStorage {
     return set;
   }
 
-  async updateSet(id: number, updates: Partial<Set>): Promise<Set | undefined> {
+  async updateSet(id: number, updates: Partial<MusicSet>): Promise<MusicSet | undefined> {
     const set = this.sets.get(id);
     if (!set) return undefined;
     

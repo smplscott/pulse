@@ -1,295 +1,196 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import { Input } from "@/components/ui/input";
-import { Artist, Song } from "@shared/schema";
-import ArtistCard from "@/components/cards/ArtistCard";
-import { User, Music as MusicIcon, Edit as PenIcon, Settings as SettingsIcon, MessageCircle, Bookmark, Smile } from "lucide-react";
-import SearchWithFilter from "@/components/ui/search-with-filter";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Artist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { SearchIcon, Plus, CheckCircle, Music2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 
-type CategoryTab = {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  description: string;
+const GENRES = ["All", "Electronic", "House", "Techno", "Rock", "Pop", "R&B", "Hip Hop", "Jazz"];
+
+const addArtistSchema = z.object({
+  spotifyUrl: z.string().url("Must be a valid Spotify URL").refine(v => v.includes("spotify.com"), "Must be a Spotify link"),
+});
+type AddArtistValues = z.infer<typeof addArtistSchema>;
+
+const COUNTRY_EMOJIS: Record<string, string> = {
+  US: "🇺🇸", GB: "🇬🇧", DE: "🇩🇪", FR: "🇫🇷", CA: "🇨🇦", AU: "🇦🇺",
+  JP: "🇯🇵", KR: "🇰🇷", BR: "🇧🇷", NG: "🇳🇬", SE: "🇸🇪", NL: "🇳🇱",
 };
 
 export default function Artists() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("artists");
-  const [displayMode, setDisplayMode] = useState<"grid" | "list">("list");
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [selectedMainGenre, setSelectedMainGenre] = useState<string | null>(null);
-  const [selectedSubGenre, setSelectedSubGenre] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState("All");
+  const [showAdd, setShowAdd] = useState(false);
   const { toast } = useToast();
 
-  // Genre hierarchy from Discover page
-  const genreHierarchy: { [key: string]: { subGenres: string[]; similarGenres: { [key: string]: string[] } } } = {
-    "Electronic": {
-      subGenres: ["House", "Techno", "Trance", "Drum & Bass", "Ambient"],
-      similarGenres: {
-        "House": ["Deep House", "Tech House", "Progressive House", "Tropical House"],
-        "Techno": ["Minimal Techno", "Industrial Techno", "Acid Techno", "Detroit Techno"],
-        "Trance": ["Progressive Trance", "Uplifting Trance", "Psytrance", "Vocal Trance"],
-        "Ambient": ["Chillout", "Downtempo", "IDM", "Ambient Dub"],
-        "Drum & Bass": ["Jungle", "Liquid Funk", "Neurofunk", "Jump Up"]
-      }
-    },
-    "Urban": {
-      subGenres: ["Hip Hop", "R&B", "Soul", "Funk", "Trap"],
-      similarGenres: {
-        "Hip Hop": ["Rap", "Boom Bap", "Conscious Hip Hop", "Alternative Hip Hop"],
-        "R&B": ["Contemporary R&B", "Neo Soul", "Quiet Storm", "New Jack Swing"],
-        "Soul": ["Southern Soul", "Deep Soul", "Northern Soul", "Psychedelic Soul"],
-        "Funk": ["P-Funk", "Funk Rock", "Electro-Funk", "G-Funk"],
-        "Trap": ["Drill", "Future Bass", "Melodic Trap", "Dark Trap"]
-      }
-    },
-    "Rock": {
-      subGenres: ["Alternative", "Indie", "Post-Rock", "Shoegaze", "Grunge"],
-      similarGenres: {
-        "Alternative": ["Alt Rock", "College Rock", "Britpop", "Grunge"],
-        "Indie": ["Indie Pop", "Indie Folk", "Math Rock", "Art Rock"],
-        "Post-Rock": ["Post-Metal", "Ambient Rock", "Instrumental Rock", "Drone"],
-        "Shoegaze": ["Dream Pop", "Noise Pop", "Space Rock", "Ethereal Wave"],
-        "Grunge": ["Seattle Sound", "Alternative Metal", "Post-Grunge", "Garage Rock"]
-      }
-    }
-  };
-
-  const { data: artists, isLoading: isLoadingArtists } = useQuery<Artist[]>({
+  const { data: artists, isLoading } = useQuery<Artist[]>({
     queryKey: ["/api/artists"],
   });
 
-  const { data: songs } = useQuery<Song[]>({
-    queryKey: ["/api/songs"],
+  const form = useForm<AddArtistValues>({
+    resolver: zodResolver(addArtistSchema),
+    defaultValues: { spotifyUrl: "" },
   });
 
-  // Filter artists based on search query and genre selection
-  const filteredArtists = artists?.filter((artist) => {
-    const matchesSearch = searchQuery === "" || 
-      artist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (artist.realName && artist.realName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (artist.story && artist.story.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesGenre = !selectedGenres || selectedGenres.length === 0 || 
-      selectedGenres.some(genre => 
-        artist.story?.toLowerCase().includes(genre.toLowerCase()) ||
-        artist.name.toLowerCase().includes(genre.toLowerCase())
-      );
-    
+  const addMutation = useMutation({
+    mutationFn: (values: AddArtistValues) => {
+      const nameFromUrl = values.spotifyUrl.split("/").pop()?.split("?")[0] || "Unknown Artist";
+      return apiRequest("POST", "/api/artists", {
+        name: decodeURIComponent(nameFromUrl.replace(/-/g, " ")),
+        streamingLinks: [{ platform: "Spotify", url: values.spotifyUrl }],
+        genres: [],
+        verified: false,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/artists"] });
+      setShowAdd(false);
+      form.reset();
+      toast({ title: "Artist added!", description: "The artist stub has been created." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to add artist", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const filteredArtists = artists?.filter(artist => {
+    const matchesSearch =
+      searchQuery === "" ||
+      artist.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesGenre =
+      selectedGenre === "All" ||
+      (Array.isArray(artist.genres) && (artist.genres as string[]).some(g =>
+        g.toLowerCase().includes(selectedGenre.toLowerCase())
+      ));
     return matchesSearch && matchesGenre;
   });
 
-  const handleSave = (artistId: number, artistName: string) => {
-    toast({
-      title: "Saved!",
-      description: `${artistName} added to your library`
-    });
-  };
-
-  const handleLike = (artistId: number, artistName: string) => {
-    toast({
-      title: "Reacted!",
-      description: `You reacted to ${artistName}`
-    });
-  };
-
-  // Filter for Talk Music CTA
-  const handleTalkMusic = (artistId: number, artistName: string) => {
-    // Navigate directly to the thread page
-    window.location.href = `/thread/artist_${artistId}`;
-  };
-
-  const handleFiltersChange = (filters: {
-    selectedMainGenre: string | null;
-    selectedSubGenre: string | null;
-    selectedGenres: string[];
-  }) => {
-    setSelectedMainGenre(filters.selectedMainGenre);
-    setSelectedSubGenre(filters.selectedSubGenre);
-    setSelectedGenres(filters.selectedGenres);
-  };
-
-  const categoryTabs: CategoryTab[] = [
-    {
-      id: "artists",
-      label: "Artists",
-      icon: <User className="h-4 w-4 mr-2" />,
-      description: "Singers, rappers, bands, or the face of the music. The public-facing creative."
-    },
-    {
-      id: "producers",
-      label: "Producers",
-      icon: <MusicIcon className="h-4 w-4 mr-2" />,
-      description: "Create the beat, sonic landscape, often shaping the feel of the track."
-    },
-    {
-      id: "writers",
-      label: "Writers",
-      icon: <PenIcon className="h-4 w-4 mr-2" />,
-      description: "Lyricists or composers behind the words and melodies (can overlap with artists)."
-    },
-    {
-      id: "engineers",
-      label: "Engineers",
-      icon: <SettingsIcon className="h-4 w-4 mr-2" />,
-      description: "Mix/mastering folks, less public but core to the final sound."
-    }
-  ];
-
-  const renderCategoryContent = () => {
-    if (activeCategory === "artists") {
-      if (isLoadingArtists) {
-        return (
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-56 w-full" />
-            ))}
-          </div>
-        );
-      } else if (filteredArtists && filteredArtists.length > 0) {
-        return (
-          displayMode === "grid" ? (
-            // Grid view
-            <div className="grid grid-cols-2 gap-3">
-              {filteredArtists.map((artist) => (
-                <ArtistCard key={artist.id} artist={artist} />
-              ))}
-            </div>
-          ) : (
-            // List view with reaction and comment CTAs
-            <div className="space-y-2">
-              {filteredArtists.map((artist) => (
-                <Link key={artist.id} href={`/thread/artist_${artist.id}`}>
-                  <div className="flex items-center p-3 bg-[#181818] rounded-lg hover:bg-[#282828] transition-colors">
-                    <img
-                      src="/placeholder-artist.jpg"
-                      alt={artist.name}
-                      className="w-12 h-12 rounded-full object-cover mr-3"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-white">{artist.name}</h3>
-                      <p className="text-sm text-[#B3B3B3]">1 Tracks</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleSave(artist.id, artist.name);
-                        }}
-                        className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition-colors"
-                      >
-                        <Bookmark className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleLike(artist.id, artist.name);
-                        }}
-                        className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition-colors"
-                      >
-                        <Smile className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          window.location.href = `/thread/artist_${artist.id}`;
-                        }}
-                        className="w-8 h-8 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#3E3E3E] transition-colors"
-                      >
-                        <MessageCircle className="h-4 w-4 text-[#B3B3B3] hover:text-white" />
-                      </button>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )
-        );
-      } else {
-        return (
-          <div className="text-center py-10">
-            <p className="text-[#B3B3B3]">
-              {searchQuery ? "No artists found matching your search" : "No artists available"}
-            </p>
-          </div>
-        );
-      }
-    } else {
-      // Content for other categories (coming soon for now)
-      const tab = categoryTabs.find(tab => tab.id === activeCategory);
-      return (
-        <div className="text-center py-10">
-          <p className="text-[#B3B3B3]">
-            Coming soon! We're working on adding {activeCategory} to our platform.
-          </p>
-          <p className="text-sm text-[#B3B3B3] mt-2">
-            {tab?.description}
-          </p>
-        </div>
-      );
-    }
-  };
-
   return (
-    <div className="min-h-screen pb-32">
+    <div className="min-h-screen bg-black text-white pb-32">
       <Header />
-      
-      {/* Artist category tabs using the horizontal button style */}
-      <div className="px-4 pt-4 pb-2 bg-[#121212]">
-        <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-          {categoryTabs.map((category) => {
-            const isActive = activeCategory === category.id;
-            return (
-              <button
-                key={category.id}
-                className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center",
-                  isActive
-                    ? "bg-[#282828] text-white"
-                    : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
-                )}
-                onClick={() => setActiveCategory(category.id)}
-              >
-                {category.icon}
-                {category.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      
-      <main className="px-4 pt-2 pb-4">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="flex-1">
-            <SearchWithFilter
-              placeholder="Search artists, genres, labels..."
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onFiltersChange={handleFiltersChange}
-            />
-          </div>
-          <button 
-            className="w-10 h-10 rounded-lg pink-gradient flex items-center justify-center pink-gradient-hover flex-shrink-0"
-            onClick={() => toast({ title: "Create Content", description: "Create new content coming soon!" })}
+
+      <main className="px-4 pt-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">Artists</h1>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="w-9 h-9 rounded-full bg-[#5271ff] flex items-center justify-center hover:bg-[#4a63e8] transition"
           >
-            <span className="text-white text-xl font-bold">+</span>
+            <Plus className="h-5 w-5 text-white" />
           </button>
         </div>
 
-        {renderCategoryContent()}
+        {/* Search */}
+        <div className="relative mb-4">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Search artists..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="pl-10 bg-[#1a1a1a] border-[#333] text-white placeholder-gray-400"
+          />
+        </div>
+
+        {/* Genre filter */}
+        <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide mb-4">
+          {GENRES.map(g => (
+            <button
+              key={g}
+              onClick={() => setSelectedGenre(g)}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition",
+                selectedGenre === g
+                  ? "bg-[#5271ff] text-white"
+                  : "bg-[#1a1a1a] border border-[#333] text-[#B3B3B3] hover:text-white"
+              )}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+
+        {/* Artists list */}
+        <div className="space-y-2 pb-4">
+          {isLoading
+            ? [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
+            : filteredArtists && filteredArtists.length > 0
+            ? filteredArtists.map(artist => (
+                <Link key={artist.id} href={`/artist/${artist.id}`}>
+                  <div className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg hover:bg-[#282828] transition-colors cursor-pointer">
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-[#282828]">
+                      {artist.profilePicture ? (
+                        <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Music2 className="h-6 w-6 text-[#B3B3B3]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-semibold text-white truncate">{artist.name}</h3>
+                        {artist.verified && <CheckCircle className="h-3.5 w-3.5 text-[#5271ff] flex-shrink-0" />}
+                      </div>
+                      <p className="text-xs text-[#B3B3B3] truncate">
+                        {artist.firstDiscoveredIn ? `${COUNTRY_EMOJIS[artist.firstDiscoveredIn] || "🌍"} ${artist.firstDiscoveredIn} · ` : ""}
+                        {(artist.genres as string[] || []).slice(0, 2).join(", ") || "Artist"}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            : (
+              <div className="text-center py-12 text-[#666]">
+                <Music2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">{searchQuery ? "No artists match your search" : "No artists yet"}</p>
+              </div>
+            )}
+        </div>
       </main>
-      
+
+      {/* Add Artist via Spotify Dialog */}
+      <Dialog open={showAdd} onOpenChange={(open) => { if (!open) { setShowAdd(false); form.reset(); } }}>
+        <DialogContent className="bg-[#1a1a1a] border-[#3E3E3E] text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Artist via Spotify</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-[#B3B3B3]">Paste an artist's Spotify link to create a stub profile.</p>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(v => addMutation.mutate(v))} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="spotifyUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[#B3B3B3]">Spotify Artist URL</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="https://open.spotify.com/artist/..." className="bg-[#282828] border-[#3E3E3E] text-white" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={addMutation.isPending} className="w-full bg-[#1DB954] hover:bg-[#1aa34a] text-black font-semibold">
+                {addMutation.isPending ? "Adding..." : "Add Artist"}
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
       <BottomNav />
     </div>
   );

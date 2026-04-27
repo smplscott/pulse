@@ -1,16 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-import TrackIDCard from "@/components/cards/TrackIDCard";
-import { Playlist } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
+import { MusicSet } from "@shared/schema";
+import { ListMusic } from "lucide-react";
 
 interface TrackIDsProps {
   hideTitle?: boolean;
 }
 
 export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
-  const { data: playlists, isLoading, error } = useQuery<Playlist[]>({
-    queryKey: ["/api/playlists"],
+  const { data: sets, isLoading, error } = useQuery<MusicSet[]>({
+    queryKey: ["/api/sets"],
   });
 
   if (isLoading) {
@@ -18,7 +18,7 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
       <section className="px-4 mb-6">
         {!hideTitle && (
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Popular Track IDs</h2>
+            <h2 className="text-xl font-bold">Sets & Track IDs</h2>
             <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
           </div>
         )}
@@ -35,18 +35,17 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
     );
   }
 
-  if (error || !playlists || playlists.length === 0) {
+  if (error || !sets || sets.length === 0) {
     return (
       <section className="px-4 mb-6">
         {!hideTitle && (
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Popular Track IDs</h2>
-            <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
+            <h2 className="text-xl font-bold">Sets & Track IDs</h2>
           </div>
         )}
         <div className="bg-[#181818] rounded-lg p-4 text-center">
           <p className="text-[#B3B3B3]">
-            {error ? "Failed to load track IDs" : "No track IDs available"}
+            {error ? "Failed to load sets" : "No sets available"}
           </p>
         </div>
       </section>
@@ -57,16 +56,36 @@ export default function TrackIDs({ hideTitle = false }: TrackIDsProps) {
     <section className="px-4 mb-6">
       {!hideTitle && (
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Popular Track IDs</h2>
-          <Link href="/discover">
+          <h2 className="text-xl font-bold">Sets & Track IDs</h2>
+          <Link href="/sets">
             <button className="text-[#B3B3B3] hover:text-white text-sm font-medium">View All</button>
           </Link>
         </div>
       )}
-      
       <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
-        {playlists.map((playlist) => (
-          <TrackIDCard key={playlist.id} playlist={playlist} />
+        {sets.map((set) => (
+          <Link key={set.id} href={`/sets/${set.id}`}>
+            <div className="flex-shrink-0 w-40 bg-[#181818] rounded-lg overflow-hidden cursor-pointer hover:bg-[#282828] transition">
+              <div className="relative">
+                {set.image ? (
+                  <img src={set.image} alt={set.title} className="w-full h-40 object-cover" />
+                ) : (
+                  <div className="w-full h-40 bg-[#282828] flex items-center justify-center">
+                    <ListMusic className="h-12 w-12 text-[#B3B3B3]" />
+                  </div>
+                )}
+                <div className="absolute top-2 right-2">
+                  <span className="text-xs bg-[#4ade80] text-black px-2 py-0.5 rounded-sm font-semibold">
+                    Track IDs
+                  </span>
+                </div>
+              </div>
+              <div className="p-3">
+                <p className="font-semibold text-sm truncate">{set.title}</p>
+                <p className="text-xs text-[#B3B3B3] mt-0.5">by {set.curator}</p>
+              </div>
+            </div>
+          </Link>
         ))}
       </div>
     </section>

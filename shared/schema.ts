@@ -162,7 +162,7 @@ export const insertCommentSchema = createInsertSchema(comments).pick({
   content: true,
 });
 
-// Sets table (replaces playlists with enhanced social features)
+// Sets table
 export const sets = pgTable("sets", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -174,8 +174,11 @@ export const sets = pgTable("sets", {
   songs: jsonb("songs").default('[]'),
   saves: integer("saves").default(0),
   genres: jsonb("genres").default('[]'),
-  type: text("type").default('set'), // 'set', 'mix', 'compilation'
+  type: text("type").default('set'),
   tags: jsonb("tags").default('[]'),
+  city: text("city"),
+  country: text("country"),
+  eventDate: text("event_date"),
   featured: boolean("featured").default(false),
   verified: boolean("verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -193,6 +196,9 @@ export const insertSetSchema = createInsertSchema(sets).pick({
   genres: true,
   type: true,
   tags: true,
+  city: true,
+  country: true,
+  eventDate: true,
 });
 
 // Song recommendations for threads
@@ -211,6 +217,42 @@ export const insertSongRecommendationSchema = createInsertSchema(songRecommendat
   userId: true,
   songId: true,
   comment: true,
+});
+
+// Track IDs for sets — community-submitted song identifications
+export const trackIds = pgTable("track_ids", {
+  id: serial("id").primaryKey(),
+  setId: integer("set_id").notNull(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  submittedBy: integer("submitted_by").notNull(),
+  confirmCount: integer("confirm_count").default(0),
+  disagreeCount: integer("disagree_count").default(0),
+  locked: boolean("locked").default(false),   // true at 5 confirms
+  removed: boolean("removed").default(false), // true at 5 disagrees
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTrackIdSchema = createInsertSchema(trackIds).pick({
+  setId: true,
+  title: true,
+  artist: true,
+  submittedBy: true,
+});
+
+// Track ID votes — one confirm or disagree per user per track
+export const trackIdVotes = pgTable("track_id_votes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  trackId: integer("track_id").notNull(),
+  voteType: text("vote_type").notNull(), // 'confirm' | 'disagree'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTrackIdVoteSchema = createInsertSchema(trackIdVotes).pick({
+  userId: true,
+  trackId: true,
+  voteType: true,
 });
 
 // Export types
@@ -232,8 +274,14 @@ export type InsertThread = z.infer<typeof insertThreadSchema>;
 export type Comment = typeof comments.$inferSelect;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 
-export type Set = typeof sets.$inferSelect;
+export type MusicSet = typeof sets.$inferSelect;
 export type InsertSet = z.infer<typeof insertSetSchema>;
 
 export type SongRecommendation = typeof songRecommendations.$inferSelect;
 export type InsertSongRecommendation = z.infer<typeof insertSongRecommendationSchema>;
+
+export type TrackId = typeof trackIds.$inferSelect;
+export type InsertTrackId = z.infer<typeof insertTrackIdSchema>;
+
+export type TrackIdVote = typeof trackIdVotes.$inferSelect;
+export type InsertTrackIdVote = z.infer<typeof insertTrackIdVoteSchema>;

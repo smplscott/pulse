@@ -5,7 +5,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Thread, User, Comment, SongRecommendation, Song, Artist, Venue, Playlist } from "@shared/schema";
+import { Thread, User, Comment, SongRecommendation, Song, Artist, Venue, MusicSet } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ChevronLeft, ArrowUp, MessageCircle, Share2, Play, Music2, 
@@ -55,8 +55,8 @@ export default function ThreadDetail() {
     enabled: !!contentId && contentType === 'venue',
   });
 
-  const { data: playlistContent } = useQuery<Playlist>({
-    queryKey: [`/api/playlists/${contentId}`],
+  const { data: playlistContent } = useQuery<MusicSet>({
+    queryKey: [`/api/sets/${contentId}`],
     enabled: !!contentId && contentType === 'playlist',
   });
 

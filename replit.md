@@ -13,6 +13,36 @@ A cutting-edge social music discovery platform that transforms digital music int
 
 ## Recent Changes
 
+### April 2026 - Task #3: Artist Pages, Song Pages & Sets
+
+**Schema additions (`shared/schema.ts`):**
+- `trackIds` table: setId, title, artist, submittedBy, confirmCount, disagreeCount, locked, removed
+- `trackIdVotes` table: userId, trackId, voteType (one vote per user per track)
+- `sets` table extended with `city`, `country`, `eventDate` columns
+- New types exported: `TrackId`, `InsertTrackId`, `TrackIdVote`, `InsertTrackIdVote`
+- **Note:** The Set type is exported as `MusicSet` (renamed from `Set` to avoid JavaScript built-in name conflict)
+
+**New API endpoints (`server/routes.ts`):**
+- `GET/POST /api/artists`, `GET /api/artists/name/:name`, `POST /api/artists`
+- `POST /api/songs`
+- `GET /api/sets/:setId/track-ids`, `POST /api/sets/:setId/track-ids`
+- `POST /api/track-ids/:trackId/vote` (confirm ✅ / disagree ❌, one per user, lock at 5 confirms, remove at 5 disagrees)
+
+**Frontend pages rewritten:**
+- `ArtistDetail.tsx` — artist card with country emoji + platform links, Threads/Similar Artists/Singles&EPs/Albums/Featured On sections
+- `SongDetail.tsx` — engagement stats bar, Credits dialog, Similar Songs
+- `Artists.tsx` — search + genre filter + "Add via Spotify" stub dialog
+- `Songs.tsx` — search + genre filter + "Add via Spotify" stub dialog
+- `Sets.tsx` — genre filter + create set dialog (name/city/country/date/link) + set cards
+- `SetDetail.tsx` — full Track ID voting UI (submit track, confirm/disagree buttons, lock badge, vote persistence)
+- `TrackIDCard.tsx` — rewritten to use `MusicSet` type (no longer uses defunct Playlist type)
+
+**Storage (`server/storage-simple.ts`):**
+- 3 seed artists: The Doors, The Weeknd, Bicep
+- 3 seed sets with city/country/eventDate
+- 4 seed trackIds for set #1 (including one locked at 5 confirms)
+- Full implementations for track-id CRUD and voting
+
 ### April 2026 - Authentication System (Login & Sign Up)
 
 **What was added:**

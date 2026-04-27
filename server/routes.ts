@@ -4,7 +4,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-simple";
 import { z } from "zod";
-import { insertUserSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema } from "@shared/schema";
+import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
 
@@ -158,6 +158,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(artists);
   });
   
+  app.get("/api/artists/name/:name", async (req: Request, res: Response) => {
+    const artist = await storage.getArtistByName(req.params.name);
+    if (!artist) {
+      return res.status(404).json({ message: "Artist not found" });
+    }
+    return res.json(artist);
+  });
+
   app.get("/api/artists/:id", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -170,6 +178,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     return res.json(artist);
+  });
+
+  app.post("/api/artists", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const artistData = insertArtistSchema.parse(req.body);
+      const artist = await storage.createArtist(artistData);
+      return res.status(201).json(artist);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to create artist" });
+    }
   });
   
   // Songs routes
@@ -377,6 +400,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     const sets = await storage.getSetsByUser(userId);
     return res.json(sets);
+  });
+
+  app.post("/api/sets", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const user = await storage.getUser(userId);
+      const schema = insertSetSchema.extend({
+        title: z.string().min(2, "Title must be at least 2 characters"),
+      });
+      const setData = schema.parse({ ...req.body, userId, curator: user?.username || "unknown" });
+      const set = await storage.createSet(setData);
+      return res.status(201).json(set);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to create set" });
+    }
+  });
+
+  // Song (stub) creation via Spotify link
+  app.post("/api/songs", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const schema = insertSongSchema.extend({
+        title: z.string().min(1),
+        artist: z.string().min(1),
+      });
+      const songData = schema.parse(req.body);
+      const song = await storage.createSong(songData);
+      return res.status(201).json(song);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to create song" });
+    }
+  });
+
+  // Track IDs routes
+  app.get("/api/sets/:setId/track-ids", async (req: Request, res: Response) => {
+    const setId = parseInt(req.params.setId);
+    if (isNaN(setId)) return res.status(400).json({ message: "Invalid set ID" });
+    const trackIds = await storage.getTrackIdsBySet(setId);
+    // Include whether the current user has voted
+    const userId = req.session.userId;
+    const trackIdsWithVote = await Promise.all(
+      trackIds.map(async (t) => {
+        const userVote = userId ? await storage.getTrackIdVote(userId, t.id) : undefined;
+        return { ...t, userVote: userVote?.voteType || null };
+      })
+    );
+    return res.json(trackIdsWithVote);
+  });
+
+  app.post("/api/sets/:setId/track-ids", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const setId = parseInt(req.params.setId);
+      if (isNaN(setId)) return res.status(400).json({ message: "Invalid set ID" });
+      const schema = insertTrackIdSchema.extend({
+        title: z.string().min(1, "Track title required"),
+        artist: z.string().min(1, "Artist name required"),
+      });
+      const trackIdData = schema.parse({ ...req.body, setId, submittedBy: userId });
+      const trackId = await storage.createTrackId(trackIdData);
+      return res.status(201).json({ ...trackId, userVote: null });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to submit track ID" });
+    }
+  });
+
+  app.post("/api/track-ids/:trackId/vote", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const trackId = parseInt(req.params.trackId);
+      if (isNaN(trackId)) return res.status(400).json({ message: "Invalid track ID" });
+      const schema = insertTrackIdVoteSchema.extend({
+        voteType: z.enum(["confirm", "disagree"]),
+      });
+      const voteData = schema.parse({ ...req.body, userId, trackId });
+      const result = await storage.castTrackIdVote(voteData);
+      return res.status(201).json({ ...result.trackId, userVote: result.vote.voteType });
+    } catch (error) {
+      if (error instanceof Error && error.message === "Already voted on this track ID") {
+        return res.status(409).json({ message: error.message });
+      }
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to cast vote" });
+    }
   });
   
   // Song Recommendations routes

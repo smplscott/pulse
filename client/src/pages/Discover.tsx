@@ -5,7 +5,7 @@ import TabNavigator from "@/components/layout/TabNavigator";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Artist, Song, Playlist } from "@shared/schema";
+import { Artist, Song } from "@shared/schema";
 import ArtistCard from "@/components/cards/ArtistCard";
 import { SearchIcon, Filter } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";

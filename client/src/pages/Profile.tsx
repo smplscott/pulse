@@ -4,7 +4,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Thread, Playlist } from "@shared/schema";
+import { User, Thread, MusicSet } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Edit, Settings, MessageSquare, Music, Smile } from "lucide-react";
 import { Link } from "wouter";
@@ -23,8 +23,8 @@ export default function Profile() {
     queryKey: [`/api/threads`, { userId }],
   });
 
-  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery<Playlist[]>({
-    queryKey: [`/api/users/${userId}/playlists`],
+  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery<MusicSet[]>({
+    queryKey: ["/api/sets"],
   });
 
   return (
@@ -169,7 +169,7 @@ export default function Profile() {
             ) : playlists && playlists.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
                 {playlists.map((playlist) => (
-                  <TrackIDCard key={playlist.id} playlist={playlist} className="w-full" />
+                  <TrackIDCard key={playlist.id} set={playlist} className="w-full" />
                 ))}
               </div>
             ) : (

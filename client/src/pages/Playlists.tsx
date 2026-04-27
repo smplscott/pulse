@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Input } from "@/components/ui/input";
-import { Playlist } from "@shared/schema";
+import { MusicSet } from "@shared/schema";
 import { Disc3, Radio, Youtube, Music2, ListMusic, Bookmark, MessageCircle, Smile } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -25,14 +25,14 @@ export default function Playlists() {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const { toast } = useToast();
 
-  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery<Playlist[]>({
-    queryKey: ["/api/playlists"],
+  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery<MusicSet[]>({
+    queryKey: ["/api/sets"],
   });
 
   // Filter playlists based on search query
   const filteredPlaylists = playlists?.filter(playlist => 
     playlist.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (playlist.description && playlist.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    playlist.curator.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   // For handling reactions
