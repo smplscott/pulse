@@ -213,7 +213,7 @@ export default function ArtistDetail() {
         <div>
           <h2 className="text-base font-semibold mb-3">Similar Artists</h2>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {MOCK_SIMILAR_ARTISTS.map((a, i) => (
+            {MOCK_SIMILAR_ARTISTS.filter(a => a.verified).map((a, i) => (
               <div key={i} className="flex-shrink-0 w-28 bg-[#1a1a1a] rounded-lg p-3 text-center">
                 <div className="w-14 h-14 rounded-full bg-[#282828] mx-auto mb-2 flex items-center justify-center">
                   <Music2 className="h-7 w-7 text-[#B3B3B3]" />
