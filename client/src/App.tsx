@@ -1,8 +1,9 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 import Home from "@/pages/Home";
 import Discover from "@/pages/Discover";
@@ -25,33 +26,55 @@ import CreateThread from "@/pages/CreateThread";
 import CreateSongRequest from "@/pages/CreateSongRequest";
 import Credits from "@/pages/Credits";
 import Samples from "@/pages/Samples";
+import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
 import NotFound from "@/pages/not-found";
+
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+  const { user, isLoading } = useAuth();
+  const [location] = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#121212] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1DB954] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Redirect to="/login" />;
+  }
+
+  return <Component />;
+}
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/discover" component={Discover} />
-      <Route path="/threads" component={Threads} />
-      <Route path="/whats-this-song" component={WhatsThisSong} />
-      <Route path="/venues" component={Venues} />
-      <Route path="/library" component={Library} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/achievements" component={CommunityAchievements} />
-      <Route path="/messages" component={Messages} />
-      <Route path="/artists" component={Artists} />
-      <Route path="/songs" component={Songs} />
-      <Route path="/sets" component={Sets} />
-      <Route path="/artist/:id" component={ArtistDetail} />
-      <Route path="/song/:id" component={SongDetail} />
-      <Route path="/thread/:id" component={ThreadDetail} />
-      <Route path="/venue/:id" component={VenueDetail} />
-      <Route path="/sets/:id" component={SetDetail} />
-      <Route path="/credits/:id" component={Credits} />
-      <Route path="/samples/:id" component={Samples} />
-      <Route path="/create-thread" component={CreateThread} />
-      <Route path="/create-song-request" component={CreateSongRequest} />
-      {/* Fallback to 404 */}
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+      <Route path="/discover" component={() => <ProtectedRoute component={Discover} />} />
+      <Route path="/threads" component={() => <ProtectedRoute component={Threads} />} />
+      <Route path="/whats-this-song" component={() => <ProtectedRoute component={WhatsThisSong} />} />
+      <Route path="/venues" component={() => <ProtectedRoute component={Venues} />} />
+      <Route path="/library" component={() => <ProtectedRoute component={Library} />} />
+      <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
+      <Route path="/achievements" component={() => <ProtectedRoute component={CommunityAchievements} />} />
+      <Route path="/messages" component={() => <ProtectedRoute component={Messages} />} />
+      <Route path="/artists" component={() => <ProtectedRoute component={Artists} />} />
+      <Route path="/songs" component={() => <ProtectedRoute component={Songs} />} />
+      <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} />
+      <Route path="/artist/:id" component={() => <ProtectedRoute component={ArtistDetail} />} />
+      <Route path="/song/:id" component={() => <ProtectedRoute component={SongDetail} />} />
+      <Route path="/thread/:id" component={() => <ProtectedRoute component={ThreadDetail} />} />
+      <Route path="/venue/:id" component={() => <ProtectedRoute component={VenueDetail} />} />
+      <Route path="/sets/:id" component={() => <ProtectedRoute component={SetDetail} />} />
+      <Route path="/credits/:id" component={() => <ProtectedRoute component={Credits} />} />
+      <Route path="/samples/:id" component={() => <ProtectedRoute component={Samples} />} />
+      <Route path="/create-thread" component={() => <ProtectedRoute component={CreateThread} />} />
+      <Route path="/create-song-request" component={() => <ProtectedRoute component={CreateSongRequest} />} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -62,7 +85,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <AuthProvider>
+          <Router />
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -13,6 +13,26 @@ A cutting-edge social music discovery platform that transforms digital music int
 
 ## Recent Changes
 
+### April 2026 - Authentication System (Login & Sign Up)
+
+**What was added:**
+- Session-based authentication using `express-session` with `memorystore`
+- Password hashing via Node.js built-in `crypto` (scrypt + random salt)
+- Backend endpoints: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
+- `AuthContext` (`client/src/context/AuthContext.tsx`) — React context holding logged-in user state with `login`, `register`, `logout` helpers
+- Login page (`/login`) — email/password form + "Log in with Spotify" placeholder button + "Forgot password" placeholder
+- Signup page (`/signup`) — email, username, password, confirm-password form + Spotify placeholder
+- All app routes are now protected; unauthenticated users are redirected to `/login`
+- Header updated to show logged-in user's avatar/initials, a dropdown with Profile and Log Out, and a notifications bell
+
+**Schema changes:**
+- `users` table: added `email` (unique) and `bio` text fields
+- `insertUserSchema` updated to include `email` and `bio`
+
+**Storage changes:**
+- Added `getUserByEmail(email)` method to both `IStorage` interfaces and `MemStorage` implementations
+- `createUser` updated to handle `email` and `bio` fields
+
 ### January 2025 - Underground Music Culture Badge System Revamp
 **Date:** January 1, 2025
 

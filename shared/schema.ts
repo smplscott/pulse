@@ -6,8 +6,10 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  email: text("email").unique(),
   password: text("password").notNull(),
   displayName: text("display_name"),
+  bio: text("bio"),
   profilePicture: text("profile_picture"),
   favoriteSongs: jsonb("favorite_songs").default('[]'),
   favoriteGenres: jsonb("favorite_genres").default('[]'),
@@ -19,8 +21,10 @@ export const users = pgTable("users", {
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
+  email: true,
   password: true,
   displayName: true,
+  bio: true,
   profilePicture: true,
 });
 
