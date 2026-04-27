@@ -556,6 +556,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
     const artistId = parseInt(req.params.artistId);
     if (isNaN(artistId)) return res.status(400).json({ message: "Invalid artist ID" });
+    const artist = await storage.getArtist(artistId);
+    if (!artist) return res.status(404).json({ message: "Artist not found" });
     await storage.followArtist(userId, artistId);
     return res.json({ success: true });
   });
@@ -582,6 +584,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
     const songId = parseInt(req.params.songId);
     if (isNaN(songId)) return res.status(400).json({ message: "Invalid song ID" });
+    const song = await storage.getSong(songId);
+    if (!song) return res.status(404).json({ message: "Song not found" });
     await storage.followSong(userId, songId);
     return res.json({ success: true });
   });
