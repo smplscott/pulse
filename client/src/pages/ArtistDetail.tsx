@@ -184,7 +184,7 @@ export default function ArtistDetail() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold">Threads</h2>
-            <Link href="/">
+            <Link href="/threads">
               <button className="text-xs text-[#5271ff] hover:underline">See all</button>
             </Link>
           </div>

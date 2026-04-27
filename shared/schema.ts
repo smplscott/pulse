@@ -42,6 +42,7 @@ export const songs = pgTable("songs", {
   genre: text("genre"),
   subGenres: jsonb("sub_genres").default('[]'),
   albumArt: text("album_art"),
+  albumName: text("album_name"),
   releaseDate: timestamp("release_date"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -57,6 +58,7 @@ export const insertSongSchema = createInsertSchema(songs).pick({
   genre: true,
   subGenres: true,
   albumArt: true,
+  albumName: true,
   releaseDate: true,
 });
 

@@ -116,7 +116,7 @@ export default function SongDetail() {
               <p className="text-sm text-[#B3B3B3] truncate">{song.artist}</p>
             )}
             <p className="text-xs text-[#B3B3B3] truncate mt-0.5">
-              {song.albumArt ? "Album release" : "Single"}
+              {song.albumName ? song.albumName : "Single"}
             </p>
             <div className="flex flex-wrap gap-1 mt-2">
               {song.genre && (

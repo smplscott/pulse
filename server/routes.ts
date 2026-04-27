@@ -464,6 +464,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) return res.status(401).json({ message: "Not authenticated" });
       const setId = parseInt(req.params.setId);
       if (isNaN(setId)) return res.status(400).json({ message: "Invalid set ID" });
+      const set = await storage.getSet(setId);
+      if (!set) return res.status(404).json({ message: "Set not found" });
       const schema = insertTrackIdSchema.extend({
         title: z.string().min(1, "Track title required"),
         artist: z.string().min(1, "Artist name required"),
