@@ -145,7 +145,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
   const selectedTypeMeta = LINKED_THREAD_TYPES.find(t => t.id === selectedType);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent className="bg-[#1a1a1a] border-[#3E3E3E] text-white max-w-md w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
