@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -249,7 +249,9 @@ export const trackIdVotes = pgTable("track_id_votes", {
   trackId: integer("track_id").notNull(),
   voteType: text("vote_type").notNull(), // 'confirm' | 'disagree'
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => ({
+  userTrackUnique: unique("track_id_votes_user_track_unique").on(t.userId, t.trackId),
+}));
 
 export const insertTrackIdVoteSchema = createInsertSchema(trackIdVotes).pick({
   userId: true,
