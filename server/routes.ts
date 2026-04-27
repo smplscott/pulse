@@ -539,6 +539,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(recommendation);
   });
 
+  // Follow routes — Artists
+  app.get("/api/users/me/followed-artists", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const artists = await storage.getFollowedArtists(userId);
+    return res.json(artists);
+  });
+
+  app.post("/api/users/me/followed-artists/:artistId", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const artistId = parseInt(req.params.artistId);
+    if (isNaN(artistId)) return res.status(400).json({ message: "Invalid artist ID" });
+    await storage.followArtist(userId, artistId);
+    return res.json({ success: true });
+  });
+
+  app.delete("/api/users/me/followed-artists/:artistId", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const artistId = parseInt(req.params.artistId);
+    if (isNaN(artistId)) return res.status(400).json({ message: "Invalid artist ID" });
+    await storage.unfollowArtist(userId, artistId);
+    return res.json({ success: true });
+  });
+
+  // Follow routes — Songs
+  app.get("/api/users/me/followed-songs", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const songs = await storage.getFollowedSongs(userId);
+    return res.json(songs);
+  });
+
+  app.post("/api/users/me/followed-songs/:songId", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const songId = parseInt(req.params.songId);
+    if (isNaN(songId)) return res.status(400).json({ message: "Invalid song ID" });
+    await storage.followSong(userId, songId);
+    return res.json({ success: true });
+  });
+
+  app.delete("/api/users/me/followed-songs/:songId", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const songId = parseInt(req.params.songId);
+    if (isNaN(songId)) return res.status(400).json({ message: "Invalid song ID" });
+    await storage.unfollowSong(userId, songId);
+    return res.json({ success: true });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

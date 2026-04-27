@@ -6,7 +6,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Song } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, Plus, Music2, Bookmark, Smile, MessageCircle } from "lucide-react";
+import { SearchIcon, Plus, Music2, Bookmark, Smile, Compass, UserCheck, BookmarkCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,10 +28,40 @@ export default function Songs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [showAdd, setShowAdd] = useState(false);
+  const [tab, setTab] = useState<"following" | "discover">("following");
   const { toast } = useToast();
 
-  const { data: songs, isLoading } = useQuery<Song[]>({
+  const { data: followedSongs, isLoading: isLoadingFollowed } = useQuery<Song[]>({
+    queryKey: ["/api/users/me/followed-songs"],
+  });
+
+  const { data: allSongs, isLoading: isLoadingAll } = useQuery<Song[]>({
     queryKey: ["/api/songs"],
+    enabled: tab === "discover",
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (songId: number) => apiRequest("POST", `/api/users/me/followed-songs/${songId}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/followed-songs"] });
+      toast({ title: "Saved!", description: "Song added to your library." });
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Please try again.";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    },
+  });
+
+  const unsaveMutation = useMutation({
+    mutationFn: (songId: number) => apiRequest("DELETE", `/api/users/me/followed-songs/${songId}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/followed-songs"] });
+      toast({ title: "Removed", description: "Song removed from your library." });
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Please try again.";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    },
   });
 
   const form = useForm<AddSongValues>({
@@ -54,12 +84,17 @@ export default function Songs() {
       form.reset();
       toast({ title: "Song added!", description: "The song stub has been created." });
     },
-    onError: (err: any) => {
-      toast({ title: "Failed to add song", description: err.message, variant: "destructive" });
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Please try again.";
+      toast({ title: "Failed to add song", description: message, variant: "destructive" });
     },
   });
 
-  const filteredSongs = songs?.filter(song => {
+  const savedIds = new Set((followedSongs ?? []).map(s => s.id));
+  const sourceList = tab === "following" ? followedSongs : allSongs;
+  const isLoading = tab === "following" ? isLoadingFollowed : isLoadingAll;
+
+  const filteredSongs = sourceList?.filter(song => {
     const matchesSearch =
       searchQuery === "" ||
       song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -82,6 +117,30 @@ export default function Songs() {
             className="w-9 h-9 rounded-full bg-[#5271ff] flex items-center justify-center hover:bg-[#4a63e8] transition"
           >
             <Plus className="h-5 w-5 text-white" />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-4 bg-[#1a1a1a] rounded-lg p-1">
+          <button
+            onClick={() => setTab("following")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition",
+              tab === "following" ? "bg-[#5271ff] text-white" : "text-[#B3B3B3] hover:text-white"
+            )}
+          >
+            <UserCheck className="h-3.5 w-3.5" />
+            My Library
+          </button>
+          <button
+            onClick={() => setTab("discover")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition",
+              tab === "discover" ? "bg-[#5271ff] text-white" : "text-[#B3B3B3] hover:text-white"
+            )}
+          >
+            <Compass className="h-3.5 w-3.5" />
+            Discover
           </button>
         </div>
 
@@ -120,47 +179,69 @@ export default function Songs() {
           {isLoading
             ? [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
             : filteredSongs && filteredSongs.length > 0
-            ? filteredSongs.map(song => (
-                <Link key={song.id} href={`/song/${song.id}`}>
-                  <div className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg hover:bg-[#282828] transition-colors cursor-pointer">
-                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-[#282828]">
-                      {song.albumArt ? (
-                        <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music2 className="h-6 w-6 text-[#B3B3B3]" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{song.title}</p>
-                      <p className="text-xs text-[#B3B3B3] truncate">
-                        {Array.isArray(song.features) && (song.features as string[]).length > 0
-                          ? `${song.artist}, ${(song.features as string[]).join(", ")}`
-                          : song.artist}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1">
+            ? filteredSongs.map(song => {
+                const isSaved = savedIds.has(song.id);
+                return (
+                  <div key={song.id} className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg hover:bg-[#282828] transition-colors">
+                    <Link href={`/song/${song.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-[#282828]">
+                        {song.albumArt ? (
+                          <img src={song.albumArt} alt={song.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Music2 className="h-6 w-6 text-[#B3B3B3]" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{song.title}</p>
+                        <p className="text-xs text-[#B3B3B3] truncate">
+                          {Array.isArray(song.features) && (song.features as string[]).length > 0
+                            ? `${song.artist}, ${(song.features as string[]).join(", ")}`
+                            : song.artist}
+                        </p>
+                      </div>
+                    </Link>
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <button
-                        onClick={e => { e.preventDefault(); e.stopPropagation(); toast({ title: "Saved", description: `Saved "${song.title}"` }); }}
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                        onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          isSaved ? unsaveMutation.mutate(song.id) : saveMutation.mutate(song.id);
+                        }}
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3E3E3E] transition",
+                          isSaved ? "text-[#5271ff]" : "text-[#B3B3B3]"
+                        )}
+                        title={isSaved ? "Remove from library" : "Save to library"}
                       >
-                        <Bookmark className="h-4 w-4 text-[#B3B3B3]" />
+                        {isSaved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                       </button>
                       <button
                         onClick={e => { e.preventDefault(); e.stopPropagation(); toast({ title: "Reacted!", description: `Reacted to "${song.title}"` }); }}
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3E3E3E] transition"
+                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#3E3E3E] transition text-[#B3B3B3]"
                       >
-                        <Smile className="h-4 w-4 text-[#B3B3B3]" />
+                        <Smile className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
-                </Link>
-              ))
+                );
+              })
             : (
               <div className="text-center py-12 text-[#666]">
                 <Music2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">{searchQuery ? "No songs match your search" : "No songs yet"}</p>
+                <p className="text-sm">
+                  {searchQuery
+                    ? "No songs match your search"
+                    : tab === "following"
+                    ? "Your library is empty — try Discover"
+                    : "No songs yet"}
+                </p>
+                {tab === "following" && !searchQuery && (
+                  <button onClick={() => setTab("discover")} className="mt-3 text-[#5271ff] text-sm hover:underline">
+                    Browse all songs
+                  </button>
+                )}
               </div>
             )}
         </div>

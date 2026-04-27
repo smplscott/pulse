@@ -57,8 +57,9 @@ export default function Sets() {
       form.reset();
       toast({ title: "Set created!", description: "Your set is now live." });
     },
-    onError: (err: any) => {
-      toast({ title: "Failed to create set", description: err.message, variant: "destructive" });
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Please try again.";
+      toast({ title: "Failed to create set", description: message, variant: "destructive" });
     },
   });
 

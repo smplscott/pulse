@@ -85,6 +85,14 @@ export interface IStorage {
   createTrackId(trackId: InsertTrackId): Promise<TrackId>;
   getTrackIdVote(userId: number, trackId: number): Promise<TrackIdVote | undefined>;
   castTrackIdVote(vote: InsertTrackIdVote): Promise<{ trackId: TrackId; vote: TrackIdVote }>;
+
+  // Follow operations
+  getFollowedArtists(userId: number): Promise<Artist[]>;
+  followArtist(userId: number, artistId: number): Promise<void>;
+  unfollowArtist(userId: number, artistId: number): Promise<void>;
+  getFollowedSongs(userId: number): Promise<Song[]>;
+  followSong(userId: number, songId: number): Promise<void>;
+  unfollowSong(userId: number, songId: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -98,7 +106,9 @@ export class MemStorage implements IStorage {
   private songRecommendations: Map<number, SongRecommendation> = new Map();
   private trackIdsMap: Map<number, TrackId> = new Map();
   private trackIdVotesMap: Map<number, TrackIdVote> = new Map();
-  
+  private followedArtistsMap: Map<number, Set<number>> = new Map();
+  private followedSongsMap: Map<number, Set<number>> = new Map();
+
   private userCurrentId = 1;
   private artistCurrentId = 1;
   private songCurrentId = 1;
@@ -493,6 +503,10 @@ export class MemStorage implements IStorage {
     for (const tid of seedTrackIds) {
       this.trackIdsMap.set(tid.id, tid);
     }
+
+    // Seed testuser follows all 3 artists and all 4 songs
+    this.followedArtistsMap.set(user.id, new Set([artist1.id, artist2.id, artist3.id]));
+    this.followedSongsMap.set(user.id, new Set([1, 2, 3, 4]));
   }
 
   // User operations
@@ -899,6 +913,43 @@ export class MemStorage implements IStorage {
     this.trackIdsMap.set(trackId.id, updatedTrackId);
 
     return { trackId: updatedTrackId, vote };
+  }
+
+  // Follow operations
+  async getFollowedArtists(userId: number): Promise<Artist[]> {
+    const ids = this.followedArtistsMap.get(userId) ?? new Set<number>();
+    return Array.from(ids)
+      .map(id => this.artists.get(id))
+      .filter((a): a is Artist => a !== undefined);
+  }
+
+  async followArtist(userId: number, artistId: number): Promise<void> {
+    if (!this.followedArtistsMap.has(userId)) {
+      this.followedArtistsMap.set(userId, new Set());
+    }
+    this.followedArtistsMap.get(userId)!.add(artistId);
+  }
+
+  async unfollowArtist(userId: number, artistId: number): Promise<void> {
+    this.followedArtistsMap.get(userId)?.delete(artistId);
+  }
+
+  async getFollowedSongs(userId: number): Promise<Song[]> {
+    const ids = this.followedSongsMap.get(userId) ?? new Set<number>();
+    return Array.from(ids)
+      .map(id => this.songs.get(id))
+      .filter((s): s is Song => s !== undefined);
+  }
+
+  async followSong(userId: number, songId: number): Promise<void> {
+    if (!this.followedSongsMap.has(userId)) {
+      this.followedSongsMap.set(userId, new Set());
+    }
+    this.followedSongsMap.get(userId)!.add(songId);
+  }
+
+  async unfollowSong(userId: number, songId: number): Promise<void> {
+    this.followedSongsMap.get(userId)?.delete(songId);
   }
 }
 

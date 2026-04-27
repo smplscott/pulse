@@ -35,10 +35,11 @@ function TrackIdRow({ track, setId }: { track: TrackIdWithVote; setId: number })
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sets", setId.toString(), "track-ids"] });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "You may have already voted on this track.";
       toast({
         title: "Could not vote",
-        description: err.message || "You may have already voted on this track.",
+        description: message,
         variant: "destructive",
       });
     },

@@ -6,7 +6,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import { Artist } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, Plus, CheckCircle, Music2 } from "lucide-react";
+import { SearchIcon, Plus, CheckCircle, Music2, UserCheck, Compass, UserPlus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,10 +33,40 @@ export default function Artists() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [showAdd, setShowAdd] = useState(false);
+  const [tab, setTab] = useState<"following" | "discover">("following");
   const { toast } = useToast();
 
-  const { data: artists, isLoading } = useQuery<Artist[]>({
+  const { data: followedArtists, isLoading: isLoadingFollowed } = useQuery<Artist[]>({
+    queryKey: ["/api/users/me/followed-artists"],
+  });
+
+  const { data: allArtists, isLoading: isLoadingAll } = useQuery<Artist[]>({
     queryKey: ["/api/artists"],
+    enabled: tab === "discover",
+  });
+
+  const followMutation = useMutation({
+    mutationFn: (artistId: number) => apiRequest("POST", `/api/users/me/followed-artists/${artistId}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/followed-artists"] });
+      toast({ title: "Following!", description: "Artist added to your following list." });
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Please try again.";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    },
+  });
+
+  const unfollowMutation = useMutation({
+    mutationFn: (artistId: number) => apiRequest("DELETE", `/api/users/me/followed-artists/${artistId}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me/followed-artists"] });
+      toast({ title: "Unfollowed", description: "Artist removed from your following list." });
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Please try again.";
+      toast({ title: "Error", description: message, variant: "destructive" });
+    },
   });
 
   const form = useForm<AddArtistValues>({
@@ -60,12 +90,17 @@ export default function Artists() {
       form.reset();
       toast({ title: "Artist added!", description: "The artist stub has been created." });
     },
-    onError: (err: any) => {
-      toast({ title: "Failed to add artist", description: err.message, variant: "destructive" });
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Please try again.";
+      toast({ title: "Failed to add artist", description: message, variant: "destructive" });
     },
   });
 
-  const filteredArtists = artists?.filter(artist => {
+  const followedIds = new Set((followedArtists ?? []).map(a => a.id));
+  const sourceList = tab === "following" ? followedArtists : allArtists;
+  const isLoading = tab === "following" ? isLoadingFollowed : isLoadingAll;
+
+  const filteredArtists = sourceList?.filter(artist => {
     const matchesSearch =
       searchQuery === "" ||
       artist.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -89,6 +124,30 @@ export default function Artists() {
             className="w-9 h-9 rounded-full bg-[#5271ff] flex items-center justify-center hover:bg-[#4a63e8] transition"
           >
             <Plus className="h-5 w-5 text-white" />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-4 bg-[#1a1a1a] rounded-lg p-1">
+          <button
+            onClick={() => setTab("following")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition",
+              tab === "following" ? "bg-[#5271ff] text-white" : "text-[#B3B3B3] hover:text-white"
+            )}
+          >
+            <UserCheck className="h-3.5 w-3.5" />
+            Following
+          </button>
+          <button
+            onClick={() => setTab("discover")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition",
+              tab === "discover" ? "bg-[#5271ff] text-white" : "text-[#B3B3B3] hover:text-white"
+            )}
+          >
+            <Compass className="h-3.5 w-3.5" />
+            Discover
           </button>
         </div>
 
@@ -127,35 +186,60 @@ export default function Artists() {
           {isLoading
             ? [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
             : filteredArtists && filteredArtists.length > 0
-            ? filteredArtists.map(artist => (
-                <Link key={artist.id} href={`/artist/${artist.id}`}>
-                  <div className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg hover:bg-[#282828] transition-colors cursor-pointer">
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-[#282828]">
-                      {artist.profilePicture ? (
-                        <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music2 className="h-6 w-6 text-[#B3B3B3]" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold text-white truncate">{artist.name}</h3>
-                        {artist.verified && <CheckCircle className="h-3.5 w-3.5 text-[#5271ff] flex-shrink-0" />}
+            ? filteredArtists.map(artist => {
+                const isFollowing = followedIds.has(artist.id);
+                return (
+                  <div key={artist.id} className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg hover:bg-[#282828] transition-colors">
+                    <Link href={`/artist/${artist.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-[#282828]">
+                        {artist.profilePicture ? (
+                          <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Music2 className="h-6 w-6 text-[#B3B3B3]" />
+                          </div>
+                        )}
                       </div>
-                      <p className="text-xs text-[#B3B3B3] truncate">
-                        {artist.firstDiscoveredIn ? `${COUNTRY_EMOJIS[artist.firstDiscoveredIn] || "🌍"} ${artist.firstDiscoveredIn} · ` : ""}
-                        {(artist.genres as string[] || []).slice(0, 2).join(", ") || "Artist"}
-                      </p>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-semibold text-white truncate">{artist.name}</h3>
+                          {artist.verified && <CheckCircle className="h-3.5 w-3.5 text-[#5271ff] flex-shrink-0" />}
+                        </div>
+                        <p className="text-xs text-[#B3B3B3] truncate">
+                          {artist.firstDiscoveredIn ? `${COUNTRY_EMOJIS[artist.firstDiscoveredIn] || "🌍"} ${artist.firstDiscoveredIn} · ` : ""}
+                          {(artist.genres as string[] || []).slice(0, 2).join(", ") || "Artist"}
+                        </p>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={() => isFollowing ? unfollowMutation.mutate(artist.id) : followMutation.mutate(artist.id)}
+                      className={cn(
+                        "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition",
+                        isFollowing
+                          ? "bg-[#2a2a2a] border border-[#444] text-[#B3B3B3] hover:border-red-500 hover:text-red-400"
+                          : "bg-[#5271ff] text-white hover:bg-[#4a63e8]"
+                      )}
+                    >
+                      {isFollowing ? "Following" : <span className="flex items-center gap-1"><UserPlus className="h-3 w-3" />Follow</span>}
+                    </button>
                   </div>
-                </Link>
-              ))
+                );
+              })
             : (
               <div className="text-center py-12 text-[#666]">
                 <Music2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">{searchQuery ? "No artists match your search" : "No artists yet"}</p>
+                <p className="text-sm">
+                  {searchQuery
+                    ? "No artists match your search"
+                    : tab === "following"
+                    ? "You're not following any artists yet — try Discover"
+                    : "No artists yet"}
+                </p>
+                {tab === "following" && !searchQuery && (
+                  <button onClick={() => setTab("discover")} className="mt-3 text-[#5271ff] text-sm hover:underline">
+                    Browse all artists
+                  </button>
+                )}
               </div>
             )}
         </div>
