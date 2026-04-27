@@ -218,13 +218,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(venue);
   });
   
+  // Search (artists + songs combined)
+  app.get("/api/search", async (req: Request, res: Response) => {
+    const q = (req.query.q as string || "").toLowerCase().trim();
+    if (!q) return res.json({ artists: [], songs: [] });
+    const allSongs = await storage.getAllSongs(100);
+    const allArtists = await storage.getAllArtists();
+    const songs = allSongs.filter(s =>
+      s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
+    ).slice(0, 10);
+    const artists = allArtists.filter(a =>
+      a.name.toLowerCase().includes(q)
+    ).slice(0, 10);
+    return res.json({ artists, songs });
+  });
+
   // Threads routes
+  app.get("/api/threads/featured", async (req: Request, res: Response) => {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+    const threads = await storage.getFeaturedThreads(limit);
+    return res.json(threads);
+  });
+
   app.get("/api/threads", async (req: Request, res: Response) => {
     const type = req.query.type as string | undefined;
     const threads = await storage.getAllThreads(type);
     return res.json(threads);
   });
-  
+
   app.get("/api/threads/:id", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -238,15 +259,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     return res.json(thread);
   });
+
+  app.get("/api/users/:userId/threads/engaged", async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.userId);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    const threads = await storage.getEngagedThreadsByUser(userId);
+    return res.json(threads);
+  });
   
   app.post("/api/threads", async (req: Request, res: Response) => {
     try {
-      const threadData = insertThreadSchema.parse(req.body);
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+      const schema = insertThreadSchema.extend({
+        title: z.string().min(3, "Title must be at least 3 characters"),
+        threadType: z.enum(["new_music", "listening_now", "live_show_review", "topic"]),
+        starRating: z.number().int().min(1).max(5).optional().nullable(),
+        songId: z.number().int().optional().nullable(),
+        artistId: z.number().int().optional().nullable(),
+      });
+      const threadData = schema.parse({ ...req.body, userId });
       const thread = await storage.createThread(threadData);
       return res.status(201).json(thread);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
       }
       return res.status(500).json({ message: "Failed to create thread" });
     }

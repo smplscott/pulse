@@ -1,11 +1,24 @@
 import { Link } from "wouter";
-import { Badge } from "@/components/ui/badge";
-import { cn, truncateText, formatRelativeTime } from "@/lib/utils";
-import { MessageCircleIcon, ArrowUpIcon, Music2Icon } from "lucide-react";
-import { Thread } from "@shared/schema";
+import { cn, formatRelativeTime } from "@/lib/utils";
+import { MessageCircleIcon, BookmarkIcon, Star, Music2Icon, MicVocalIcon } from "lucide-react";
+import { Thread, Song, Artist } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const THREAD_TYPE_LABELS: Record<string, string> = {
+  new_music: "New Music",
+  listening_now: "Listening Now",
+  live_show_review: "Live Show",
+  topic: "Topic",
+};
+
+const THREAD_TYPE_COLORS: Record<string, string> = {
+  new_music: "bg-[#c2f970]/20 text-[#c2f970]",
+  listening_now: "bg-blue-500/20 text-blue-400",
+  live_show_review: "bg-orange-500/20 text-orange-400",
+  topic: "bg-purple-500/20 text-purple-400",
+};
 
 type ThreadCardProps = {
   thread: Thread;
@@ -17,61 +30,72 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
     queryKey: [`/api/users/${thread.userId}`],
   });
 
-  const createdAt = new Date(thread.createdAt);
+  const { data: song } = useQuery<Song>({
+    queryKey: [`/api/songs/${thread.songId}`],
+    enabled: !!thread.songId,
+  });
 
-  // Determine badge variant based on thread metrics
-  let badgeText = "New";
-  let badgeVariant: "hot" | "trending" | "status" = "status";
-  
-  if (thread.upvotes > 100) {
-    badgeText = "Hot";
-    badgeVariant = "hot";
-  } else if (thread.commentsCount > 20) {
-    badgeText = "Trending";
-    badgeVariant = "trending";
-  }
+  const { data: artist } = useQuery<Artist>({
+    queryKey: [`/api/artists/${thread.artistId}`],
+    enabled: !!thread.artistId,
+  });
+
+  const createdAt = new Date(thread.createdAt || Date.now());
+  const typeLabel = THREAD_TYPE_LABELS[thread.threadType] || "Topic";
+  const typeColor = THREAD_TYPE_COLORS[thread.threadType] || THREAD_TYPE_COLORS.topic;
 
   return (
     <Link href={`/thread/${thread.id}`}>
-      <div className={cn("bg-[#181818] rounded-lg p-4 cursor-pointer", className)}>
-        <div className="flex items-start space-x-3">
-          <Avatar className="w-10 h-10 rounded-full flex-shrink-0">
+      <div className={cn("bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors", className)}>
+        <div className="flex items-start gap-3">
+          <Avatar className="w-9 h-9 rounded-full flex-shrink-0 mt-0.5">
             {user?.profilePicture ? (
               <AvatarImage src={user.profilePicture} alt={user.username} />
             ) : (
-              <AvatarFallback className="bg-[#3E3E3E]">
+              <AvatarFallback className="bg-[#3E3E3E] text-xs">
                 {user?.username?.substring(0, 2).toUpperCase() || "U"}
               </AvatarFallback>
             )}
           </Avatar>
-          <div className="flex-1">
-            <div className="flex justify-between">
-              <div>
-                <p className="font-medium">{thread.title}</p>
-                <p className="text-sm text-[#B3B3B3]">
-                  Started by @{user?.username || "user"} • {formatRelativeTime(createdAt)}
-                </p>
-              </div>
-              <Badge 
-                variant={badgeVariant} 
-                className="text-xs px-2 py-0.5 rounded-full h-fit"
-              >
-                {badgeText}
-              </Badge>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", typeColor)}>
+                {typeLabel}
+              </span>
+              {(song || artist) && (
+                <span className="text-xs text-[#B3B3B3] flex items-center gap-1 truncate">
+                  {song ? <Music2Icon className="h-3 w-3 flex-shrink-0" /> : <MicVocalIcon className="h-3 w-3 flex-shrink-0" />}
+                  <span className="truncate">{song ? `${song.title} — ${song.artist}` : artist?.name}</span>
+                </span>
+              )}
             </div>
-            <p className="mt-2 text-sm">{truncateText(thread.content, 120)}</p>
-            <div className="mt-3 flex space-x-4">
-              <div className="flex items-center">
-                <MessageCircleIcon className="h-3 w-3 text-[#B3B3B3] mr-1" />
-                <span className="text-xs text-[#B3B3B3]">{thread.commentsCount} comments</span>
+
+            <p className="font-semibold text-white text-sm leading-snug mb-1">{thread.title}</p>
+
+            <p className="text-xs text-[#B3B3B3] mb-2">
+              @{user?.username || "user"} · {formatRelativeTime(createdAt)}
+            </p>
+
+            {thread.threadType === "live_show_review" && thread.starRating && (
+              <div className="flex items-center gap-0.5 mb-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={cn("h-3 w-3", i < (thread.starRating || 0) ? "text-yellow-400 fill-yellow-400" : "text-[#3E3E3E]")}
+                  />
+                ))}
               </div>
-              <div className="flex items-center">
-                <ArrowUpIcon className="h-3 w-3 text-[#B3B3B3] mr-1" />
-                <span className="text-xs text-[#B3B3B3]">{thread.upvotes} upvotes</span>
+            )}
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1">
+                <MessageCircleIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                <span className="text-xs text-[#B3B3B3]">{thread.commentsCount || 0}</span>
               </div>
-              <div className="flex items-center">
-                <Music2Icon className="h-3 w-3 text-[#B3B3B3] mr-1" />
-                <span className="text-xs text-[#B3B3B3]">{thread.recommendationsCount} recs</span>
+              <div className="flex items-center gap-1">
+                <BookmarkIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                <span className="text-xs text-[#B3B3B3]">{thread.savesCount || 0}</span>
               </div>
             </div>
           </div>

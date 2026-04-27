@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { HomeIcon, MapPinIcon, Music2Icon, UserIcon, MessageCircle, Disc3 } from "lucide-react";
+import { MessageCircle, Music2Icon, UserIcon, Disc3, MicVocalIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNav() {
@@ -7,14 +7,14 @@ export default function BottomNav() {
 
   const navItems = [
     { icon: MessageCircle, label: "Threads", path: "/" },
-    { icon: MapPinIcon, label: "Places", path: "/venues" },
+    { icon: MicVocalIcon, label: "Artists", path: "/artists" },
     { icon: Music2Icon, label: "Songs", path: "/songs" },
-    { icon: UserIcon, label: "Artists", path: "/artists" },
     { icon: Disc3, label: "Sets", path: "/sets" },
+    { icon: UserIcon, label: "Profile", path: "/profile" },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-[#3E3E3E] px-2 py-1 flex justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-[#3E3E3E] px-2 py-1 flex justify-around z-50">
       {navItems.map((item) => (
         <Link key={item.path} href={item.path}>
           <button
@@ -23,7 +23,7 @@ export default function BottomNav() {
               location === item.path ? "green-gradient-text" : "text-[#B3B3B3]"
             )}
           >
-            {location === item.path 
+            {location === item.path
               ? <item.icon className="h-5 w-5 text-[#c2f970]" />
               : <item.icon className="h-5 w-5" />
             }

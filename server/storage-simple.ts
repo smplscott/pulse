@@ -1,6 +1,6 @@
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
-import { 
+import type { 
   User, InsertUser, 
   Artist, InsertArtist,
   Song, InsertSong,
@@ -51,6 +51,8 @@ export interface IStorage {
   // Thread operations
   getThread(id: number): Promise<Thread | undefined>;
   getAllThreads(type?: string, limit?: number): Promise<Thread[]>;
+  getFeaturedThreads(limit?: number): Promise<Thread[]>;
+  getEngagedThreadsByUser(userId: number): Promise<Thread[]>;
   getThreadsByUser(userId: number): Promise<Thread[]>;
   createThread(thread: InsertThread): Promise<Thread>;
   updateThread(id: number, updates: Partial<Thread>): Promise<Thread | undefined>;
@@ -255,6 +257,116 @@ export class MemStorage implements IStorage {
     this.songs.set(song2.id, song2);
     this.songs.set(song3.id, song3);
     this.songs.set(song4.id, song4);
+
+    // Seed threads
+    const seedThreads: Thread[] = [
+      {
+        id: this.threadCurrentId++,
+        title: "Most Innovative Electronic Artists of 2025",
+        content: "Who do you think is pushing the boundaries of electronic music this year? I've been amazed by how producers are blending organic instrumentation with digital production.",
+        userId: user.id,
+        type: "discussion",
+        threadType: "topic",
+        songId: null,
+        artistId: null,
+        starRating: null,
+        status: "active",
+        upvotes: 48,
+        savesCount: 34,
+        commentsCount: 243,
+        recommendationsCount: 12,
+        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+      },
+      {
+        id: this.threadCurrentId++,
+        title: "Techno DJs That Define Berlin's Sound",
+        content: "Berlin's techno scene has always been unparalleled. Let's discuss the artists who have shaped and continue to define that raw, industrial sound.",
+        userId: user.id,
+        type: "discussion",
+        threadType: "topic",
+        songId: null,
+        artistId: null,
+        starRating: null,
+        status: "active",
+        upvotes: 62,
+        savesCount: 29,
+        commentsCount: 192,
+        recommendationsCount: 8,
+        createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
+      },
+      {
+        id: this.threadCurrentId++,
+        title: "This track has been on repeat for 3 days straight",
+        content: "Riders on the Storm just hits different at 3am. The rain sounds, the keys — pure atmosphere.",
+        userId: user.id,
+        type: "discussion",
+        threadType: "listening_now",
+        songId: song2.id,
+        artistId: null,
+        starRating: null,
+        status: "active",
+        upvotes: 31,
+        savesCount: 19,
+        commentsCount: 45,
+        recommendationsCount: 3,
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+      {
+        id: this.threadCurrentId++,
+        title: "Incredible live set — best show I've been to in years",
+        content: "The energy was unreal. Every transition was perfectly executed and the crowd was fully locked in from start to finish.",
+        userId: user.id,
+        type: "discussion",
+        threadType: "live_show_review",
+        songId: null,
+        artistId: null,
+        starRating: 5,
+        status: "active",
+        upvotes: 77,
+        savesCount: 41,
+        commentsCount: 122,
+        recommendationsCount: 0,
+        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+      },
+      {
+        id: this.threadCurrentId++,
+        title: "New Discoveries Worth Sharing — July 2025",
+        content: "Drop your best new finds below! I've been deep in the rabbit hole this month and found some absolute gems.",
+        userId: user.id,
+        type: "discussion",
+        threadType: "new_music",
+        songId: null,
+        artistId: null,
+        starRating: null,
+        status: "active",
+        upvotes: 55,
+        savesCount: 67,
+        commentsCount: 156,
+        recommendationsCount: 31,
+        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+      },
+      {
+        id: this.threadCurrentId++,
+        title: "Blinding Lights is still unmatched for that 80s synth feel",
+        content: "Years later and this track still sounds fresh. The production on this is a masterclass.",
+        userId: user.id,
+        type: "discussion",
+        threadType: "listening_now",
+        songId: song4.id,
+        artistId: null,
+        starRating: null,
+        status: "active",
+        upvotes: 23,
+        savesCount: 15,
+        commentsCount: 67,
+        recommendationsCount: 5,
+        createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000),
+      },
+    ];
+
+    for (const thread of seedThreads) {
+      this.threads.set(thread.id, thread);
+    }
   }
 
   // User operations
@@ -418,22 +530,151 @@ export class MemStorage implements IStorage {
   async createVenue(venue: InsertVenue): Promise<Venue> { throw new Error("Not implemented"); }
   async updateVenue(id: number, updates: Partial<Venue>): Promise<Venue | undefined> { return undefined; }
 
-  async getThread(id: number): Promise<Thread | undefined> { return undefined; }
-  async getAllThreads(type?: string, limit?: number): Promise<Thread[]> { return []; }
-  async getThreadsByUser(userId: number): Promise<Thread[]> { return []; }
-  async createThread(thread: InsertThread): Promise<Thread> { throw new Error("Not implemented"); }
-  async updateThread(id: number, updates: Partial<Thread>): Promise<Thread | undefined> { return undefined; }
-  async upvoteThread(id: number): Promise<Thread | undefined> { return undefined; }
+  async getThread(id: number): Promise<Thread | undefined> {
+    return this.threads.get(id);
+  }
 
-  async getComment(id: number): Promise<Comment | undefined> { return undefined; }
-  async getCommentsByThread(threadId: number): Promise<Comment[]> { return []; }
-  async createComment(comment: InsertComment): Promise<Comment> { throw new Error("Not implemented"); }
-  async upvoteComment(id: number): Promise<Comment | undefined> { return undefined; }
+  async getAllThreads(type?: string, limit: number = 50): Promise<Thread[]> {
+    let threads = Array.from(this.threads.values());
+    if (type) threads = threads.filter(t => t.threadType === type || t.type === type);
+    return threads
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
+      .slice(0, limit);
+  }
 
-  async getSongRecommendation(id: number): Promise<SongRecommendation | undefined> { return undefined; }
-  async getSongRecommendationsByThread(threadId: number): Promise<SongRecommendation[]> { return []; }
-  async createSongRecommendation(recommendation: InsertSongRecommendation): Promise<SongRecommendation> { throw new Error("Not implemented"); }
-  async upvoteSongRecommendation(id: number): Promise<SongRecommendation | undefined> { return undefined; }
+  async getFeaturedThreads(limit: number = 20): Promise<Thread[]> {
+    return Array.from(this.threads.values())
+      .sort((a, b) => ((b.commentsCount || 0) + (b.savesCount || 0)) - ((a.commentsCount || 0) + (a.savesCount || 0)))
+      .slice(0, limit);
+  }
+
+  async getEngagedThreadsByUser(userId: number): Promise<Thread[]> {
+    const commentedThreadIds = new Set(
+      Array.from(this.comments.values())
+        .filter(c => c.userId === userId)
+        .map(c => c.threadId)
+    );
+    return Array.from(this.threads.values())
+      .filter(t => t.userId === userId || commentedThreadIds.has(t.id))
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
+      .slice(0, 20);
+  }
+
+  async getThreadsByUser(userId: number): Promise<Thread[]> {
+    return Array.from(this.threads.values()).filter(t => t.userId === userId);
+  }
+
+  async createThread(insertThread: InsertThread): Promise<Thread> {
+    const id = this.threadCurrentId++;
+    const thread: Thread = {
+      id,
+      title: insertThread.title,
+      content: insertThread.content,
+      userId: insertThread.userId,
+      type: insertThread.type || "discussion",
+      threadType: insertThread.threadType || "topic",
+      songId: insertThread.songId || null,
+      artistId: insertThread.artistId || null,
+      starRating: insertThread.starRating || null,
+      status: insertThread.status || "active",
+      upvotes: 0,
+      savesCount: 0,
+      commentsCount: 0,
+      recommendationsCount: 0,
+      createdAt: new Date(),
+    };
+    this.threads.set(id, thread);
+    return thread;
+  }
+
+  async updateThread(id: number, updates: Partial<Thread>): Promise<Thread | undefined> {
+    const thread = this.threads.get(id);
+    if (!thread) return undefined;
+    const updated = { ...thread, ...updates };
+    this.threads.set(id, updated);
+    return updated;
+  }
+
+  async upvoteThread(id: number): Promise<Thread | undefined> {
+    const thread = this.threads.get(id);
+    if (!thread) return undefined;
+    const updated = { ...thread, upvotes: (thread.upvotes || 0) + 1 };
+    this.threads.set(id, updated);
+    return updated;
+  }
+
+  async getComment(id: number): Promise<Comment | undefined> {
+    return this.comments.get(id);
+  }
+
+  async getCommentsByThread(threadId: number): Promise<Comment[]> {
+    return Array.from(this.comments.values())
+      .filter(c => c.threadId === threadId)
+      .sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
+  }
+
+  async createComment(insertComment: InsertComment): Promise<Comment> {
+    const id = this.commentCurrentId++;
+    const comment: Comment = {
+      id,
+      threadId: insertComment.threadId,
+      userId: insertComment.userId,
+      content: insertComment.content,
+      upvotes: 0,
+      createdAt: new Date(),
+    };
+    this.comments.set(id, comment);
+    const thread = this.threads.get(insertComment.threadId);
+    if (thread) {
+      this.threads.set(thread.id, { ...thread, commentsCount: (thread.commentsCount || 0) + 1 });
+    }
+    return comment;
+  }
+
+  async upvoteComment(id: number): Promise<Comment | undefined> {
+    const comment = this.comments.get(id);
+    if (!comment) return undefined;
+    const updated = { ...comment, upvotes: (comment.upvotes || 0) + 1 };
+    this.comments.set(id, updated);
+    return updated;
+  }
+
+  async getSongRecommendation(id: number): Promise<SongRecommendation | undefined> {
+    return this.songRecommendations.get(id);
+  }
+
+  async getSongRecommendationsByThread(threadId: number): Promise<SongRecommendation[]> {
+    return Array.from(this.songRecommendations.values())
+      .filter(r => r.threadId === threadId)
+      .sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+  }
+
+  async createSongRecommendation(insertRec: InsertSongRecommendation): Promise<SongRecommendation> {
+    const id = this.songRecommendationCurrentId++;
+    const rec: SongRecommendation = {
+      id,
+      threadId: insertRec.threadId,
+      userId: insertRec.userId,
+      songId: insertRec.songId,
+      comment: insertRec.comment || null,
+      upvotes: 0,
+      createdAt: new Date(),
+    };
+    this.songRecommendations.set(id, rec);
+    const thread = this.threads.get(insertRec.threadId);
+    if (thread) {
+      this.threads.set(thread.id, { ...thread, recommendationsCount: (thread.recommendationsCount || 0) + 1 });
+    }
+    return rec;
+  }
+
+  async upvoteSongRecommendation(id: number): Promise<SongRecommendation | undefined> {
+    const rec = this.songRecommendations.get(id);
+    if (!rec) return undefined;
+    const updated = { ...rec, upvotes: (rec.upvotes || 0) + 1 };
+    this.songRecommendations.set(id, updated);
+    return updated;
+  }
 }
 
 export const storage = new MemStorage();
