@@ -104,7 +104,8 @@ export default function SetDetail() {
   const [showSubmitForm, setShowSubmitForm] = useState(false);
 
   const { data: set, isLoading: isLoadingSet } = useQuery<MusicSet>({
-    queryKey: ["/api/sets", id],
+    queryKey: [`/api/sets/${id}`],
+    enabled: !isNaN(setId),
   });
 
   const { data: trackIds, isLoading: isLoadingTrackIds } = useQuery<TrackIdWithVote[]>({
