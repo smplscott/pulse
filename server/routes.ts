@@ -760,7 +760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: z.string().min(2, "Name must be at least 2 characters"),
         city: z.string().min(1, "City is required"),
         country: z.string().min(1, "Country is required"),
-        description: z.string().min(10, "Description must be at least 10 characters").max(500),
+        description: z.string().min(10, "Description must be at least 10 characters").max(280, "Max 280 characters"),
         category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
       });
       const placeData = schema.parse({ ...req.body, userId });

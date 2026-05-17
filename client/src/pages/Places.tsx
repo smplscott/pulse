@@ -8,6 +8,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Place } from "@shared/schema";
+import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,7 +40,7 @@ const addPlaceSchema = z.object({
   city: z.string().min(1, "City is required"),
   country: z.string().min(1, "Country is required"),
   category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
-  description: z.string().min(10, "Description must be at least 10 characters").max(500),
+  description: z.string().min(10, "Description must be at least 10 characters").max(280, "Max 280 characters"),
   mapsLink: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
@@ -50,31 +51,35 @@ function categoryLabel(cat: string) {
 }
 
 function PlaceCard({ place }: { place: Place }) {
-  const genres = (place.genres as string[]) || [];
-  const stars = Math.round((place.rating || 0) / 1);
+  const genres = place.genres ?? [];
+  const [, navigate] = useLocation();
   return (
-    <Link href={`/places/${place.id}`}>
-      <div className="bg-[#181818] rounded-xl p-4 flex gap-3 cursor-pointer hover:bg-[#1e1e1e] transition-colors">
-        <div className="w-12 h-12 rounded-lg bg-[#282828] flex items-center justify-center flex-shrink-0">
-          <MapPin className="h-5 w-5 text-[#c2f970]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="font-semibold text-sm truncate">{place.name}</h3>
-              <p className="text-xs text-[#B3B3B3] mt-0.5">{place.city}, {place.country}</p>
+    <div className="bg-[#181818] rounded-xl p-4 flex gap-3">
+      <div className="w-12 h-12 rounded-lg bg-[#282828] flex items-center justify-center flex-shrink-0 mt-0.5">
+        <MapPin className="h-5 w-5 text-[#c2f970]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <Link href={`/places/${place.id}`}>
+          <div className="cursor-pointer">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-sm truncate hover:text-[#c2f970] transition-colors">{place.name}</h3>
+                <p className="text-xs text-[#B3B3B3] mt-0.5">{place.city}, {place.country}</p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {place.rating !== null && place.rating !== undefined && place.rating > 0 && (
+                  <>
+                    <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
+                    <span className="text-xs text-[#B3B3B3]">{place.rating}.0</span>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {place.rating !== null && place.rating > 0 && (
-                <>
-                  <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
-                  <span className="text-xs text-[#B3B3B3]">{place.rating}.0</span>
-                </>
-              )}
-            </div>
+            <p className="text-xs text-[#B3B3B3] mt-1 line-clamp-2 leading-relaxed">{place.description}</p>
           </div>
-          <p className="text-xs text-[#B3B3B3] mt-1 line-clamp-2 leading-relaxed">{place.description}</p>
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
+        </Link>
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
               {categoryLabel(place.category)}
             </span>
@@ -87,9 +92,15 @@ function PlaceCard({ place }: { place: Place }) {
               <span className="text-[10px] text-[#666]">+{genres.length - 2}</span>
             )}
           </div>
+          <button
+            onClick={() => navigate(`/places/${place.id}?dropIn=1`)}
+            className="text-xs px-3 py-1 rounded-full bg-[#c2f970] text-black font-semibold hover:bg-[#aee05a] transition-colors flex-shrink-0 ml-2"
+          >
+            Drop In
+          </button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -268,13 +279,13 @@ export default function Places() {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs text-[#B3B3B3]">Description * <span className="text-[#666]">(10–500 chars)</span></FormLabel>
+                        <FormLabel className="text-xs text-[#B3B3B3]">Description * <span className="text-[#666]">(10–280 chars)</span></FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
                             placeholder="What makes this place worth visiting?"
                             className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] min-h-[80px] resize-none"
-                            maxLength={500}
+                            maxLength={280}
                           />
                         </FormControl>
                         <FormMessage />

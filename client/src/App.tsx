@@ -62,7 +62,7 @@ function Router() {
       <Route path="/discover" component={() => <ProtectedRoute component={Discover} />} />
       <Route path="/threads" component={() => <ProtectedRoute component={Threads} />} />
       <Route path="/whats-this-song" component={() => <ProtectedRoute component={WhatsThisSong} />} />
-      <Route path="/venues" component={() => <ProtectedRoute component={Venues} />} />
+      <Route path="/venues" component={() => <Redirect to="/places" />} />
       <Route path="/library" component={() => <ProtectedRoute component={Library} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/profile/:username" component={Profile} />
@@ -74,8 +74,6 @@ function Router() {
       <Route path="/shows" component={() => <ProtectedRoute component={Shows} />} />
       <Route path="/places" component={() => <ProtectedRoute component={Places} />} />
       <Route path="/places/:id" component={() => <ProtectedRoute component={PlaceDetail} />} />
-      {/* /venues redirects to /places for backward compat */}
-      <Route path="/venues" component={() => <ProtectedRoute component={Places} />} />
       {/* <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} /> */}
       <Route path="/artist/:id" component={() => <ProtectedRoute component={ArtistDetail} />} />
       <Route path="/song/:id" component={() => <ProtectedRoute component={SongDetail} />} />

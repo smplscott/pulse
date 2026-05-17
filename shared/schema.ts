@@ -268,8 +268,8 @@ export const places = pgTable("places", {
   name: text("name").notNull(),
   city: text("city").notNull(),
   country: text("country").notNull(),
-  category: text("category").notNull(), // bar | club | record_store | coffee_shop | other
-  genres: jsonb("genres").default('[]'),
+  category: text("category").$type<"bar" | "club" | "record_store" | "coffee_shop" | "other">().notNull(),
+  genres: text("genres").array(),
   description: text("description").notNull(),
   mapsLink: text("maps_link"),
   rating: integer("rating").default(0),
@@ -283,9 +283,11 @@ export const insertPlaceSchema = createInsertSchema(places).pick({
   city: true,
   country: true,
   category: true,
-  genres: true,
   description: true,
   mapsLink: true,
+}).extend({
+  genres: z.array(z.string()).optional().default([]),
+  category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
 });
 
 // Place comments — open discussion on each place page

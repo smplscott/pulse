@@ -115,6 +115,7 @@ export interface IStorage {
   // Place operations
   getPlace(id: number): Promise<Place | undefined>;
   getAllPlaces(limit?: number): Promise<Place[]>;
+  searchPlaces(query: string): Promise<Place[]>;
   createPlace(place: InsertPlace): Promise<Place>;
   updatePlace(id: number, updates: Partial<Place>): Promise<Place | undefined>;
   getPlaceComments(placeId: number): Promise<PlaceComment[]>;
@@ -1236,6 +1237,18 @@ export class MemStorage implements IStorage {
     return Array.from(this.placesMap.values())
       .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
       .slice(0, limit);
+  }
+
+  async searchPlaces(query: string): Promise<Place[]> {
+    const q = query.toLowerCase().trim();
+    if (!q) return this.getAllPlaces();
+    return Array.from(this.placesMap.values()).filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.city.toLowerCase().includes(q) ||
+      p.country.toLowerCase().includes(q) ||
+      (p.genres ?? []).some(g => g.toLowerCase().includes(q)) ||
+      p.description.toLowerCase().includes(q)
+    );
   }
 
   async createPlace(insertPlace: InsertPlace): Promise<Place> {

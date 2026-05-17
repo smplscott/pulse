@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
@@ -40,6 +40,7 @@ export default function PlaceDetail() {
   const placeId = parseInt(params.id);
   const { user } = useAuth();
   const { toast } = useToast();
+  const [location, navigate] = useLocation();
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const [commentText, setCommentText] = useState("");
 
@@ -74,7 +75,7 @@ export default function PlaceDetail() {
     commentMutation.mutate(commentText.trim());
   };
 
-  const genres = place ? (place.genres as string[]) || [] : [];
+  const genres = place ? (place.genres ?? []) : [];
 
   return (
     <div className="min-h-screen pb-32">
