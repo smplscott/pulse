@@ -382,3 +382,66 @@ export type InsertTrackId = z.infer<typeof insertTrackIdSchema>;
 
 export type TrackIdVote = typeof trackIdVotes.$inferSelect;
 export type InsertTrackIdVote = z.infer<typeof insertTrackIdVoteSchema>;
+
+// Shows table — past concerts/events (from Setlist.fm or manual)
+export const shows = pgTable("shows", {
+  id: serial("id").primaryKey(),
+  setlistfmId: text("setlistfm_id").unique(),
+  artistName: text("artist_name").notNull(),
+  venueName: text("venue_name").notNull(),
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  eventDate: text("event_date").notNull(), // yyyy-MM-dd
+  isManual: boolean("is_manual").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertShowSchema = createInsertSchema(shows).pick({
+  setlistfmId: true,
+  artistName: true,
+  venueName: true,
+  city: true,
+  country: true,
+  eventDate: true,
+  isManual: true,
+});
+
+// Show reviews — one per userId+showId
+export const showReviews = pgTable("show_reviews", {
+  id: serial("id").primaryKey(),
+  showId: integer("show_id").notNull(),
+  userId: integer("user_id").notNull(),
+  rating: integer("rating").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertShowReviewSchema = createInsertSchema(showReviews).pick({
+  showId: true,
+  userId: true,
+  rating: true,
+  content: true,
+});
+
+// Show comments — open discussion on each show
+export const showComments = pgTable("show_comments", {
+  id: serial("id").primaryKey(),
+  showId: integer("show_id").notNull(),
+  userId: integer("user_id").notNull(),
+  content: text("content").notNull(),
+  upvotes: integer("upvotes").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertShowCommentSchema = createInsertSchema(showComments).pick({
+  showId: true,
+  userId: true,
+  content: true,
+});
+
+export type Show = typeof shows.$inferSelect;
+export type InsertShow = z.infer<typeof insertShowSchema>;
+export type ShowReview = typeof showReviews.$inferSelect;
+export type InsertShowReview = z.infer<typeof insertShowReviewSchema>;
+export type ShowComment = typeof showComments.$inferSelect;
+export type InsertShowComment = z.infer<typeof insertShowCommentSchema>;

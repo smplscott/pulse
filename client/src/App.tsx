@@ -16,6 +16,7 @@ import Profile from "@/pages/Profile";
 import Artists from "@/pages/Artists";
 import Songs from "@/pages/Songs";
 import Shows from "@/pages/Shows";
+import ShowDetail from "@/pages/ShowDetail";
 import Places from "@/pages/Places";
 import PlaceDetail from "@/pages/PlaceDetail";
 // import Sets from "@/pages/Sets";        // Sets hidden from nav — re-enable when ready
@@ -72,6 +73,7 @@ function Router() {
       <Route path="/artists" component={() => <ProtectedRoute component={Artists} />} />
       <Route path="/songs" component={() => <ProtectedRoute component={Songs} />} />
       <Route path="/shows" component={() => <ProtectedRoute component={Shows} />} />
+      <Route path="/shows/:id" component={() => <ProtectedRoute component={ShowDetail} />} />
       <Route path="/places" component={() => <ProtectedRoute component={Places} />} />
       <Route path="/places/:id" component={() => <ProtectedRoute component={PlaceDetail} />} />
       {/* <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} /> */}

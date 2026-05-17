@@ -176,13 +176,13 @@ export default function PlaceDetail() {
                   onChange={e => setCommentText(e.target.value)}
                   placeholder="Share your experience..."
                   className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] resize-none min-h-[72px] text-sm"
-                  maxLength={500}
+                  maxLength={280}
                   onKeyDown={e => {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmitComment();
                   }}
                 />
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-[10px] text-[#555]">{commentText.length}/500</span>
+                  <span className="text-[10px] text-[#555]">{commentText.length}/280</span>
                   <button
                     onClick={handleSubmitComment}
                     disabled={!commentText.trim() || commentMutation.isPending}

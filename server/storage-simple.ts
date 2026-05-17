@@ -15,6 +15,9 @@ import type {
   ThreadFollow,
   Place, InsertPlace,
   PlaceComment, InsertPlaceComment,
+  Show, InsertShow,
+  ShowReview, InsertShowReview,
+  ShowComment, InsertShowComment,
 } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
@@ -120,6 +123,18 @@ export interface IStorage {
   updatePlace(id: number, updates: Partial<Place>): Promise<Place | undefined>;
   getPlaceComments(placeId: number): Promise<PlaceComment[]>;
   createPlaceComment(comment: InsertPlaceComment): Promise<PlaceComment>;
+
+  // Show operations
+  getShow(id: number): Promise<Show | undefined>;
+  getShowBySetlistfmId(setlistfmId: string): Promise<Show | undefined>;
+  getAllShows(limit?: number): Promise<Show[]>;
+  createShow(show: InsertShow): Promise<Show>;
+  getShowReviews(showId: number): Promise<ShowReview[]>;
+  getUserShowReview(userId: number, showId: number): Promise<ShowReview | undefined>;
+  createShowReview(review: InsertShowReview): Promise<ShowReview>;
+  getShowComments(showId: number): Promise<ShowComment[]>;
+  createShowComment(comment: InsertShowComment): Promise<ShowComment>;
+  upvoteShowComment(id: number): Promise<ShowComment | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -139,6 +154,9 @@ export class MemStorage implements IStorage {
   private notificationsMap: Map<number, Notification> = new Map();
   private placesMap: Map<number, Place> = new Map();
   private placeCommentsMap: Map<number, PlaceComment> = new Map();
+  private showsMap: Map<number, Show> = new Map();
+  private showReviewsMap: Map<number, ShowReview> = new Map();
+  private showCommentsMap: Map<number, ShowComment> = new Map();
 
   private userCurrentId = 1;
   private artistCurrentId = 1;
@@ -154,6 +172,9 @@ export class MemStorage implements IStorage {
   private notificationCurrentId = 1;
   private placeCurrentId = 1;
   private placeCommentCurrentId = 1;
+  private showCurrentId = 1;
+  private showReviewCurrentId = 1;
+  private showCommentCurrentId = 1;
 
   constructor() {
     void this.seedData();
@@ -701,6 +722,114 @@ export class MemStorage implements IStorage {
     ];
     for (const pc of seedPlaceComments) {
       this.placeCommentsMap.set(pc.id, pc);
+    }
+
+    // Seed shows
+    const seedShows: Show[] = [
+      {
+        id: this.showCurrentId++,
+        setlistfmId: null,
+        artistName: "Bicep",
+        venueName: "Alexandra Palace",
+        city: "London",
+        country: "UK",
+        eventDate: "2023-11-18",
+        isManual: false,
+        createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showCurrentId++,
+        setlistfmId: null,
+        artistName: "The Weeknd",
+        venueName: "Wembley Stadium",
+        city: "London",
+        country: "UK",
+        eventDate: "2023-06-02",
+        isManual: false,
+        createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showCurrentId++,
+        setlistfmId: null,
+        artistName: "Four Tet",
+        venueName: "Printworks",
+        city: "London",
+        country: "UK",
+        eventDate: "2023-09-15",
+        isManual: false,
+        createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showCurrentId++,
+        setlistfmId: null,
+        artistName: "Aphex Twin",
+        venueName: "Field Day",
+        city: "London",
+        country: "UK",
+        eventDate: "2023-06-03",
+        isManual: false,
+        createdAt: new Date(Date.now() - 110 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showCurrentId++,
+        setlistfmId: null,
+        artistName: "Disclosure",
+        venueName: "Coachella Valley Music and Arts Festival",
+        city: "Indio",
+        country: "USA",
+        eventDate: "2024-04-13",
+        isManual: false,
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      },
+    ];
+    for (const s of seedShows) {
+      this.showsMap.set(s.id, s);
+    }
+
+    // Seed show reviews for Bicep @ Alexandra Palace (show id 1)
+    const seedShowReviews: ShowReview[] = [
+      {
+        id: this.showReviewCurrentId++,
+        showId: 1,
+        userId: user.id,
+        rating: 5,
+        content: "Absolutely transcendent. The sound at Ally Pally was perfect and Bicep played for nearly 3 hours. One of the best nights of my life.",
+        createdAt: new Date(Date.now() - 85 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showReviewCurrentId++,
+        showId: 1,
+        userId: user.id,
+        rating: 4,
+        content: "Incredible show. The visuals were stunning and the setlist was flawless. Only docking one star because the queue was absurd.",
+        createdAt: new Date(Date.now() - 80 * 24 * 60 * 60 * 1000),
+      },
+    ];
+    for (const r of seedShowReviews) {
+      this.showReviewsMap.set(r.id, r);
+    }
+
+    // Seed show comments for Bicep show
+    const seedShowComments: ShowComment[] = [
+      {
+        id: this.showCommentCurrentId++,
+        showId: 1,
+        userId: user.id,
+        content: "Does anyone know if they played Atlas during this set? I was near the back and couldn't hear perfectly.",
+        upvotes: 8,
+        createdAt: new Date(Date.now() - 83 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showCommentCurrentId++,
+        showId: 1,
+        userId: user.id,
+        content: "Yes they played it second to last! The whole crowd lost it.",
+        upvotes: 14,
+        createdAt: new Date(Date.now() - 82 * 24 * 60 * 60 * 1000),
+      },
+    ];
+    for (const c of seedShowComments) {
+      this.showCommentsMap.set(c.id, c);
     }
   }
 
@@ -1301,6 +1430,92 @@ export class MemStorage implements IStorage {
       this.placesMap.set(place.id, { ...place, reviewsCount: (place.reviewsCount || 0) + 1 });
     }
     return comment;
+  }
+
+  // Show operations
+  async getShow(id: number): Promise<Show | undefined> {
+    return this.showsMap.get(id);
+  }
+
+  async getShowBySetlistfmId(setlistfmId: string): Promise<Show | undefined> {
+    return Array.from(this.showsMap.values()).find(s => s.setlistfmId === setlistfmId);
+  }
+
+  async getAllShows(limit: number = 50): Promise<Show[]> {
+    return Array.from(this.showsMap.values())
+      .sort((a, b) => (b.eventDate > a.eventDate ? 1 : -1))
+      .slice(0, limit);
+  }
+
+  async createShow(insertShow: InsertShow): Promise<Show> {
+    const id = this.showCurrentId++;
+    const show: Show = {
+      id,
+      setlistfmId: insertShow.setlistfmId ?? null,
+      artistName: insertShow.artistName,
+      venueName: insertShow.venueName,
+      city: insertShow.city,
+      country: insertShow.country,
+      eventDate: insertShow.eventDate,
+      isManual: insertShow.isManual ?? false,
+      createdAt: new Date(),
+    };
+    this.showsMap.set(id, show);
+    return show;
+  }
+
+  async getShowReviews(showId: number): Promise<ShowReview[]> {
+    return Array.from(this.showReviewsMap.values())
+      .filter(r => r.showId === showId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getUserShowReview(userId: number, showId: number): Promise<ShowReview | undefined> {
+    return Array.from(this.showReviewsMap.values()).find(
+      r => r.userId === userId && r.showId === showId
+    );
+  }
+
+  async createShowReview(insertReview: InsertShowReview): Promise<ShowReview> {
+    const id = this.showReviewCurrentId++;
+    const review: ShowReview = {
+      id,
+      showId: insertReview.showId,
+      userId: insertReview.userId,
+      rating: insertReview.rating,
+      content: insertReview.content,
+      createdAt: new Date(),
+    };
+    this.showReviewsMap.set(id, review);
+    return review;
+  }
+
+  async getShowComments(showId: number): Promise<ShowComment[]> {
+    return Array.from(this.showCommentsMap.values())
+      .filter(c => c.showId === showId)
+      .sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+  }
+
+  async createShowComment(insertComment: InsertShowComment): Promise<ShowComment> {
+    const id = this.showCommentCurrentId++;
+    const comment: ShowComment = {
+      id,
+      showId: insertComment.showId,
+      userId: insertComment.userId,
+      content: insertComment.content,
+      upvotes: 0,
+      createdAt: new Date(),
+    };
+    this.showCommentsMap.set(id, comment);
+    return comment;
+  }
+
+  async upvoteShowComment(id: number): Promise<ShowComment | undefined> {
+    const comment = this.showCommentsMap.get(id);
+    if (!comment) return undefined;
+    const updated = { ...comment, upvotes: (comment.upvotes || 0) + 1 };
+    this.showCommentsMap.set(id, updated);
+    return updated;
   }
 }
 

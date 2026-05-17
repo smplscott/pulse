@@ -4,7 +4,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-simple";
 import { z } from "zod";
-import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertPlaceCommentSchema } from "@shared/schema";
+import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertPlaceCommentSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
 
@@ -790,7 +790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const place = await storage.getPlace(placeId);
       if (!place) return res.status(404).json({ message: "Place not found" });
       const schema = insertPlaceCommentSchema.extend({
-        content: z.string().min(1, "Comment cannot be empty").max(500),
+        content: z.string().min(1, "Comment cannot be empty").max(280),
       });
       const commentData = schema.parse({ ...req.body, placeId, userId });
       const comment = await storage.createPlaceComment(commentData);
@@ -801,6 +801,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       return res.status(500).json({ message: "Failed to post comment" });
     }
+  });
+
+  // Setlist.fm proxy
+  app.get("/api/setlistfm/search", async (req: Request, res: Response) => {
+    const artist = (req.query.artist as string || "").trim();
+    if (!artist) return res.json([]);
+    const apiKey = process.env.SETLISTFM_API_KEY;
+    if (!apiKey) {
+      return res.json({ error: "SETLISTFM_API_KEY not configured", results: [] });
+    }
+    try {
+      const url = `https://api.setlist.fm/rest/1.0/search/setlists?artistName=${encodeURIComponent(artist)}&p=1`;
+      const response = await fetch(url, {
+        headers: { "x-api-key": apiKey, "Accept": "application/json" },
+      });
+      if (!response.ok) {
+        return res.json({ error: "Setlist.fm API error", results: [] });
+      }
+      const data = await response.json() as {
+        setlist?: Array<{
+          id: string;
+          artist: { name: string };
+          venue: { name: string; city: { name: string; country: { name: string } } };
+          eventDate: string;
+        }>;
+      };
+      const results = (data.setlist || []).map(s => ({
+        setlistfmId: s.id,
+        artistName: s.artist?.name ?? artist,
+        venueName: s.venue?.name ?? "Unknown Venue",
+        city: s.venue?.city?.name ?? "",
+        country: s.venue?.city?.country?.name ?? "",
+        eventDate: s.eventDate
+          ? s.eventDate.split("-").reverse().join("-")
+          : "",
+      }));
+      return res.json({ results });
+    } catch {
+      return res.json({ error: "Failed to fetch from Setlist.fm", results: [] });
+    }
+  });
+
+  // Shows routes
+  app.get("/api/shows", async (_req: Request, res: Response) => {
+    const shows = await storage.getAllShows();
+    return res.json(shows);
+  });
+
+  app.get("/api/shows/:id", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid show ID" });
+    const show = await storage.getShow(id);
+    if (!show) return res.status(404).json({ message: "Show not found" });
+    return res.json(show);
+  });
+
+  app.post("/api/shows", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const schema = insertShowSchema.extend({
+        artistName: z.string().min(1, "Artist name required"),
+        venueName: z.string().min(1, "Venue name required"),
+        city: z.string().min(1, "City required"),
+        country: z.string().min(1, "Country required"),
+        eventDate: z.string().min(1, "Event date required"),
+      });
+      const data = schema.parse(req.body);
+      // Upsert by setlistfmId if provided
+      if (data.setlistfmId) {
+        const existing = await storage.getShowBySetlistfmId(data.setlistfmId);
+        if (existing) return res.json(existing);
+      }
+      const show = await storage.createShow(data);
+      return res.status(201).json(show);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to create show" });
+    }
+  });
+
+  app.get("/api/shows/:id/reviews", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid show ID" });
+    const reviews = await storage.getShowReviews(id);
+    const userId = req.session.userId;
+    const userReview = userId ? await storage.getUserShowReview(userId, id) : undefined;
+    return res.json({ reviews, userReview: userReview ?? null });
+  });
+
+  app.post("/api/shows/:id/reviews", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const showId = parseInt(req.params.id);
+      if (isNaN(showId)) return res.status(400).json({ message: "Invalid show ID" });
+      const show = await storage.getShow(showId);
+      if (!show) return res.status(404).json({ message: "Show not found" });
+      const existing = await storage.getUserShowReview(userId, showId);
+      if (existing) return res.status(409).json({ message: "You have already reviewed this show" });
+      const schema = insertShowReviewSchema.extend({
+        rating: z.number().int().min(1).max(5),
+        content: z.string().min(10, "Review must be at least 10 characters").max(1000),
+      });
+      const reviewData = schema.parse({ ...req.body, showId, userId });
+      const review = await storage.createShowReview(reviewData);
+      // Award "I was there" badge if user doesn't already have it
+      const user = await storage.getUser(userId);
+      if (user) {
+        const badges = (user.badges as Array<{ type: string }>) || [];
+        const hasBadge = badges.some(b => b.type === "i_was_there");
+        if (!hasBadge) {
+          await storage.updateUser(userId, {
+            badges: [...badges, { type: "i_was_there", earnedAt: new Date().toISOString() }],
+          });
+        }
+      }
+      return res.status(201).json(review);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  app.get("/api/shows/:id/comments", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid show ID" });
+    const comments = await storage.getShowComments(id);
+    return res.json(comments);
+  });
+
+  app.post("/api/shows/:id/comments", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const showId = parseInt(req.params.id);
+      if (isNaN(showId)) return res.status(400).json({ message: "Invalid show ID" });
+      const show = await storage.getShow(showId);
+      if (!show) return res.status(404).json({ message: "Show not found" });
+      const schema = insertShowCommentSchema.extend({
+        content: z.string().min(1, "Comment cannot be empty").max(280),
+      });
+      const commentData = schema.parse({ ...req.body, showId, userId });
+      const comment = await storage.createShowComment(commentData);
+      return res.status(201).json(comment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to post comment" });
+    }
+  });
+
+  app.post("/api/shows/:id/comments/:commentId/upvote", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const commentId = parseInt(req.params.commentId);
+    if (isNaN(commentId)) return res.status(400).json({ message: "Invalid comment ID" });
+    const comment = await storage.upvoteShowComment(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    return res.json(comment);
   });
 
   const httpServer = createServer(app);
