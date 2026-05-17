@@ -4,7 +4,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-simple";
 import { z } from "zod";
-import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema } from "@shared/schema";
+import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertNotificationSchema } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
 
@@ -117,6 +117,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Users routes
+  app.get("/api/users/username/:username", async (req: Request, res: Response) => {
+    const user = await storage.getUserByUsername(req.params.username);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    const { password, email, ...publicProfile } = user;
+    return res.json(publicProfile);
+  });
+
   app.get("/api/users/:id", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -343,8 +350,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/comments", async (req: Request, res: Response) => {
     try {
-      const commentData = insertCommentSchema.parse(req.body);
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const commentData = insertCommentSchema.parse({ ...req.body, userId });
       const comment = await storage.createComment(commentData);
+
+      // Fire notification to thread owner (skip if owner is the commenter)
+      const thread = await storage.getThread(commentData.threadId);
+      const actor = await storage.getUser(userId);
+      if (thread && actor && thread.userId !== userId) {
+        await storage.createNotification({
+          userId: thread.userId,
+          type: "comment",
+          threadId: thread.id,
+          threadTitle: thread.title,
+          actorId: userId,
+          actorUsername: actor.username,
+        });
+      }
+
       return res.status(201).json(comment);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -393,6 +417,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(set);
   });
   
+  app.get("/api/users/:userId/threads", async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.userId);
+    if (isNaN(userId)) return res.status(400).json({ message: "Invalid user ID" });
+    const threads = await storage.getThreadsByUser(userId);
+    return res.json(threads);
+  });
+
   app.get("/api/users/:userId/sets", async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId);
     if (isNaN(userId)) {
@@ -598,6 +629,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const songId = parseInt(req.params.songId);
     if (isNaN(songId)) return res.status(400).json({ message: "Invalid song ID" });
     await storage.unfollowSong(userId, songId);
+    return res.json({ success: true });
+  });
+
+  // Notifications routes
+  app.get("/api/notifications", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const notifications = await storage.getNotificationsByUser(userId);
+    return res.json(notifications);
+  });
+
+  app.get("/api/notifications/unread-count", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const count = await storage.getUnreadNotificationCount(userId);
+    return res.json({ count });
+  });
+
+  app.post("/api/notifications/read-all", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    await storage.markAllNotificationsRead(userId);
+    return res.json({ success: true });
+  });
+
+  app.post("/api/notifications/:id/read", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid notification ID" });
+    await storage.markNotificationRead(id);
     return res.json({ success: true });
   });
 

@@ -261,7 +261,32 @@ export const insertTrackIdVoteSchema = createInsertSchema(trackIdVotes).pick({
   voteType: true,
 });
 
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),       // recipient
+  type: text("type").notNull(),               // 'comment' | 'save'
+  threadId: integer("thread_id").notNull(),
+  threadTitle: text("thread_title").notNull(),
+  actorId: integer("actor_id").notNull(),
+  actorUsername: text("actor_username").notNull(),
+  read: boolean("read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).pick({
+  userId: true,
+  type: true,
+  threadId: true,
+  threadTitle: true,
+  actorId: true,
+  actorUsername: true,
+});
+
 // Export types
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 

@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Bell, LogOut, UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,14 @@ import {
 
 export default function Header() {
   const { user, logout } = useAuth();
+
+  const { data: unreadData } = useQuery<{ count: number }>({
+    queryKey: ["/api/notifications/unread-count"],
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const unreadCount = unreadData?.count ?? 0;
 
   const initials = user?.displayName
     ? user.displayName.slice(0, 2).toUpperCase()
@@ -27,9 +36,14 @@ export default function Header() {
 
       {user && (
         <div className="flex items-center space-x-3">
-          <Link href="/profile">
+          <Link href="/notifications">
             <button className="text-[#B3B3B3] hover:text-white relative">
               <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 flex items-center justify-center bg-[#5271ff] text-white text-[9px] font-bold rounded-full px-0.5 leading-none">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </button>
           </Link>
 

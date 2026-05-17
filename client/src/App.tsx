@@ -27,6 +27,7 @@ import CreateThread from "@/pages/CreateThread";
 import CreateSongRequest from "@/pages/CreateSongRequest";
 import Credits from "@/pages/Credits";
 import Samples from "@/pages/Samples";
+import Notifications from "@/pages/Notifications";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import NotFound from "@/pages/not-found";
@@ -61,6 +62,8 @@ function Router() {
       <Route path="/venues" component={() => <ProtectedRoute component={Venues} />} />
       <Route path="/library" component={() => <ProtectedRoute component={Library} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
+      <Route path="/profile/:username" component={() => <ProtectedRoute component={Profile} />} />
+      <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
       <Route path="/achievements" component={() => <ProtectedRoute component={CommunityAchievements} />} />
       <Route path="/messages" component={() => <ProtectedRoute component={Messages} />} />
       <Route path="/artists" component={() => <ProtectedRoute component={Artists} />} />

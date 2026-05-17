@@ -10,7 +10,8 @@ import type {
   MusicSet, InsertSet,
   SongRecommendation, InsertSongRecommendation,
   TrackId, InsertTrackId,
-  TrackIdVote, InsertTrackIdVote
+  TrackIdVote, InsertTrackIdVote,
+  Notification, InsertNotification
 } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
@@ -93,6 +94,13 @@ export interface IStorage {
   getFollowedSongs(userId: number): Promise<Song[]>;
   followSong(userId: number, songId: number): Promise<void>;
   unfollowSong(userId: number, songId: number): Promise<void>;
+
+  // Notification operations
+  getNotificationsByUser(userId: number): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: number): Promise<number>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationRead(id: number): Promise<void>;
+  markAllNotificationsRead(userId: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -108,6 +116,7 @@ export class MemStorage implements IStorage {
   private trackIdVotesMap: Map<number, TrackIdVote> = new Map();
   private followedArtistsMap: Map<number, Set<number>> = new Map();
   private followedSongsMap: Map<number, Set<number>> = new Map();
+  private notificationsMap: Map<number, Notification> = new Map();
 
   private userCurrentId = 1;
   private artistCurrentId = 1;
@@ -119,6 +128,7 @@ export class MemStorage implements IStorage {
   private songRecommendationCurrentId = 1;
   private trackIdCurrentId = 1;
   private trackIdVoteCurrentId = 1;
+  private notificationCurrentId = 1;
 
   constructor() {
     void this.seedData();
@@ -517,6 +527,46 @@ export class MemStorage implements IStorage {
     // Seed testuser follows all 3 artists and all 4 songs
     this.followedArtistsMap.set(user.id, new Set([artist1.id, artist2.id, artist3.id]));
     this.followedSongsMap.set(user.id, new Set([1, 2, 3, 4]));
+
+    // Seed notifications for testuser
+    const seedNotifications: Notification[] = [
+      {
+        id: this.notificationCurrentId++,
+        userId: user.id,
+        type: "comment",
+        threadId: 1,
+        threadTitle: "The Doors — legacy and impact on modern rock",
+        actorId: user.id,
+        actorUsername: "musicfan42",
+        read: false,
+        createdAt: new Date(Date.now() - 30 * 60 * 1000),
+      },
+      {
+        id: this.notificationCurrentId++,
+        userId: user.id,
+        type: "save",
+        threadId: 2,
+        threadTitle: "Bicep live set thoughts",
+        actorId: user.id,
+        actorUsername: "deeplistener",
+        read: false,
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      },
+      {
+        id: this.notificationCurrentId++,
+        userId: user.id,
+        type: "comment",
+        threadId: 3,
+        threadTitle: "Best electronic albums of 2024",
+        actorId: user.id,
+        actorUsername: "rave_historian",
+        read: true,
+        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+      },
+    ];
+    for (const n of seedNotifications) {
+      this.notificationsMap.set(n.id, n);
+    }
   }
 
   // User operations
@@ -961,6 +1011,48 @@ export class MemStorage implements IStorage {
 
   async unfollowSong(userId: number, songId: number): Promise<void> {
     this.followedSongsMap.get(userId)?.delete(songId);
+  }
+
+  // Notification operations
+  async getNotificationsByUser(userId: number): Promise<Notification[]> {
+    return Array.from(this.notificationsMap.values())
+      .filter(n => n.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getUnreadNotificationCount(userId: number): Promise<number> {
+    return Array.from(this.notificationsMap.values())
+      .filter(n => n.userId === userId && !n.read).length;
+  }
+
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    const id = this.notificationCurrentId++;
+    const notification: Notification = {
+      id,
+      userId: insertNotification.userId,
+      type: insertNotification.type,
+      threadId: insertNotification.threadId,
+      threadTitle: insertNotification.threadTitle,
+      actorId: insertNotification.actorId,
+      actorUsername: insertNotification.actorUsername,
+      read: false,
+      createdAt: new Date(),
+    };
+    this.notificationsMap.set(id, notification);
+    return notification;
+  }
+
+  async markNotificationRead(id: number): Promise<void> {
+    const n = this.notificationsMap.get(id);
+    if (n) this.notificationsMap.set(id, { ...n, read: true });
+  }
+
+  async markAllNotificationsRead(userId: number): Promise<void> {
+    for (const [id, n] of this.notificationsMap.entries()) {
+      if (n.userId === userId) {
+        this.notificationsMap.set(id, { ...n, read: true });
+      }
+    }
   }
 }
 
