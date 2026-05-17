@@ -806,13 +806,11 @@ export class MemStorage implements IStorage {
   }
 
   async getEngagedThreadsByUser(userId: number): Promise<Thread[]> {
-    const commentedThreadIds = new Set(
-      Array.from(this.comments.values())
-        .filter(c => c.userId === userId)
-        .map(c => c.threadId)
-    );
+    const userComments = Array.from(this.comments.values()).filter(c => c.userId === userId);
+    const commentedThreadIds = new Set(userComments.map(c => c.threadId));
+    // Exclude threads the user authored — "engaged" means commented on, not created
     return Array.from(this.threads.values())
-      .filter(t => t.userId === userId || commentedThreadIds.has(t.id))
+      .filter(t => t.userId !== userId && commentedThreadIds.has(t.id))
       .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
       .slice(0, 20);
   }
