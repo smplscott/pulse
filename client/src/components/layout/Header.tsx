@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import GlobalSearch from "@/components/GlobalSearch";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -36,6 +37,7 @@ export default function Header() {
 
       {user && (
         <div className="flex items-center space-x-3">
+          <GlobalSearch />
           <Link href="/notifications">
             <button className="text-[#B3B3B3] hover:text-white relative">
               <Bell className="h-5 w-5" />

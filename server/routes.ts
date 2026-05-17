@@ -8,6 +8,29 @@ import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSch
 
 const scryptAsync = promisify(scrypt);
 
+// ── Spotify token cache (module-level so all routes share it) ──────────────
+let _spotifyTokenCache: { token: string; expiresAt: number } | null = null;
+async function getSpotifyToken(): Promise<string | null> {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return null;
+  if (_spotifyTokenCache && Date.now() < _spotifyTokenCache.expiresAt) return _spotifyTokenCache.token;
+  try {
+    const res = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+      },
+      body: "grant_type=client_credentials",
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { access_token: string; expires_in: number };
+    _spotifyTokenCache = { token: data.access_token, expiresAt: Date.now() + (data.expires_in - 60) * 1000 };
+    return data.access_token;
+  } catch { return null; }
+}
+
 async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
@@ -248,19 +271,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(venue);
   });
   
-  // Search (artists + songs combined)
+  // Global search — aggregates Spotify artists, Setlist.fm shows, Spotify albums, local places
   app.get("/api/search", async (req: Request, res: Response) => {
-    const q = (req.query.q as string || "").toLowerCase().trim();
-    if (!q) return res.json({ artists: [], songs: [] });
-    const allSongs = await storage.getAllSongs(100);
-    const allArtists = await storage.getAllArtists();
-    const songs = allSongs.filter(s =>
-      s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
-    ).slice(0, 10);
-    const artists = allArtists.filter(a =>
-      a.name.toLowerCase().includes(q)
-    ).slice(0, 10);
-    return res.json({ artists, songs });
+    const q = ((req.query.q as string) || "").trim();
+    const type = (req.query.type as string) || "all";
+    if (!q || q.length < 2) return res.json({ artists: [], shows: [], albums: [], places: [] });
+
+    const results: { artists: unknown[]; shows: unknown[]; albums: unknown[]; places: unknown[] } = {
+      artists: [], shows: [], albums: [], places: [],
+    };
+
+    const token = await getSpotifyToken();
+    const setlistKey = process.env.SETLISTFM_API_KEY;
+
+    await Promise.allSettled([
+      // Spotify artists
+      (type === "all" || type === "artists") && token
+        ? fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=artist&limit=6`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then((data: any) => {
+            results.artists = (data.artists?.items || []).map((a: any) => ({
+              spotifyId: a.id, name: a.name, imageUrl: a.images[0]?.url || null, genres: (a.genres || []).slice(0, 2),
+            }));
+          }).catch(() => {})
+        : Promise.resolve(),
+
+      // Setlist.fm shows
+      (type === "all" || type === "shows") && setlistKey
+        ? fetch(`https://api.setlist.fm/rest/1.0/search/setlists?artistName=${encodeURIComponent(q)}&p=1`, {
+            headers: { "x-api-key": setlistKey, Accept: "application/json" },
+          }).then(r => r.json()).then((data: any) => {
+            results.shows = (data.setlist || []).slice(0, 6).map((s: any) => ({
+              setlistfmId: s.id,
+              artistName: s.artist?.name ?? q,
+              venueName: s.venue?.name ?? "Unknown Venue",
+              city: s.venue?.city?.name ?? "",
+              country: s.venue?.city?.country?.name ?? "",
+              eventDate: s.eventDate ? s.eventDate.split("-").reverse().join("-") : "",
+            }));
+          }).catch(() => {})
+        : Promise.resolve(),
+
+      // Spotify albums
+      (type === "all" || type === "albums") && token
+        ? fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=album&limit=6`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(r => r.json()).then((data: any) => {
+            results.albums = (data.albums?.items || []).map((a: any) => ({
+              spotifyId: a.id, name: a.name,
+              imageUrl: a.images[0]?.url || null,
+              releaseYear: a.release_date?.slice(0, 4) || "",
+              artistName: a.artists?.[0]?.name || "",
+              artistSpotifyId: a.artists?.[0]?.id || "",
+            }));
+          }).catch(() => {})
+        : Promise.resolve(),
+
+      // Local places
+      (type === "all" || type === "places")
+        ? storage.searchPlaces(q).then(places => {
+            results.places = places.slice(0, 6).map(p => ({
+              id: p.id, name: p.name, city: p.city, country: p.country, category: p.category,
+            }));
+          }).catch(() => {})
+        : Promise.resolve(),
+    ]);
+
+    return res.json(results);
   });
 
   // Threads routes
@@ -272,7 +349,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/threads", async (req: Request, res: Response) => {
     const type = req.query.type as string | undefined;
-    const threads = await storage.getAllThreads(type);
+    const artistName = req.query.artistName as string | undefined;
+    const albumId = req.query.albumId as string | undefined;
+    let threads = await storage.getAllThreads(type);
+    if (artistName) {
+      const lc = artistName.toLowerCase();
+      threads = threads.filter(t => t.artistName && t.artistName.toLowerCase() === lc);
+    }
+    if (albumId) {
+      threads = threads.filter(t => t.albumId === albumId);
+    }
     return res.json(threads);
   });
 
@@ -807,29 +893,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Spotify proxy (client credentials flow with in-memory token cache)
-  let _spotifyTokenCache: { token: string; expiresAt: number } | null = null;
-  async function getSpotifyToken(): Promise<string | null> {
-    const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-    if (!clientId || !clientSecret) return null;
-    if (_spotifyTokenCache && Date.now() < _spotifyTokenCache.expiresAt) return _spotifyTokenCache.token;
-    try {
-      const res = await fetch("https://accounts.spotify.com/api/token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
-        },
-        body: "grant_type=client_credentials",
-      });
-      if (!res.ok) return null;
-      const data = await res.json() as { access_token: string; expires_in: number };
-      _spotifyTokenCache = { token: data.access_token, expiresAt: Date.now() + (data.expires_in - 60) * 1000 };
-      return data.access_token;
-    } catch { return null; }
-  }
-
+  // Spotify proxy routes (use module-level getSpotifyToken)
   app.get("/api/spotify/artists/search", async (req: Request, res: Response) => {
     const q = ((req.query.q as string) || "").trim();
     if (!q) return res.json({ results: [] });
@@ -862,6 +926,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       return res.json({ results });
     } catch { return res.json({ error: "Failed to fetch albums from Spotify", results: [] }); }
+  });
+
+  // Single Spotify artist metadata
+  app.get("/api/spotify/artists/:spotifyId", async (req: Request, res: Response) => {
+    const { spotifyId } = req.params;
+    const token = await getSpotifyToken();
+    if (!token) return res.json({ error: "SPOTIFY credentials not configured", artist: null });
+    try {
+      const response = await fetch(`https://api.spotify.com/v1/artists/${spotifyId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) return res.json({ error: "Spotify API error", artist: null });
+      const a = await response.json() as { id: string; name: string; images: Array<{ url: string }>; genres: string[]; followers: { total: number } };
+      return res.json({
+        artist: {
+          spotifyId: a.id, name: a.name,
+          imageUrl: a.images[0]?.url || null,
+          genres: a.genres || [],
+          followers: a.followers?.total || 0,
+        }
+      });
+    } catch { return res.json({ error: "Failed to fetch artist from Spotify", artist: null }); }
+  });
+
+  // Single Spotify album metadata
+  app.get("/api/spotify/albums/:spotifyId", async (req: Request, res: Response) => {
+    const { spotifyId } = req.params;
+    const token = await getSpotifyToken();
+    if (!token) return res.json({ error: "SPOTIFY credentials not configured", album: null });
+    try {
+      const response = await fetch(`https://api.spotify.com/v1/albums/${spotifyId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) return res.json({ error: "Spotify API error", album: null });
+      const a = await response.json() as { id: string; name: string; images: Array<{ url: string }>; release_date: string; album_type: string; total_tracks: number; artists: Array<{ id: string; name: string }> };
+      return res.json({
+        album: {
+          spotifyId: a.id, name: a.name,
+          imageUrl: a.images[0]?.url || null,
+          releaseYear: a.release_date?.slice(0, 4) || "",
+          albumType: a.album_type,
+          totalTracks: a.total_tracks,
+          artistName: a.artists?.[0]?.name || "",
+          artistSpotifyId: a.artists?.[0]?.id || "",
+        }
+      });
+    } catch { return res.json({ error: "Failed to fetch album from Spotify", album: null }); }
   });
 
   // Setlist.fm proxy

@@ -32,6 +32,7 @@ import CreateSongRequest from "@/pages/CreateSongRequest";
 import Credits from "@/pages/Credits";
 import Samples from "@/pages/Samples";
 import Notifications from "@/pages/Notifications";
+import AlbumPage from "@/pages/AlbumPage";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import NotFound from "@/pages/not-found";
@@ -78,6 +79,7 @@ function Router() {
       <Route path="/places/:id" component={() => <ProtectedRoute component={PlaceDetail} />} />
       {/* <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} /> */}
       <Route path="/artist/:id" component={() => <ProtectedRoute component={ArtistDetail} />} />
+      <Route path="/album/:spotifyId" component={() => <ProtectedRoute component={AlbumPage} />} />
       <Route path="/song/:id" component={() => <ProtectedRoute component={SongDetail} />} />
       <Route path="/thread/:id" component={() => <ProtectedRoute component={ThreadDetail} />} />
       <Route path="/venue/:id" component={() => <Redirect to="/places" />} />
