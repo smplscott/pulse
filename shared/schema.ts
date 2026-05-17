@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   displayName: text("display_name"),
   bio: text("bio"),
+  city: text("city"),
   profilePicture: text("profile_picture"),
   favoriteSongs: jsonb("favorite_songs").default('[]'),
   favoriteGenres: jsonb("favorite_genres").default('[]'),
@@ -25,6 +26,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   displayName: true,
   bio: true,
+  city: true,
   profilePicture: true,
 });
 

@@ -144,7 +144,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const user = await storage.getUserByUsername(req.params.username);
     if (!user) return res.status(404).json({ message: "User not found" });
     const { password, email, ...publicProfile } = user;
-    return res.json(publicProfile);
+    const [showReviewCount, placesCount] = await Promise.all([
+      storage.getShowReviewCountByUser(user.id),
+      storage.getPlacesCountByUser(user.id),
+    ]);
+    return res.json({ ...publicProfile, showReviewCount, placesCount });
   });
 
   app.get("/api/users/:id", async (req: Request, res: Response) => {
@@ -158,9 +162,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "User not found" });
     }
     
-    // Don't send password back to client
     const { password, ...userWithoutPassword } = user;
     return res.json(userWithoutPassword);
+  });
+
+  app.patch("/api/users/:id", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
+
+    const schema = z.object({
+      displayName: z.string().max(50).optional(),
+      bio: z.string().max(300).optional(),
+      city: z.string().max(100).optional().nullable(),
+    });
+    try {
+      const updates = schema.parse(req.body);
+      const updated = await storage.updateUser(id, updates);
+      if (!updated) return res.status(404).json({ message: "User not found" });
+      const { password, email, ...publicProfile } = updated;
+      return res.json(publicProfile);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      return res.status(500).json({ message: "Failed to update profile" });
+    }
   });
   
   app.post("/api/users", async (req: Request, res: Response) => {

@@ -1,22 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Music2, MapPin, Edit } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { MessageSquare, Music2, MapPin, Edit, Mic } from "lucide-react";
 import { Link } from "wouter";
 import ThreadCard from "@/components/cards/ThreadCard";
 import { useAuth } from "@/context/AuthContext";
 import { Thread } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 type PublicUser = {
   id: number;
   username: string;
   displayName?: string | null;
   bio?: string | null;
+  city?: string | null;
   profilePicture?: string | null;
   favoriteGenres?: string[];
+  showReviewCount?: number;
+  placesCount?: number;
 };
 
 const TASTE_COLORS: Record<string, string> = {
@@ -33,6 +43,107 @@ const TASTE_COLORS: Record<string, string> = {
 
 function tasteColor(genre: string): string {
   return TASTE_COLORS[genre] ?? "bg-[#282828] text-[#B3B3B3]";
+}
+
+function IWasThereTag() {
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#5271ff]/15 text-[#5271ff] border border-[#5271ff]/30 uppercase tracking-wide">
+      <Mic className="h-2.5 w-2.5" />
+      I was there
+    </span>
+  );
+}
+
+function EditProfileDialog({ user, onUpdated }: { user: PublicUser; onUpdated: () => void }) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [displayName, setDisplayName] = useState(user.displayName ?? "");
+  const [bio, setBio] = useState(user.bio ?? "");
+  const [city, setCity] = useState(user.city ?? "");
+
+  const mutation = useMutation({
+    mutationFn: (body: { displayName?: string; bio?: string; city?: string | null }) =>
+      apiRequest("PATCH", `/api/users/${user.id}`, body),
+    onSuccess: async () => {
+      await onUpdated();
+      setOpen(false);
+      toast({ title: "Profile updated" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update profile", variant: "destructive" });
+    },
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="text-[#B3B3B3] hover:text-white flex-shrink-0">
+          <Edit className="h-4 w-4" />
+        </button>
+      </DialogTrigger>
+      <DialogContent className="bg-[#111] border-[#333] text-white max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Edit profile</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div className="space-y-1.5">
+            <label className="text-xs text-[#B3B3B3] font-medium">Display name</label>
+            <Input
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              maxLength={50}
+              className="bg-[#1a1a1a] border-[#333] text-white"
+              placeholder="Your name"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[#B3B3B3] font-medium">City / scene</label>
+            <Input
+              value={city}
+              onChange={e => setCity(e.target.value)}
+              maxLength={100}
+              className="bg-[#1a1a1a] border-[#333] text-white"
+              placeholder="e.g. East London, Berlin, Detroit"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs text-[#B3B3B3] font-medium">Bio</label>
+            <Textarea
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+              maxLength={300}
+              rows={3}
+              className="bg-[#1a1a1a] border-[#333] text-white resize-none"
+              placeholder="Tell the community about your taste…"
+            />
+            <p className="text-right text-[10px] text-[#555]">{bio.length}/300</p>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button
+              variant="outline"
+              className="flex-1 border-[#333] text-[#B3B3B3] hover:bg-[#222]"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 bg-[#5271ff] hover:bg-[#3f5be0] text-white"
+              onClick={() =>
+                mutation.mutate({
+                  displayName: displayName || undefined,
+                  bio: bio || undefined,
+                  city: city || null,
+                })
+              }
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function Profile() {
@@ -60,6 +171,10 @@ export default function Profile() {
   });
 
   const genres = (profileUser?.favoriteGenres as string[] | undefined) ?? [];
+
+  const handleProfileUpdated = async () => {
+    await queryClient.invalidateQueries({ queryKey: [`/api/users/username/${resolvedUsername}`] });
+  };
 
   return (
     <div className="min-h-screen pb-32">
@@ -96,15 +211,17 @@ export default function Profile() {
                   <h1 className="text-xl font-bold truncate">
                     {profileUser.displayName || profileUser.username}
                   </h1>
-                  {isOwnProfile && (
-                    <Link href="/settings">
-                      <button className="text-[#B3B3B3] hover:text-white flex-shrink-0">
-                        <Edit className="h-4 w-4" />
-                      </button>
-                    </Link>
+                  {isOwnProfile && profileUser && (
+                    <EditProfileDialog user={profileUser} onUpdated={handleProfileUpdated} />
                   )}
                 </div>
                 <p className="text-sm text-[#B3B3B3]">@{profileUser.username}</p>
+                {profileUser.city && (
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <MapPin className="h-3 w-3 text-[#666]" />
+                    <span className="text-xs text-[#888]">{profileUser.city}</span>
+                  </div>
+                )}
                 {profileUser.bio && (
                   <p className="text-sm text-white mt-1.5 leading-relaxed">{profileUser.bio}</p>
                 )}
@@ -128,15 +245,19 @@ export default function Profile() {
               </div>
             )}
 
-            {/* Thread counts */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            {/* IRL Stats — 3-tile grid */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
               <div className="bg-[#181818] rounded-lg p-3 text-center">
                 <p className="text-lg font-bold">{startedThreads?.length ?? "—"}</p>
-                <p className="text-xs text-[#B3B3B3]">Threads started</p>
+                <p className="text-xs text-[#B3B3B3]">Threads</p>
               </div>
               <div className="bg-[#181818] rounded-lg p-3 text-center">
-                <p className="text-lg font-bold">{engagedThreads?.length ?? "—"}</p>
-                <p className="text-xs text-[#B3B3B3]">Threads engaged</p>
+                <p className="text-lg font-bold">{profileUser.showReviewCount ?? "—"}</p>
+                <p className="text-xs text-[#B3B3B3]">Shows attended</p>
+              </div>
+              <div className="bg-[#181818] rounded-lg p-3 text-center">
+                <p className="text-lg font-bold">{profileUser.placesCount ?? "—"}</p>
+                <p className="text-xs text-[#B3B3B3]">Places added</p>
               </div>
             </div>
           </div>
@@ -164,7 +285,16 @@ export default function Profile() {
               {isLoadingStarted ? (
                 [1, 2, 3].map(i => <Skeleton key={i} className="h-36 w-full" />)
               ) : startedThreads && startedThreads.length > 0 ? (
-                startedThreads.map(t => <ThreadCard key={t.id} thread={t} />)
+                startedThreads.map(t => (
+                  <div key={t.id}>
+                    {t.threadType === "live_show_review" && (
+                      <div className="mb-1.5">
+                        <IWasThereTag />
+                      </div>
+                    )}
+                    <ThreadCard thread={t} />
+                  </div>
+                ))
               ) : (
                 <div className="bg-[#181818] rounded-lg p-8 text-center">
                   <MessageSquare className="h-10 w-10 text-[#3E3E3E] mx-auto mb-3" />

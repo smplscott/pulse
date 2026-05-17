@@ -115,6 +115,10 @@ export interface IStorage {
   markNotificationRead(id: number): Promise<void>;
   markAllNotificationsRead(userId: number): Promise<void>;
 
+  // User IRL stat helpers
+  getShowReviewCountByUser(userId: number): Promise<number>;
+  getPlacesCountByUser(userId: number): Promise<number>;
+
   // Place operations
   getPlace(id: number): Promise<Place | undefined>;
   getAllPlaces(limit?: number): Promise<Place[]>;
@@ -190,6 +194,7 @@ export class MemStorage implements IStorage {
       password: hashedPassword,
       displayName: "Test User",
       bio: "Music lover and avid listener.",
+      city: "East London",
       profilePicture: null,
       favoriteSongs: [],
       favoriteGenres: [],
@@ -867,6 +872,7 @@ export class MemStorage implements IStorage {
       email: insertUser.email || null,
       displayName: insertUser.displayName || null,
       bio: insertUser.bio || null,
+      city: insertUser.city || null,
       profilePicture: insertUser.profilePicture || null,
       favoriteSongs: [],
       favoriteGenres: [],
@@ -884,6 +890,14 @@ export class MemStorage implements IStorage {
     const updated = { ...user, ...updates };
     this.users.set(id, updated);
     return updated;
+  }
+
+  async getShowReviewCountByUser(userId: number): Promise<number> {
+    return Array.from(this.showReviewsMap.values()).filter(r => r.userId === userId).length;
+  }
+
+  async getPlacesCountByUser(userId: number): Promise<number> {
+    return Array.from(this.placesMap.values()).filter(p => p.userId === userId).length;
   }
 
   // MusicSet operations
