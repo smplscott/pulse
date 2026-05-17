@@ -806,7 +806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setlist.fm proxy
   app.get("/api/setlistfm/search", async (req: Request, res: Response) => {
     const artist = (req.query.artist as string || "").trim();
-    if (!artist) return res.json([]);
+    if (!artist) return res.json({ results: [] });
     const apiKey = process.env.SETLISTFM_API_KEY;
     if (!apiKey) {
       return res.json({ error: "SETLISTFM_API_KEY not configured", results: [] });
@@ -979,10 +979,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/shows/:id/comments/:commentId/upvote", async (req: Request, res: Response) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const showId = parseInt(req.params.id);
     const commentId = parseInt(req.params.commentId);
-    if (isNaN(commentId)) return res.status(400).json({ message: "Invalid comment ID" });
+    if (isNaN(showId) || isNaN(commentId)) return res.status(400).json({ message: "Invalid ID" });
     const comment = await storage.upvoteShowComment(commentId);
     if (!comment) return res.status(404).json({ message: "Comment not found" });
+    if (comment.showId !== showId) return res.status(404).json({ message: "Comment not found" });
     return res.json(comment);
   });
 
