@@ -797,6 +797,7 @@ export class MemStorage implements IStorage {
     }
 
     // Seed show reviews for Bicep @ Alexandra Palace (show id 1)
+    // Two different users — one review per user per show
     const seedShowReviews: ShowReview[] = [
       {
         id: this.showReviewCurrentId++,
@@ -809,7 +810,7 @@ export class MemStorage implements IStorage {
       {
         id: this.showReviewCurrentId++,
         showId: 1,
-        userId: user.id,
+        userId: user.id + 1,
         rating: 4,
         content: "Incredible show. The visuals were stunning and the setlist was flawless. Only docking one star because the queue was absurd.",
         createdAt: new Date(Date.now() - 80 * 24 * 60 * 60 * 1000),

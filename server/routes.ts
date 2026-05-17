@@ -879,8 +879,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/shows", async (req: Request, res: Response) => {
     try {
-      const userId = req.session.userId;
-      if (!userId) return res.status(401).json({ message: "Not authenticated" });
       const schema = insertShowSchema.extend({
         artistName: z.string().min(1, "Artist name required"),
         venueName: z.string().min(1, "Venue name required"),

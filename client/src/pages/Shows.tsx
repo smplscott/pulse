@@ -57,11 +57,18 @@ function ShowCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className="font-semibold text-white truncate">{show.artistName}</p>
-            {!isLocal && (
-              <span className="text-[10px] bg-[#1a1a3a] text-[#5271ff] px-2 py-0.5 rounded-full flex-shrink-0">
-                Setlist.fm
-              </span>
-            )}
+            <div className="flex gap-1 flex-shrink-0">
+              {!isLocal && (
+                <span className="text-[10px] bg-[#1a1a3a] text-[#5271ff] px-2 py-0.5 rounded-full">
+                  Setlist.fm
+                </span>
+              )}
+              {isLocal && local?.isManual && (
+                <span className="text-[10px] bg-[#1a3a1a] text-[#c2f970] px-2 py-0.5 rounded-full">
+                  Community added
+                </span>
+              )}
+            </div>
           </div>
           <p className="text-sm text-[#B3B3B3] truncate">{show.venueName}</p>
           <div className="flex items-center flex-wrap gap-3 mt-1.5">

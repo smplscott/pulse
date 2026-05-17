@@ -246,7 +246,14 @@ export default function ShowDetail() {
               <Ticket className="h-6 w-6 text-[#5271ff]" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-white leading-tight">{show.artistName}</h1>
+              <div className="flex items-start gap-2 flex-wrap">
+                <h1 className="text-xl font-bold text-white leading-tight">{show.artistName}</h1>
+                {show.isManual && (
+                  <span className="text-[10px] bg-[#1a3a1a] text-[#c2f970] px-2 py-0.5 rounded-full self-center flex-shrink-0">
+                    Community added
+                  </span>
+                )}
+              </div>
               <p className="text-[#B3B3B3] text-sm mt-0.5">{show.venueName}</p>
               <div className="flex flex-wrap gap-3 mt-2">
                 <span className="flex items-center gap-1 text-xs text-[#666]">
