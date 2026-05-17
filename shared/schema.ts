@@ -124,10 +124,14 @@ export const threads = pgTable("threads", {
   content: text("content").notNull(),
   userId: integer("user_id").notNull(),
   type: text("type").notNull().default("discussion"),
-  threadType: text("thread_type").notNull().default("topic"), // new_music | listening_now | live_show_review | topic
+  threadType: text("thread_type").notNull().default("topic"), // new_music | listening_now | live_show_review | album_review | topic
   songId: integer("song_id"),
   artistId: integer("artist_id"),
   setId: integer("set_id"),
+  showId: integer("show_id"),
+  albumId: text("album_id"),
+  albumName: text("album_name"),
+  artistName: text("artist_name"),
   starRating: integer("star_rating"), // 1-5, for live_show_review only
   status: text("status").default("active"),
   upvotes: integer("upvotes").default(0),
@@ -146,6 +150,10 @@ export const insertThreadSchema = createInsertSchema(threads).pick({
   songId: true,
   artistId: true,
   setId: true,
+  showId: true,
+  albumId: true,
+  albumName: true,
+  artistName: true,
   starRating: true,
   status: true,
 });

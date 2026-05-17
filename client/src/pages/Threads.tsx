@@ -28,9 +28,9 @@ export default function Threads() {
 
   const filters = [
     { id: "all", label: "All", icon: <MessageCircle className="w-4 h-4 mr-2" /> },
-    { id: "music", label: "Music", icon: <Music className="w-4 h-4 mr-2" /> },
-    { id: "community", label: "Community", icon: <User className="w-4 h-4 mr-2" /> },
-    { id: "events", label: "Events", icon: <Calendar className="w-4 h-4 mr-2" /> }
+    { id: "live_show_review", label: "Live Show Review", icon: <Calendar className="w-4 h-4 mr-2" /> },
+    { id: "album_review", label: "Album Review", icon: <Music className="w-4 h-4 mr-2" /> },
+    { id: "topic", label: "Topic", icon: <User className="w-4 h-4 mr-2" /> },
   ];
 
   const { data: threads, isLoading: isLoadingThreads } = useQuery<Thread[]>({
@@ -50,9 +50,7 @@ export default function Threads() {
         thread.content.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesFilter = selectedFilter === "all" ? true :
-        selectedFilter === "music" ? thread.type === "music" :
-        selectedFilter === "community" ? thread.type === "community" :
-        selectedFilter === "events" ? thread.type === "event" : false;
+        thread.threadType === selectedFilter;
       
       return matchesSearch && matchesFilter;
     }

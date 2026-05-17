@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { MessageCircleIcon, BookmarkIcon, Star, Music2Icon, MicVocalIcon } from "lucide-react";
+import { MessageCircleIcon, BookmarkIcon, Star, Music2Icon, MicVocalIcon, Disc3, Ticket } from "lucide-react";
 import { Thread, Song, Artist } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const THREAD_TYPE_LABELS: Record<string, string> = {
   new_music: "New Music",
   listening_now: "Listening Now",
-  live_show_review: "Live Show",
+  live_show_review: "Live Show Review",
+  album_review: "Album Review",
   topic: "Topic",
 };
 
@@ -17,7 +18,13 @@ const THREAD_TYPE_COLORS: Record<string, string> = {
   new_music: "bg-[#c2f970]/20 text-[#c2f970]",
   listening_now: "bg-blue-500/20 text-blue-400",
   live_show_review: "bg-orange-500/20 text-orange-400",
+  album_review: "bg-blue-500/20 text-blue-400",
   topic: "bg-purple-500/20 text-purple-400",
+};
+
+const THREAD_TYPE_ICONS: Record<string, typeof Disc3> = {
+  live_show_review: Ticket,
+  album_review: Disc3,
 };
 
 type ThreadCardProps = {
@@ -43,6 +50,23 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
   const createdAt = new Date(thread.createdAt || Date.now());
   const typeLabel = THREAD_TYPE_LABELS[thread.threadType] || "Topic";
   const typeColor = THREAD_TYPE_COLORS[thread.threadType] || THREAD_TYPE_COLORS.topic;
+  const TypeIcon = THREAD_TYPE_ICONS[thread.threadType];
+
+  const linkedLabel = (thread as any).albumName
+    ? (thread as any).albumName
+    : song
+    ? `${song.title} — ${song.artist}`
+    : artist?.name
+    ? artist.name
+    : (thread as any).artistName
+    ? (thread as any).artistName
+    : null;
+
+  const linkedIcon = (thread as any).albumName
+    ? <Disc3 className="h-3 w-3 flex-shrink-0" />
+    : song
+    ? <Music2Icon className="h-3 w-3 flex-shrink-0" />
+    : <MicVocalIcon className="h-3 w-3 flex-shrink-0" />;
 
   return (
     <Link href={`/thread/${thread.id}`}>
@@ -60,13 +84,14 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", typeColor)}>
+              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1", typeColor)}>
+                {TypeIcon && <TypeIcon className="h-3 w-3" />}
                 {typeLabel}
               </span>
-              {(song || artist) && (
+              {linkedLabel && (
                 <span className="text-xs text-[#B3B3B3] flex items-center gap-1 truncate">
-                  {song ? <Music2Icon className="h-3 w-3 flex-shrink-0" /> : <MicVocalIcon className="h-3 w-3 flex-shrink-0" />}
-                  <span className="truncate">{song ? `${song.title} — ${song.artist}` : artist?.name}</span>
+                  {linkedIcon}
+                  <span className="truncate">{linkedLabel}</span>
                 </span>
               )}
             </div>
