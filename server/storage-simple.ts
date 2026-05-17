@@ -60,6 +60,7 @@ export interface IStorage {
   createThread(thread: InsertThread): Promise<Thread>;
   updateThread(id: number, updates: Partial<Thread>): Promise<Thread | undefined>;
   upvoteThread(id: number): Promise<Thread | undefined>;
+  saveThread(id: number): Promise<Thread | undefined>;
   
   // Comment operations
   getComment(id: number): Promise<Comment | undefined>;
@@ -837,6 +838,14 @@ export class MemStorage implements IStorage {
     const thread = this.threads.get(id);
     if (!thread) return undefined;
     const updated = { ...thread, upvotes: (thread.upvotes || 0) + 1 };
+    this.threads.set(id, updated);
+    return updated;
+  }
+
+  async saveThread(id: number): Promise<Thread | undefined> {
+    const thread = this.threads.get(id);
+    if (!thread) return undefined;
+    const updated = { ...thread, savesCount: (thread.savesCount || 0) + 1 };
     this.threads.set(id, updated);
     return updated;
   }

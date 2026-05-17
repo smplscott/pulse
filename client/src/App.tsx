@@ -62,7 +62,7 @@ function Router() {
       <Route path="/venues" component={() => <ProtectedRoute component={Venues} />} />
       <Route path="/library" component={() => <ProtectedRoute component={Library} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
-      <Route path="/profile/:username" component={() => <ProtectedRoute component={Profile} />} />
+      <Route path="/profile/:username" component={Profile} />
       <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
       <Route path="/achievements" component={() => <ProtectedRoute component={CommunityAchievements} />} />
       <Route path="/messages" component={() => <ProtectedRoute component={Messages} />} />

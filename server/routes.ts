@@ -336,6 +336,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     return res.json(thread);
   });
+
+  app.post("/api/threads/:id/save", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
+
+    const thread = await storage.saveThread(id);
+    if (!thread) return res.status(404).json({ message: "Thread not found" });
+
+    // Notify thread owner when someone saves their thread (skip self-save)
+    const actor = await storage.getUser(userId);
+    if (actor && thread.userId !== userId) {
+      await storage.createNotification({
+        userId: thread.userId,
+        type: "save",
+        threadId: thread.id,
+        threadTitle: thread.title,
+        actorId: userId,
+        actorUsername: actor.username,
+      });
+    }
+
+    return res.json(thread);
+  });
   
   // Comments routes
   app.get("/api/threads/:threadId/comments", async (req: Request, res: Response) => {
@@ -659,6 +684,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid notification ID" });
+    const notifications = await storage.getNotificationsByUser(userId);
+    const belongs = notifications.some(n => n.id === id);
+    if (!belongs) return res.status(403).json({ message: "Forbidden" });
     await storage.markNotificationRead(id);
     return res.json({ success: true });
   });
