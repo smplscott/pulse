@@ -52,17 +52,17 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
   const typeColor = THREAD_TYPE_COLORS[thread.threadType] || THREAD_TYPE_COLORS.topic;
   const TypeIcon = THREAD_TYPE_ICONS[thread.threadType];
 
-  const linkedLabel = (thread as any).albumName
-    ? (thread as any).albumName
+  const linkedLabel = thread.albumName
+    ? thread.albumName
     : song
     ? `${song.title} — ${song.artist}`
     : artist?.name
     ? artist.name
-    : (thread as any).artistName
-    ? (thread as any).artistName
+    : thread.artistName
+    ? thread.artistName
     : null;
 
-  const linkedIcon = (thread as any).albumName
+  const linkedIcon = thread.albumName
     ? <Disc3 className="h-3 w-3 flex-shrink-0" />
     : song
     ? <Music2Icon className="h-3 w-3 flex-shrink-0" />
