@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Users, Music, Ticket, MessageCircle, Disc, Calendar, MapPin } from "lucide-react";
@@ -14,6 +15,26 @@ interface SpotifyArtist { spotifyId: string; name: string; imageUrl: string | nu
 interface SpotifyAlbum { spotifyId: string; name: string; imageUrl: string | null; releaseYear: string; albumType: string; }
 interface SetlistShow { setlistfmId: string; artistName: string; venueName: string; city: string; country: string; eventDate: string; }
 
+const COUNTRY_FLAGS: Record<string, string> = {
+  "United States": "🇺🇸", "USA": "🇺🇸", "US": "🇺🇸",
+  "United Kingdom": "🇬🇧", "UK": "🇬🇧", "England": "🇬🇧", "Britain": "🇬🇧",
+  "Germany": "🇩🇪", "France": "🇫🇷", "Spain": "🇪🇸", "Italy": "🇮🇹",
+  "Netherlands": "🇳🇱", "Belgium": "🇧🇪", "Sweden": "🇸🇪", "Denmark": "🇩🇰",
+  "Norway": "🇳🇴", "Finland": "🇫🇮", "Switzerland": "🇨🇭", "Austria": "🇦🇹",
+  "Australia": "🇦🇺", "Canada": "🇨🇦", "Japan": "🇯🇵",
+  "South Korea": "🇰🇷", "Korea": "🇰🇷", "Brazil": "🇧🇷", "Mexico": "🇲🇽",
+  "Ireland": "🇮🇪", "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "Jamaica": "🇯🇲",
+  "Nigeria": "🇳🇬", "South Africa": "🇿🇦", "Ghana": "🇬🇭",
+  "Colombia": "🇨🇴", "Argentina": "🇦🇷", "Chile": "🇨🇱",
+  "Portugal": "🇵🇹", "Poland": "🇵🇱", "Russia": "🇷🇺",
+  "China": "🇨🇳", "India": "🇮🇳", "New Zealand": "🇳🇿",
+};
+
+function getCountryFlag(country: string | null | undefined): string {
+  if (!country) return "";
+  return COUNTRY_FLAGS[country] ?? "";
+}
+
 export default function ArtistDetail() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
@@ -26,7 +47,9 @@ export default function ArtistDetail() {
     staleTime: 300_000,
   });
 
-  const { data: localArtist, isLoading: localLoading } = useQuery<{ name: string; genres: unknown; profilePicture?: string | null }>({
+  const { data: localArtist, isLoading: localLoading } = useQuery<{
+    id: number; name: string; genres: unknown; profilePicture?: string | null; firstDiscoveredIn?: string | null;
+  }>({
     queryKey: ["/api/artists", id],
     queryFn: () => fetch(`/api/artists/${id}`).then(r => r.json()),
     enabled: !!id && !isSpotifyId,
@@ -34,10 +57,22 @@ export default function ArtistDetail() {
 
   const artist = isSpotifyId
     ? spotifyData?.artist
-      ? { name: spotifyData.artist.name, imageUrl: spotifyData.artist.imageUrl, genres: spotifyData.artist.genres, followers: spotifyData.artist.followers }
+      ? {
+          name: spotifyData.artist.name,
+          imageUrl: spotifyData.artist.imageUrl,
+          genres: spotifyData.artist.genres,
+          followers: spotifyData.artist.followers,
+          country: null as string | null,
+        }
       : null
     : localArtist
-      ? { name: localArtist.name, imageUrl: localArtist.profilePicture ?? null, genres: (localArtist.genres as string[]) ?? [], followers: undefined as number | undefined }
+      ? {
+          name: localArtist.name,
+          imageUrl: localArtist.profilePicture ?? null,
+          genres: (localArtist.genres as string[]) ?? [],
+          followers: undefined as number | undefined,
+          country: localArtist.firstDiscoveredIn ?? null,
+        }
       : null;
 
   const artistName = artist?.name ?? "";
@@ -57,10 +92,35 @@ export default function ArtistDetail() {
     staleTime: 120_000,
   });
 
+  // For Spotify artists, derive country from most common show country
+  const derivedCountry = useMemo(() => {
+    if (!isSpotifyId) return null;
+    const shows = showsData?.results ?? [];
+    if (!shows.length) return null;
+    const counts: Record<string, number> = {};
+    for (const s of shows) {
+      if (s.country) counts[s.country] = (counts[s.country] ?? 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  }, [showsData, isSpotifyId]);
+
+  const displayCountry = isSpotifyId ? derivedCountry : (artist?.country ?? null);
+
+  // Build thread query: use artistId for local DB artists, artistName for Spotify artists
+  const threadQueryStr = useMemo(() => {
+    if (!artistName) return null;
+    if (!isSpotifyId && id) {
+      // Local artist: query by both artistId AND artistName (OR logic on backend)
+      return `/api/threads?artistId=${id}&artistName=${encodeURIComponent(artistName)}`;
+    }
+    // Spotify artist: artistName only (threads created via dialog store artistName)
+    return `/api/threads?artistName=${encodeURIComponent(artistName)}`;
+  }, [isSpotifyId, id, artistName]);
+
   const { data: threads, isLoading: threadsLoading } = useQuery<Thread[]>({
-    queryKey: ["/api/threads", { artistName }],
-    queryFn: () => fetch(`/api/threads?artistName=${encodeURIComponent(artistName)}`).then(r => r.json()),
-    enabled: artistName.length > 0,
+    queryKey: ["/api/threads", { artistId: isSpotifyId ? null : id, artistName }],
+    queryFn: () => fetch(threadQueryStr!).then(r => r.json()),
+    enabled: !!threadQueryStr,
   });
 
   const importShowMutation = useMutation({
@@ -99,7 +159,7 @@ export default function ArtistDetail() {
         {isLoading ? (
           <ArtistHeaderSkeleton />
         ) : artist ? (
-          <ArtistHero artist={artist} />
+          <ArtistHero artist={artist} country={displayCountry} />
         ) : (
           <div className="px-4 py-16 text-center text-[#666]">Artist not found.</div>
         )}
@@ -222,7 +282,12 @@ export default function ArtistDetail() {
   );
 }
 
-function ArtistHero({ artist }: { artist: { name: string; imageUrl?: string | null; genres: string[]; followers?: number } }) {
+interface ArtistHeroProps {
+  artist: { name: string; imageUrl?: string | null; genres: string[]; followers?: number };
+  country: string | null;
+}
+function ArtistHero({ artist, country }: ArtistHeroProps) {
+  const flag = getCountryFlag(country);
   return (
     <div className="px-4 pb-2">
       <div className="flex items-end gap-4">
@@ -232,7 +297,13 @@ function ArtistHero({ artist }: { artist: { name: string; imageUrl?: string | nu
             : <Music className="h-10 w-10 text-[#444]" />}
         </div>
         <div className="flex-1 min-w-0 pb-1">
-          <h1 className="text-2xl font-bold text-white leading-tight truncate">{artist.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white leading-tight truncate">{artist.name}</h1>
+            {flag && <span className="text-xl shrink-0" title={country ?? ""}>{flag}</span>}
+          </div>
+          {country && !flag && (
+            <p className="text-xs text-[#666] mt-0.5">{country}</p>
+          )}
           {artist.followers != null && (
             <div className="flex items-center gap-1.5 text-xs text-[#B3B3B3] mt-1">
               <Users className="h-3.5 w-3.5" />

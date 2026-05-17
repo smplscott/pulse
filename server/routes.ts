@@ -350,12 +350,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/threads", async (req: Request, res: Response) => {
     const type = req.query.type as string | undefined;
     const artistName = req.query.artistName as string | undefined;
+    const artistIdParam = req.query.artistId as string | undefined;
     const albumId = req.query.albumId as string | undefined;
     let threads = await storage.getAllThreads(type);
-    if (artistName) {
-      const lc = artistName.toLowerCase();
-      threads = threads.filter(t => t.artistName && t.artistName.toLowerCase() === lc);
+
+    // Artist filter: support numeric artistId AND/OR artistName (OR logic when both given)
+    if (artistIdParam || artistName) {
+      const aid = artistIdParam ? parseInt(artistIdParam) : null;
+      const lc = artistName ? artistName.toLowerCase() : null;
+      threads = threads.filter(t =>
+        (aid !== null && !isNaN(aid) && t.artistId === aid) ||
+        (lc !== null && t.artistName != null && t.artistName.toLowerCase() === lc)
+      );
     }
+
     if (albumId) {
       threads = threads.filter(t => t.albumId === albumId);
     }
