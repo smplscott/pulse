@@ -4,7 +4,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-simple";
 import { z } from "zod";
-import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema } from "@shared/schema";
+import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertPlaceCommentSchema } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
 
@@ -736,6 +736,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!belongs) return res.status(403).json({ message: "Forbidden" });
     await storage.markNotificationRead(id);
     return res.json({ success: true });
+  });
+
+  // Places routes
+  app.get("/api/places", async (_req: Request, res: Response) => {
+    const places = await storage.getAllPlaces();
+    return res.json(places);
+  });
+
+  app.get("/api/places/:id", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid place ID" });
+    const place = await storage.getPlace(id);
+    if (!place) return res.status(404).json({ message: "Place not found" });
+    return res.json(place);
+  });
+
+  app.post("/api/places", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const schema = insertPlaceSchema.extend({
+        name: z.string().min(2, "Name must be at least 2 characters"),
+        city: z.string().min(1, "City is required"),
+        country: z.string().min(1, "Country is required"),
+        description: z.string().min(10, "Description must be at least 10 characters").max(500),
+        category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
+      });
+      const placeData = schema.parse({ ...req.body, userId });
+      const place = await storage.createPlace(placeData);
+      return res.status(201).json(place);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to create place" });
+    }
+  });
+
+  app.get("/api/places/:id/comments", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid place ID" });
+    const comments = await storage.getPlaceComments(id);
+    return res.json(comments);
+  });
+
+  app.post("/api/places/:id/comments", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const placeId = parseInt(req.params.id);
+      if (isNaN(placeId)) return res.status(400).json({ message: "Invalid place ID" });
+      const place = await storage.getPlace(placeId);
+      if (!place) return res.status(404).json({ message: "Place not found" });
+      const schema = insertPlaceCommentSchema.extend({
+        content: z.string().min(1, "Comment cannot be empty").max(500),
+      });
+      const commentData = schema.parse({ ...req.body, placeId, userId });
+      const comment = await storage.createPlaceComment(commentData);
+      return res.status(201).json(comment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to post comment" });
+    }
   });
 
   const httpServer = createServer(app);

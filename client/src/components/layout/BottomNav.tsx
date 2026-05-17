@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { MessageCircle, Music2Icon, UserIcon, MicVocalIcon } from "lucide-react";
+import { MessageCircle, Ticket, MapPin, UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNav() {
@@ -7,8 +7,8 @@ export default function BottomNav() {
 
   const navItems = [
     { icon: MessageCircle, label: "Threads", path: "/" },
-    { icon: MicVocalIcon, label: "Artists", path: "/artists" },
-    { icon: Music2Icon, label: "Songs", path: "/songs" },
+    { icon: Ticket, label: "Shows", path: "/shows" },
+    { icon: MapPin, label: "Places", path: "/places" },
     { icon: UserIcon, label: "Profile", path: "/profile" },
   ];
 

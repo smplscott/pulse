@@ -12,7 +12,9 @@ import type {
   TrackId, InsertTrackId,
   TrackIdVote, InsertTrackIdVote,
   Notification, InsertNotification,
-  ThreadFollow
+  ThreadFollow,
+  Place, InsertPlace,
+  PlaceComment, InsertPlaceComment,
 } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
@@ -109,6 +111,14 @@ export interface IStorage {
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationRead(id: number): Promise<void>;
   markAllNotificationsRead(userId: number): Promise<void>;
+
+  // Place operations
+  getPlace(id: number): Promise<Place | undefined>;
+  getAllPlaces(limit?: number): Promise<Place[]>;
+  createPlace(place: InsertPlace): Promise<Place>;
+  updatePlace(id: number, updates: Partial<Place>): Promise<Place | undefined>;
+  getPlaceComments(placeId: number): Promise<PlaceComment[]>;
+  createPlaceComment(comment: InsertPlaceComment): Promise<PlaceComment>;
 }
 
 export class MemStorage implements IStorage {
@@ -126,6 +136,8 @@ export class MemStorage implements IStorage {
   private followedSongsMap: Map<number, Set<number>> = new Map();
   private threadFollowsMap: Map<number, ThreadFollow> = new Map();
   private notificationsMap: Map<number, Notification> = new Map();
+  private placesMap: Map<number, Place> = new Map();
+  private placeCommentsMap: Map<number, PlaceComment> = new Map();
 
   private userCurrentId = 1;
   private artistCurrentId = 1;
@@ -139,6 +151,8 @@ export class MemStorage implements IStorage {
   private trackIdVoteCurrentId = 1;
   private threadFollowCurrentId = 1;
   private notificationCurrentId = 1;
+  private placeCurrentId = 1;
+  private placeCommentCurrentId = 1;
 
   constructor() {
     void this.seedData();
@@ -586,6 +600,106 @@ export class MemStorage implements IStorage {
     ];
     for (const n of seedNotifications) {
       this.notificationsMap.set(n.id, n);
+    }
+
+    // Seed places
+    const seedPlaces: Place[] = [
+      {
+        id: this.placeCurrentId++,
+        userId: user.id,
+        name: "Fabric",
+        city: "London",
+        country: "UK",
+        category: "club",
+        genres: ["Techno", "House", "Drum & Bass"],
+        description: "World-renowned nightclub in Farringdon known for its legendary lineups and unbeatable sound system. A pilgrimage site for electronic music fans.",
+        mapsLink: "https://maps.google.com/?q=Fabric+London",
+        rating: 5,
+        reviewsCount: 284,
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.placeCurrentId++,
+        userId: user.id,
+        name: "Berghain",
+        city: "Berlin",
+        country: "Germany",
+        category: "club",
+        genres: ["Techno", "Industrial"],
+        description: "The world's most famous techno club, housed in a former power plant in Berlin's Friedrichshain district. Known for its strict door policy and 48-hour sets.",
+        mapsLink: "https://maps.google.com/?q=Berghain+Berlin",
+        rating: 5,
+        reviewsCount: 512,
+        createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.placeCurrentId++,
+        userId: user.id,
+        name: "Amoeba Music",
+        city: "Los Angeles",
+        country: "USA",
+        category: "record_store",
+        genres: ["All Genres"],
+        description: "The world's largest independent record store. A must-visit destination for vinyl enthusiasts with over 100,000 new and used records across every genre imaginable.",
+        mapsLink: "https://maps.google.com/?q=Amoeba+Music+Los+Angeles",
+        rating: 5,
+        reviewsCount: 178,
+        createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.placeCurrentId++,
+        userId: user.id,
+        name: "Elsewhere",
+        city: "New York",
+        country: "USA",
+        category: "club",
+        genres: ["Electronic", "House", "Indie"],
+        description: "Multi-level venue in Bushwick featuring a roof deck, hall, and zone. One of NYC's best spots for both underground and emerging artists.",
+        mapsLink: "https://maps.google.com/?q=Elsewhere+Brooklyn",
+        rating: 4,
+        reviewsCount: 96,
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.placeCurrentId++,
+        userId: user.id,
+        name: "Rough Trade East",
+        city: "London",
+        country: "UK",
+        category: "record_store",
+        genres: ["Indie", "Rock", "Electronic"],
+        description: "Iconic record shop in Brick Lane's Old Truman Brewery. Regular in-store performances, extensive vinyl selection and knowledgeable staff.",
+        mapsLink: "https://maps.google.com/?q=Rough+Trade+East+London",
+        rating: 5,
+        reviewsCount: 143,
+        createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+      },
+    ];
+    for (const p of seedPlaces) {
+      this.placesMap.set(p.id, p);
+    }
+
+    // Seed place comments for Fabric (place id 1)
+    const seedPlaceComments: PlaceComment[] = [
+      {
+        id: this.placeCommentCurrentId++,
+        placeId: 1,
+        userId: user.id,
+        content: "Room 1 on a Friday night is an experience unlike anything else. The sound system is genuinely life-changing.",
+        upvotes: 24,
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.placeCommentCurrentId++,
+        placeId: 1,
+        userId: user.id,
+        content: "Get there early — the queue can be 2+ hours on peak nights. Worth it every single time though.",
+        upvotes: 17,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      },
+    ];
+    for (const pc of seedPlaceComments) {
+      this.placeCommentsMap.set(pc.id, pc);
     }
   }
 
@@ -1111,6 +1225,69 @@ export class MemStorage implements IStorage {
         this.notificationsMap.set(id, { ...n, read: true });
       }
     }
+  }
+
+  // Place operations
+  async getPlace(id: number): Promise<Place | undefined> {
+    return this.placesMap.get(id);
+  }
+
+  async getAllPlaces(limit: number = 50): Promise<Place[]> {
+    return Array.from(this.placesMap.values())
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
+      .slice(0, limit);
+  }
+
+  async createPlace(insertPlace: InsertPlace): Promise<Place> {
+    const id = this.placeCurrentId++;
+    const place: Place = {
+      id,
+      userId: insertPlace.userId,
+      name: insertPlace.name,
+      city: insertPlace.city,
+      country: insertPlace.country,
+      category: insertPlace.category,
+      genres: insertPlace.genres || [],
+      description: insertPlace.description,
+      mapsLink: insertPlace.mapsLink || null,
+      rating: 0,
+      reviewsCount: 0,
+      createdAt: new Date(),
+    };
+    this.placesMap.set(id, place);
+    return place;
+  }
+
+  async updatePlace(id: number, updates: Partial<Place>): Promise<Place | undefined> {
+    const place = this.placesMap.get(id);
+    if (!place) return undefined;
+    const updated = { ...place, ...updates };
+    this.placesMap.set(id, updated);
+    return updated;
+  }
+
+  async getPlaceComments(placeId: number): Promise<PlaceComment[]> {
+    return Array.from(this.placeCommentsMap.values())
+      .filter(c => c.placeId === placeId)
+      .sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
+  }
+
+  async createPlaceComment(insertComment: InsertPlaceComment): Promise<PlaceComment> {
+    const id = this.placeCommentCurrentId++;
+    const comment: PlaceComment = {
+      id,
+      placeId: insertComment.placeId,
+      userId: insertComment.userId,
+      content: insertComment.content,
+      upvotes: 0,
+      createdAt: new Date(),
+    };
+    this.placeCommentsMap.set(id, comment);
+    const place = this.placesMap.get(insertComment.placeId);
+    if (place) {
+      this.placesMap.set(place.id, { ...place, reviewsCount: (place.reviewsCount || 0) + 1 });
+    }
+    return comment;
   }
 }
 

@@ -15,6 +15,9 @@ import Library from "@/pages/Library";
 import Profile from "@/pages/Profile";
 import Artists from "@/pages/Artists";
 import Songs from "@/pages/Songs";
+import Shows from "@/pages/Shows";
+import Places from "@/pages/Places";
+import PlaceDetail from "@/pages/PlaceDetail";
 // import Sets from "@/pages/Sets";        // Sets hidden from nav — re-enable when ready
 // import SetDetail from "@/pages/SetDetail"; // Sets hidden from nav — re-enable when ready
 import CommunityAchievements from "@/pages/CommunityAchievements";
@@ -68,6 +71,11 @@ function Router() {
       <Route path="/messages" component={() => <ProtectedRoute component={Messages} />} />
       <Route path="/artists" component={() => <ProtectedRoute component={Artists} />} />
       <Route path="/songs" component={() => <ProtectedRoute component={Songs} />} />
+      <Route path="/shows" component={() => <ProtectedRoute component={Shows} />} />
+      <Route path="/places" component={() => <ProtectedRoute component={Places} />} />
+      <Route path="/places/:id" component={() => <ProtectedRoute component={PlaceDetail} />} />
+      {/* /venues redirects to /places for backward compat */}
+      <Route path="/venues" component={() => <ProtectedRoute component={Places} />} />
       {/* <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} /> */}
       <Route path="/artist/:id" component={() => <ProtectedRoute component={ArtistDetail} />} />
       <Route path="/song/:id" component={() => <ProtectedRoute component={SongDetail} />} />

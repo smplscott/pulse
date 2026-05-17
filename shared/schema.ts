@@ -261,6 +261,54 @@ export const insertTrackIdVoteSchema = createInsertSchema(trackIdVotes).pick({
   voteType: true,
 });
 
+// Places table — user-generated directory of IRL music spots
+export const places = pgTable("places", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  category: text("category").notNull(), // bar | club | record_store | coffee_shop | other
+  genres: jsonb("genres").default('[]'),
+  description: text("description").notNull(),
+  mapsLink: text("maps_link"),
+  rating: integer("rating").default(0),
+  reviewsCount: integer("reviews_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPlaceSchema = createInsertSchema(places).pick({
+  userId: true,
+  name: true,
+  city: true,
+  country: true,
+  category: true,
+  genres: true,
+  description: true,
+  mapsLink: true,
+});
+
+// Place comments — open discussion on each place page
+export const placeComments = pgTable("place_comments", {
+  id: serial("id").primaryKey(),
+  placeId: integer("place_id").notNull(),
+  userId: integer("user_id").notNull(),
+  content: text("content").notNull(),
+  upvotes: integer("upvotes").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPlaceCommentSchema = createInsertSchema(placeComments).pick({
+  placeId: true,
+  userId: true,
+  content: true,
+});
+
+export type Place = typeof places.$inferSelect;
+export type InsertPlace = z.infer<typeof insertPlaceSchema>;
+export type PlaceComment = typeof placeComments.$inferSelect;
+export type InsertPlaceComment = z.infer<typeof insertPlaceCommentSchema>;
+
 // Thread follows table — users who watch a thread for activity
 export const threadFollows = pgTable("thread_follows", {
   id: serial("id").primaryKey(),
