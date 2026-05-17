@@ -152,6 +152,9 @@ export default function ShowDetail() {
       queryClient.invalidateQueries({ queryKey: ["/api/shows", showId, "reviews"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shows", showId] });
       queryClient.invalidateQueries({ queryKey: ["/api/shows"] });
+      if (user?.username) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
+      }
       setRating(0);
       setReviewText("");
       toast({

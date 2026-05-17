@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { SearchIcon, MapPin, Star, Plus, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const GENRE_OPTIONS = [
@@ -106,6 +107,7 @@ export default function Places() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<AddPlaceForm>({
     resolver: zodResolver(addPlaceSchema),
@@ -128,6 +130,9 @@ export default function Places() {
       apiRequest("POST", "/api/places", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      if (user?.username) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
+      }
       toast({ title: "Place added!", description: "Thanks for contributing to the community." });
       setDialogOpen(false);
       form.reset();

@@ -249,7 +249,7 @@ export default function Profile() {
             <div className="grid grid-cols-3 gap-2 mb-4">
               <div className="bg-[#181818] rounded-lg p-3 text-center">
                 <p className="text-lg font-bold">{startedThreads?.length ?? "—"}</p>
-                <p className="text-xs text-[#B3B3B3]">Threads</p>
+                <p className="text-xs text-[#B3B3B3]">Threads started</p>
               </div>
               <div className="bg-[#181818] rounded-lg p-3 text-center">
                 <p className="text-lg font-bold">{profileUser.showReviewCount ?? "—"}</p>
