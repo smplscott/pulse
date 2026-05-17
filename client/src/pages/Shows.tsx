@@ -9,11 +9,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Search, Ticket, MapPin, Calendar, Plus, AlertCircle, Music2 } from "lucide-react";
+import { Search, Ticket, MapPin, Calendar, Plus, AlertCircle, Music2, Star, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Show } from "@shared/schema";
+
+interface ShowWithStats extends Show {
+  avgRating: number | null;
+  reviewCount: number;
+  commentCount: number;
+}
 
 interface SetlistFmResult {
   setlistfmId: string;
@@ -31,21 +36,35 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function ShowCard({ show, onClick }: { show: Show | SetlistFmResult; onClick: () => void }) {
+function ShowCard({
+  show, onClick,
+}: {
+  show: ShowWithStats | SetlistFmResult;
+  onClick: () => void;
+}) {
   const isLocal = "id" in show;
+  const local = isLocal ? (show as ShowWithStats) : null;
+
   return (
     <button
       onClick={onClick}
       className="w-full text-left bg-[#181818] rounded-xl p-4 hover:bg-[#1e1e1e] transition-colors"
     >
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-lg bg-[#282828] flex flex-col items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 rounded-lg bg-[#0e1a3d] border border-[#5271ff]/20 flex items-center justify-center flex-shrink-0">
           <Ticket className="h-5 w-5 text-[#5271ff]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-white truncate">{show.artistName}</p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-semibold text-white truncate">{show.artistName}</p>
+            {!isLocal && (
+              <span className="text-[10px] bg-[#1a1a3a] text-[#5271ff] px-2 py-0.5 rounded-full flex-shrink-0">
+                Setlist.fm
+              </span>
+            )}
+          </div>
           <p className="text-sm text-[#B3B3B3] truncate">{show.venueName}</p>
-          <div className="flex items-center gap-3 mt-1">
+          <div className="flex items-center flex-wrap gap-3 mt-1.5">
             <span className="flex items-center gap-1 text-xs text-[#666]">
               <MapPin className="h-3 w-3" />
               {show.city}, {show.country}
@@ -55,30 +74,47 @@ function ShowCard({ show, onClick }: { show: Show | SetlistFmResult; onClick: ()
               {formatDate(show.eventDate)}
             </span>
           </div>
+          {local && (local.avgRating !== null || local.reviewCount > 0 || local.commentCount > 0) && (
+            <div className="flex items-center gap-3 mt-2">
+              {local.avgRating !== null && (
+                <span className="flex items-center gap-1 text-xs text-[#f5c518]">
+                  <Star className="h-3 w-3 fill-[#f5c518]" />
+                  {local.avgRating.toFixed(1)}
+                  <span className="text-[#555]">({local.reviewCount})</span>
+                </span>
+              )}
+              {local.commentCount > 0 && (
+                <span className="flex items-center gap-1 text-xs text-[#555]">
+                  <MessageCircle className="h-3 w-3" />
+                  {local.commentCount}
+                </span>
+              )}
+            </div>
+          )}
         </div>
-        {!isLocal && (
-          <span className="text-[10px] bg-[#282828] text-[#5271ff] px-2 py-0.5 rounded-full flex-shrink-0">
-            Setlist.fm
-          </span>
-        )}
       </div>
     </button>
   );
 }
 
+type FilterMode = "all" | "city" | "genre";
+
 export default function Shows() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterMode, setFilterMode] = useState<FilterMode>("all");
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [prefillArtist, setPrefillArtist] = useState("");
   const [manualForm, setManualForm] = useState({
-    artistName: "", venueName: "", city: "", country: "", eventDate: "",
+    artistName: "", venueName: "", city: "", country: "", eventDate: "", notes: "",
   });
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data: shows, isLoading: showsLoading } = useQuery<Show[]>({
+  const { data: shows, isLoading: showsLoading } = useQuery<ShowWithStats[]>({
     queryKey: ["/api/shows"],
   });
 
@@ -108,13 +144,14 @@ export default function Shows() {
 
   const addShowMutation = useMutation({
     mutationFn: async (data: typeof manualForm) => {
-      const res = await apiRequest("POST", "/api/shows", { ...data, isManual: true });
+      const { notes, ...rest } = data;
+      const res = await apiRequest("POST", "/api/shows", { ...rest, notes: notes || undefined, isManual: true });
       return res.json();
     },
     onSuccess: (show: Show) => {
       queryClient.invalidateQueries({ queryKey: ["/api/shows"] });
       setShowAddDialog(false);
-      setManualForm({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
+      setManualForm({ artistName: "", venueName: "", city: "", country: "", eventDate: "", notes: "" });
       navigate(`/shows/${show.id}`);
     },
     onError: () => toast({ title: "Error", description: "Could not add show", variant: "destructive" }),
@@ -126,60 +163,140 @@ export default function Shows() {
     searchTimeoutRef.current = setTimeout(() => setSearchQuery(val.trim()), 500);
   };
 
-  const handleSetlistFmResult = (result: SetlistFmResult) => {
-    importShowMutation.mutate(result);
-  };
-
-  const handleLocalShowClick = (show: Show) => {
-    navigate(`/shows/${show.id}`);
+  const openAddDialog = (artist = "") => {
+    setPrefillArtist(artist);
+    setManualForm(f => ({ ...f, artistName: artist }));
+    setShowAddDialog(true);
   };
 
   const noApiKey = searchData?.error?.includes("not configured");
   const setlistResults = searchData?.results ?? [];
+  const isSearching = searchQuery.length >= 2;
 
-  const filteredShows = shows?.filter(s =>
-    !searchQuery ||
-    s.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.venueName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.city.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Derived filter values from local shows
+  const allCities = Array.from(new Set((shows ?? []).map(s => s.city))).sort();
+  const allGenres = Array.from(
+    new Set((shows ?? []).flatMap(s => s.genres ?? []))
+  ).sort();
+
+  // Filter local shows
+  const filteredShows = (shows ?? []).filter(s => {
+    if (isSearching && searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (
+        !s.artistName.toLowerCase().includes(q) &&
+        !s.venueName.toLowerCase().includes(q) &&
+        !s.city.toLowerCase().includes(q)
+      ) return false;
+    }
+    if (filterMode === "city" && selectedCity && s.city !== selectedCity) return false;
+    if (filterMode === "genre" && selectedGenre && !(s.genres ?? []).includes(selectedGenre)) return false;
+    return true;
+  });
+
+  const filterChips: { mode: FilterMode; label: string }[] = [
+    { mode: "all", label: "All" },
+    { mode: "city", label: "By City" },
+    { mode: "genre", label: "By Genre" },
+  ];
 
   return (
     <div className="min-h-screen pb-32">
       <Header />
       <main className="px-4 pt-4 max-w-lg mx-auto">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#666]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
             <Input
               value={searchInput}
               onChange={e => handleSearchChange(e.target.value)}
-              placeholder="Search artist, venue, or city..."
+              placeholder="Search artist to find shows..."
               className="pl-9 bg-[#181818] border-[#282828] text-white placeholder:text-[#555] focus:border-[#5271ff]"
             />
           </div>
           <button
-            onClick={() => setShowAddDialog(true)}
+            onClick={() => openAddDialog()}
             className="w-10 h-10 rounded-lg bg-[#5271ff] flex items-center justify-center flex-shrink-0 hover:bg-[#4060ee] transition-colors"
           >
             <Plus className="h-5 w-5 text-white" />
           </button>
         </div>
 
-        {searchQuery.length >= 2 && (
+        <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
+          {filterChips.map(({ mode, label }) => (
+            <button
+              key={mode}
+              onClick={() => {
+                setFilterMode(mode);
+                setSelectedCity(null);
+                setSelectedGenre(null);
+              }}
+              className={cn(
+                "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                filterMode === mode
+                  ? "bg-[#5271ff] text-white"
+                  : "bg-[#181818] text-[#B3B3B3] hover:bg-[#282828]"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {filterMode === "city" && allCities.length > 0 && (
+          <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
+            {allCities.map(city => (
+              <button
+                key={city}
+                onClick={() => setSelectedCity(selectedCity === city ? null : city)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                  selectedCity === city
+                    ? "bg-[#c2f970] text-black"
+                    : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
+                )}
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {filterMode === "genre" && allGenres.length > 0 && (
+          <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
+            {allGenres.map(genre => (
+              <button
+                key={genre}
+                onClick={() => setSelectedGenre(selectedGenre === genre ? null : genre)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                  selectedGenre === genre
+                    ? "bg-[#c2f970] text-black"
+                    : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
+                )}
+              >
+                {genre}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {isSearching && (
           <div className="mb-6">
-            <p className="text-xs text-[#666] uppercase tracking-wider mb-2 font-medium">Setlist.fm results</p>
+            <p className="text-xs text-[#555] uppercase tracking-wider mb-2 font-medium">Setlist.fm results</p>
             {noApiKey ? (
               <div className="bg-[#181818] rounded-xl p-4 flex items-start gap-3">
-                <AlertCircle className="h-4 w-4 text-[#666] flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-4 w-4 text-[#555] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-[#B3B3B3]">Setlist.fm API key not configured.</p>
-                  <p className="text-xs text-[#555] mt-0.5">Add <code className="bg-[#282828] px-1 rounded">SETLISTFM_API_KEY</code> as a secret to enable search.</p>
+                  <p className="text-xs text-[#555] mt-0.5">
+                    Add <code className="bg-[#282828] px-1 rounded text-[#B3B3B3]">SETLISTFM_API_KEY</code> as a secret to enable live search.
+                  </p>
                 </div>
               </div>
             ) : searchLoading ? (
               <div className="space-y-3">
-                {[1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl bg-[#181818]" />)}
+                {[1, 2].map(i => <Skeleton key={i} className="h-20 w-full rounded-xl bg-[#181818]" />)}
               </div>
             ) : setlistResults.length > 0 ? (
               <div className="space-y-2">
@@ -187,36 +304,50 @@ export default function Shows() {
                   <ShowCard
                     key={r.setlistfmId}
                     show={r}
-                    onClick={() => handleSetlistFmResult(r)}
+                    onClick={() => importShowMutation.mutate(r)}
                   />
                 ))}
               </div>
             ) : (
-              <div className="bg-[#181818] rounded-xl p-4 text-center">
-                <p className="text-sm text-[#666]">No setlists found for "{searchQuery}"</p>
+              <div className="bg-[#181818] rounded-xl p-4">
+                <p className="text-sm text-[#666] mb-3">No setlists found for "{searchQuery}".</p>
+                <button
+                  onClick={() => openAddDialog(searchQuery)}
+                  className="flex items-center gap-2 text-sm text-[#5271ff] font-medium hover:text-[#7090ff] transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  Can't find it? Add manually
+                </button>
               </div>
             )}
           </div>
         )}
 
         <div>
-          <p className="text-xs text-[#666] uppercase tracking-wider mb-2 font-medium">
-            {searchQuery ? "Community shows" : "Recent shows"}
+          <p className="text-xs text-[#555] uppercase tracking-wider mb-2 font-medium">
+            {isSearching ? "Community shows" : "Recent shows"}
           </p>
           {showsLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl bg-[#181818]" />)}
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full rounded-xl bg-[#181818]" />)}
             </div>
-          ) : filteredShows && filteredShows.length > 0 ? (
+          ) : filteredShows.length > 0 ? (
             <div className="space-y-2">
               {filteredShows.map(show => (
-                <ShowCard key={show.id} show={show} onClick={() => handleLocalShowClick(show)} />
+                <ShowCard key={show.id} show={show} onClick={() => navigate(`/shows/${show.id}`)} />
               ))}
             </div>
           ) : (
             <div className="bg-[#181818] rounded-xl p-8 text-center">
-              <Music2 className="h-10 w-10 text-[#333] mx-auto mb-3" />
-              <p className="text-sm text-[#666]">No shows found</p>
+              <Music2 className="h-8 w-8 text-[#333] mx-auto mb-3" />
+              <p className="text-sm text-[#666] mb-3">No shows found</p>
+              <button
+                onClick={() => openAddDialog(searchQuery)}
+                className="flex items-center gap-2 text-sm text-[#5271ff] font-medium mx-auto hover:text-[#7090ff] transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Add manually
+              </button>
             </div>
           )}
         </div>
@@ -272,6 +403,15 @@ export default function Shows() {
                 type="date"
                 value={manualForm.eventDate}
                 onChange={e => setManualForm(f => ({ ...f, eventDate: e.target.value }))}
+                className="bg-[#282828] border-[#3E3E3E] text-white"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-[#B3B3B3] mb-1.5 block">Notes (optional)</Label>
+              <Input
+                value={manualForm.notes}
+                onChange={e => setManualForm(f => ({ ...f, notes: e.target.value }))}
+                placeholder="e.g. support acts, special guests..."
                 className="bg-[#282828] border-[#3E3E3E] text-white"
               />
             </div>

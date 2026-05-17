@@ -392,6 +392,8 @@ export const shows = pgTable("shows", {
   city: text("city").notNull(),
   country: text("country").notNull(),
   eventDate: text("event_date").notNull(), // yyyy-MM-dd
+  genres: text("genres").array(),
+  notes: text("notes"),
   isManual: boolean("is_manual").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -404,9 +406,12 @@ export const insertShowSchema = createInsertSchema(shows).pick({
   country: true,
   eventDate: true,
   isManual: true,
+  notes: true,
+}).extend({
+  genres: z.array(z.string()).optional().default([]),
 });
 
-// Show reviews — one per userId+showId
+// Show reviews — one per userId+showId (enforced at schema + API level)
 export const showReviews = pgTable("show_reviews", {
   id: serial("id").primaryKey(),
   showId: integer("show_id").notNull(),
@@ -414,7 +419,9 @@ export const showReviews = pgTable("show_reviews", {
   rating: integer("rating").notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => ({
+  userShowUnique: unique("show_reviews_user_show_unique").on(t.userId, t.showId),
+}));
 
 export const insertShowReviewSchema = createInsertSchema(showReviews).pick({
   showId: true,

@@ -734,6 +734,8 @@ export class MemStorage implements IStorage {
         city: "London",
         country: "UK",
         eventDate: "2023-11-18",
+        genres: ["Electronic", "House"],
+        notes: null,
         isManual: false,
         createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
       },
@@ -745,6 +747,8 @@ export class MemStorage implements IStorage {
         city: "London",
         country: "UK",
         eventDate: "2023-06-02",
+        genres: ["R&B", "Pop"],
+        notes: null,
         isManual: false,
         createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000),
       },
@@ -756,6 +760,8 @@ export class MemStorage implements IStorage {
         city: "London",
         country: "UK",
         eventDate: "2023-09-15",
+        genres: ["Electronic", "Ambient"],
+        notes: null,
         isManual: false,
         createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
       },
@@ -767,6 +773,8 @@ export class MemStorage implements IStorage {
         city: "London",
         country: "UK",
         eventDate: "2023-06-03",
+        genres: ["Electronic", "IDM"],
+        notes: null,
         isManual: false,
         createdAt: new Date(Date.now() - 110 * 24 * 60 * 60 * 1000),
       },
@@ -778,6 +786,8 @@ export class MemStorage implements IStorage {
         city: "Indio",
         country: "USA",
         eventDate: "2024-04-13",
+        genres: ["Electronic", "House"],
+        notes: null,
         isManual: false,
         createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       },
@@ -1443,7 +1453,7 @@ export class MemStorage implements IStorage {
 
   async getAllShows(limit: number = 50): Promise<Show[]> {
     return Array.from(this.showsMap.values())
-      .sort((a, b) => (b.eventDate > a.eventDate ? 1 : -1))
+      .sort((a, b) => b.eventDate.localeCompare(a.eventDate))
       .slice(0, limit);
   }
 
@@ -1457,6 +1467,8 @@ export class MemStorage implements IStorage {
       city: insertShow.city,
       country: insertShow.country,
       eventDate: insertShow.eventDate,
+      genres: insertShow.genres ?? [],
+      notes: insertShow.notes ?? null,
       isManual: insertShow.isManual ?? false,
       createdAt: new Date(),
     };
@@ -1493,7 +1505,11 @@ export class MemStorage implements IStorage {
   async getShowComments(showId: number): Promise<ShowComment[]> {
     return Array.from(this.showCommentsMap.values())
       .filter(c => c.showId === showId)
-      .sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+      .sort((a, b) => {
+        const voteDiff = (b.upvotes || 0) - (a.upvotes || 0);
+        if (voteDiff !== 0) return voteDiff;
+        return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0);
+      });
   }
 
   async createShowComment(insertComment: InsertShowComment): Promise<ShowComment> {

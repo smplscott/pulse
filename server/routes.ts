@@ -844,9 +844,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Shows routes
-  app.get("/api/shows", async (_req: Request, res: Response) => {
-    const shows = await storage.getAllShows();
-    return res.json(shows);
+  async function enrichShow(show: Awaited<ReturnType<typeof storage.getShow>>) {
+    if (!show) return null;
+    const reviews = await storage.getShowReviews(show.id);
+    const comments = await storage.getShowComments(show.id);
+    const avgRating = reviews.length > 0
+      ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+      : null;
+    return { ...show, avgRating, reviewCount: reviews.length, commentCount: comments.length };
+  }
+
+  app.get("/api/shows", async (req: Request, res: Response) => {
+    const q = ((req.query.q as string) || "").toLowerCase().trim();
+    let shows = await storage.getAllShows();
+    if (q) {
+      shows = shows.filter(s =>
+        s.artistName.toLowerCase().includes(q) ||
+        s.venueName.toLowerCase().includes(q) ||
+        s.city.toLowerCase().includes(q) ||
+        (s.genres ?? []).some(g => g.toLowerCase().includes(q))
+      );
+    }
+    const enriched = await Promise.all(shows.map(enrichShow));
+    return res.json(enriched);
   });
 
   app.get("/api/shows/:id", async (req: Request, res: Response) => {
@@ -854,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (isNaN(id)) return res.status(400).json({ message: "Invalid show ID" });
     const show = await storage.getShow(id);
     if (!show) return res.status(404).json({ message: "Show not found" });
-    return res.json(show);
+    return res.json(await enrichShow(show));
   });
 
   app.post("/api/shows", async (req: Request, res: Response) => {

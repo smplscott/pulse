@@ -11,11 +11,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
-  ChevronLeft, Ticket, MapPin, Calendar, Star, ThumbsUp,
-  MessageCircle, Send, CheckCircle, Award
+  ChevronLeft, Ticket, MapPin, Calendar, Star,
+  ThumbsUp, MessageCircle, Send, CheckCircle, LogIn,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Show, ShowReview, ShowComment } from "@shared/schema";
+
+interface ShowWithStats extends Show {
+  avgRating: number | null;
+  reviewCount: number;
+  commentCount: number;
+}
 
 function formatDate(dateStr: string) {
   if (!dateStr) return "";
@@ -70,12 +76,12 @@ function AverageRating({ reviews }: { reviews: ShowReview[] }) {
       <div className="text-center flex-shrink-0">
         <p className="text-4xl font-bold text-white">{avg.toFixed(1)}</p>
         <StarRating value={Math.round(avg)} readonly size="sm" />
-        <p className="text-xs text-[#666] mt-1">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
+        <p className="text-xs text-[#555] mt-1">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p>
       </div>
       <div className="flex-1 space-y-1">
         {dist.map(({ n, count }) => (
           <div key={n} className="flex items-center gap-2">
-            <span className="text-xs text-[#666] w-3">{n}</span>
+            <span className="text-xs text-[#555] w-3">{n}</span>
             <div className="flex-1 h-1.5 bg-[#282828] rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#f5c518] rounded-full transition-all"
@@ -101,7 +107,7 @@ export default function ShowDetail() {
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { data: show, isLoading: showLoading } = useQuery<Show>({
+  const { data: show, isLoading: showLoading } = useQuery<ShowWithStats>({
     queryKey: ["/api/shows", showId],
     queryFn: async () => {
       const res = await fetch(`/api/shows/${showId}`);
@@ -144,11 +150,13 @@ export default function ShowDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/shows", showId, "reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shows", showId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shows"] });
       setRating(0);
       setReviewText("");
       toast({
         title: "Review posted",
-        description: "You've earned the 'I Was There' badge!",
+        description: "You earned the \"I Was There\" badge!",
       });
     },
     onError: (err: Error) => {
@@ -161,13 +169,19 @@ export default function ShowDetail() {
       const res = await apiRequest("POST", `/api/shows/${showId}/comments`, {
         content: commentText,
       });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message);
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/shows", showId, "comments"] });
       setCommentText("");
     },
-    onError: () => toast({ title: "Error", description: "Could not post comment", variant: "destructive" }),
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
   });
 
   const upvoteMutation = useMutation({
@@ -189,8 +203,8 @@ export default function ShowDetail() {
         <Header />
         <div className="px-4 pt-4 space-y-4">
           <Skeleton className="h-6 w-32 bg-[#181818]" />
-          <Skeleton className="h-32 w-full rounded-xl bg-[#181818]" />
-          <Skeleton className="h-10 w-full bg-[#181818]" />
+          <Skeleton className="h-28 w-full rounded-xl bg-[#181818]" />
+          <Skeleton className="h-10 w-full rounded-xl bg-[#181818]" />
         </div>
         <BottomNav />
       </div>
@@ -203,7 +217,7 @@ export default function ShowDetail() {
         <Header />
         <div className="px-4 pt-6 text-center">
           <Link href="/shows">
-            <div className="flex items-center mb-6 cursor-pointer">
+            <div className="flex items-center mb-6 cursor-pointer text-[#B3B3B3]">
               <ChevronLeft className="h-5 w-5 mr-1" />
               <span className="text-sm">Shows</span>
             </div>
@@ -218,7 +232,7 @@ export default function ShowDetail() {
   return (
     <div className="min-h-screen pb-32">
       <Header />
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 max-w-lg mx-auto">
         <Link href="/shows">
           <div className="flex items-center mb-4 cursor-pointer text-[#B3B3B3] hover:text-white transition-colors">
             <ChevronLeft className="h-5 w-5 mr-1" />
@@ -244,8 +258,18 @@ export default function ShowDetail() {
                   {formatDate(show.eventDate)}
                 </span>
               </div>
+              {show.avgRating !== null && (
+                <div className="flex items-center gap-2 mt-2">
+                  <StarRating value={Math.round(show.avgRating)} readonly size="sm" />
+                  <span className="text-xs text-[#f5c518]">{show.avgRating.toFixed(1)}</span>
+                  <span className="text-xs text-[#555]">({show.reviewCount} review{show.reviewCount !== 1 ? "s" : ""})</span>
+                </div>
+              )}
             </div>
           </div>
+          {show.notes && (
+            <p className="text-xs text-[#666] mt-3 pt-3 border-t border-[#282828]">{show.notes}</p>
+          )}
         </div>
 
         <div className="flex gap-1 mb-4 bg-[#181818] rounded-xl p-1">
@@ -257,11 +281,14 @@ export default function ShowDetail() {
                 "flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center justify-center gap-1.5",
                 activeTab === tab
                   ? "bg-[#282828] text-white"
-                  : "text-[#666] hover:text-[#B3B3B3]"
+                  : "text-[#555] hover:text-[#B3B3B3]"
               )}
             >
               {tab === "reviews" ? <Star className="h-3.5 w-3.5" /> : <MessageCircle className="h-3.5 w-3.5" />}
               {tab}
+              {tab === "reviews" && reviews.length > 0 && (
+                <span className="text-xs text-[#555] ml-0.5">({reviews.length})</span>
+              )}
             </button>
           ))}
         </div>
@@ -276,7 +303,15 @@ export default function ShowDetail() {
               <>
                 {reviews.length > 0 && <AverageRating reviews={reviews} />}
 
-                {!userReview ? (
+                {!user ? (
+                  <div className="bg-[#181818] rounded-xl p-4 mb-4 flex items-center gap-3">
+                    <LogIn className="h-4 w-4 text-[#5271ff] flex-shrink-0" />
+                    <p className="text-sm text-[#B3B3B3]">
+                      <Link href="/login" className="text-[#5271ff] hover:underline font-medium">Log in</Link>{" "}
+                      to leave a review
+                    </p>
+                  </div>
+                ) : !userReview ? (
                   <div className="bg-[#181818] rounded-xl p-4 mb-4">
                     <p className="text-sm font-semibold text-white mb-3">Were you there?</p>
                     <div className="mb-3">
@@ -346,37 +381,47 @@ export default function ShowDetail() {
 
         {activeTab === "discussion" && (
           <div>
-            <div className="flex gap-3 mb-4">
-              <Avatar className="h-8 w-8 flex-shrink-0 mt-0.5">
-                <AvatarFallback className="bg-[#282828] text-[#B3B3B3] text-xs">
-                  {user?.username?.slice(0, 2).toUpperCase() ?? "?"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <Textarea
-                  ref={commentInputRef}
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                  placeholder="Share a thought about this show..."
-                  className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] resize-none min-h-[72px] text-sm"
-                  maxLength={280}
-                  onKeyDown={e => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) commentMutation.mutate();
-                  }}
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-[10px] text-[#555]">{commentText.length}/280</span>
-                  <button
-                    onClick={() => commentMutation.mutate()}
-                    disabled={!commentText.trim() || commentMutation.isPending}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#c2f970] text-black text-xs font-semibold disabled:opacity-40 hover:bg-[#aee05a] transition-colors"
-                  >
-                    <Send className="h-3 w-3" />
-                    {commentMutation.isPending ? "Posting..." : "Post"}
-                  </button>
+            {!user ? (
+              <div className="bg-[#181818] rounded-xl p-4 mb-4 flex items-center gap-3">
+                <LogIn className="h-4 w-4 text-[#5271ff] flex-shrink-0" />
+                <p className="text-sm text-[#B3B3B3]">
+                  <Link href="/login" className="text-[#5271ff] hover:underline font-medium">Log in</Link>{" "}
+                  to join the discussion
+                </p>
+              </div>
+            ) : (
+              <div className="flex gap-3 mb-4">
+                <Avatar className="h-8 w-8 flex-shrink-0 mt-0.5">
+                  <AvatarFallback className="bg-[#282828] text-[#B3B3B3] text-xs">
+                    {user?.username?.slice(0, 2).toUpperCase() ?? "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <Textarea
+                    ref={commentInputRef}
+                    value={commentText}
+                    onChange={e => setCommentText(e.target.value)}
+                    placeholder="Share a thought about this show..."
+                    className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] resize-none min-h-[72px] text-sm"
+                    maxLength={280}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) commentMutation.mutate();
+                    }}
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[10px] text-[#555]">{commentText.length}/280</span>
+                    <button
+                      onClick={() => commentMutation.mutate()}
+                      disabled={!commentText.trim() || commentMutation.isPending}
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#c2f970] text-black text-xs font-semibold disabled:opacity-40 hover:bg-[#aee05a] transition-colors"
+                    >
+                      <Send className="h-3 w-3" />
+                      {commentMutation.isPending ? "Posting..." : "Post"}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {commentsLoading ? (
               <div className="space-y-3">
@@ -400,8 +445,12 @@ export default function ShowDetail() {
                       <div className="flex-1">
                         <p className="text-sm text-[#B3B3B3] leading-relaxed mb-2">{comment.content}</p>
                         <button
-                          onClick={() => upvoteMutation.mutate(comment.id)}
-                          className="flex items-center gap-1 text-xs text-[#555] hover:text-[#B3B3B3] transition-colors"
+                          onClick={() => user && upvoteMutation.mutate(comment.id)}
+                          disabled={!user}
+                          className={cn(
+                            "flex items-center gap-1 text-xs transition-colors",
+                            user ? "text-[#555] hover:text-[#B3B3B3] cursor-pointer" : "text-[#444] cursor-default"
+                          )}
                         >
                           <ThumbsUp className="h-3 w-3" />
                           {comment.upvotes || 0}

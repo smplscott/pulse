@@ -72,8 +72,8 @@ function Router() {
       <Route path="/messages" component={() => <ProtectedRoute component={Messages} />} />
       <Route path="/artists" component={() => <ProtectedRoute component={Artists} />} />
       <Route path="/songs" component={() => <ProtectedRoute component={Songs} />} />
-      <Route path="/shows" component={() => <ProtectedRoute component={Shows} />} />
-      <Route path="/shows/:id" component={() => <ProtectedRoute component={ShowDetail} />} />
+      <Route path="/shows" component={Shows} />
+      <Route path="/shows/:id" component={ShowDetail} />
       <Route path="/places" component={() => <ProtectedRoute component={Places} />} />
       <Route path="/places/:id" component={() => <ProtectedRoute component={PlaceDetail} />} />
       {/* <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} /> */}
