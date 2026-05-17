@@ -59,8 +59,13 @@ export default function AlbumPage() {
         )}
 
         <section className="mt-6">
-          <h2 className="text-sm font-semibold text-[#666] uppercase tracking-wider mb-3">
+          <h2 className="text-sm font-semibold text-[#666] uppercase tracking-wider mb-3 flex items-center justify-between">
             Community Threads
+            {!threadsLoading && (threads ?? []).length > 0 && (
+              <span className="text-xs font-normal text-[#444] normal-case tracking-normal">
+                {(threads ?? []).length} {(threads ?? []).length === 1 ? "thread" : "threads"}
+              </span>
+            )}
           </h2>
 
           {threadsLoading ? (

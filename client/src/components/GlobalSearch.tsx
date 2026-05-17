@@ -129,8 +129,21 @@ export default function GlobalSearch() {
               </div>
             )}
 
-            {!isLoading && debouncedQuery.length >= 2 && !hasResults && (
+            {!isLoading && debouncedQuery.length >= 2 && !hasResults && filter === "all" && (
               <p className="text-center text-[#555] text-sm py-10">No results for "{debouncedQuery}"</p>
+            )}
+
+            {!isLoading && debouncedQuery.length >= 2 && filter === "artists" && filteredArtists.length === 0 && (
+              <SectionEmpty text="No artists found" />
+            )}
+            {!isLoading && debouncedQuery.length >= 2 && filter === "shows" && filteredShows.length === 0 && (
+              <SectionEmpty text="No shows found" />
+            )}
+            {!isLoading && debouncedQuery.length >= 2 && filter === "albums" && filteredAlbums.length === 0 && (
+              <SectionEmpty text="No albums found" />
+            )}
+            {!isLoading && debouncedQuery.length >= 2 && filter === "places" && filteredPlaces.length === 0 && (
+              <SectionEmpty text="No places found" />
             )}
 
             {!debouncedQuery && (
@@ -212,6 +225,12 @@ export default function GlobalSearch() {
 function SectionLabel({ children }: { children: string }) {
   return (
     <p className="px-4 pt-3 pb-1 text-xs font-semibold text-[#555] uppercase tracking-wider">{children}</p>
+  );
+}
+
+function SectionEmpty({ text }: { text: string }) {
+  return (
+    <p className="text-center text-[#555] text-sm py-10">{text}</p>
   );
 }
 

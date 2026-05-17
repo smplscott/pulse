@@ -284,24 +284,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const token = await getSpotifyToken();
     const setlistKey = process.env.SETLISTFM_API_KEY;
 
+    type SpotifyArtistItem = { id: string; name: string; images: Array<{ url: string }>; genres: string[] };
+    type SpotifyAlbumItem = { id: string; name: string; images: Array<{ url: string }>; release_date: string; artists: Array<{ id: string; name: string }> };
+    type SetlistFmSetlist = { id: string; artist: { name: string }; venue: { name: string; city: { name: string; country: { name: string } } }; eventDate: string };
+
     await Promise.allSettled([
       // Spotify artists
       (type === "all" || type === "artists") && token
         ? fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=artist&limit=6`, {
             headers: { Authorization: `Bearer ${token}` },
-          }).then(r => r.json()).then((data: any) => {
-            results.artists = (data.artists?.items || []).map((a: any) => ({
+          }).then(r => r.json()).then((data: { artists?: { items: SpotifyArtistItem[] } }) => {
+            results.artists = (data.artists?.items || []).map(a => ({
               spotifyId: a.id, name: a.name, imageUrl: a.images[0]?.url || null, genres: (a.genres || []).slice(0, 2),
             }));
-          }).catch(() => {})
+          }).catch(err => console.warn("[search] Spotify artist search failed:", err))
         : Promise.resolve(),
 
       // Setlist.fm shows
       (type === "all" || type === "shows") && setlistKey
         ? fetch(`https://api.setlist.fm/rest/1.0/search/setlists?artistName=${encodeURIComponent(q)}&p=1`, {
             headers: { "x-api-key": setlistKey, Accept: "application/json" },
-          }).then(r => r.json()).then((data: any) => {
-            results.shows = (data.setlist || []).slice(0, 6).map((s: any) => ({
+          }).then(r => r.json()).then((data: { setlist?: SetlistFmSetlist[] }) => {
+            results.shows = (data.setlist || []).slice(0, 6).map(s => ({
               setlistfmId: s.id,
               artistName: s.artist?.name ?? q,
               venueName: s.venue?.name ?? "Unknown Venue",
@@ -309,22 +313,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               country: s.venue?.city?.country?.name ?? "",
               eventDate: s.eventDate ? s.eventDate.split("-").reverse().join("-") : "",
             }));
-          }).catch(() => {})
+          }).catch(err => console.warn("[search] Setlist.fm search failed:", err))
         : Promise.resolve(),
 
       // Spotify albums
       (type === "all" || type === "albums") && token
         ? fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=album&limit=6`, {
             headers: { Authorization: `Bearer ${token}` },
-          }).then(r => r.json()).then((data: any) => {
-            results.albums = (data.albums?.items || []).map((a: any) => ({
+          }).then(r => r.json()).then((data: { albums?: { items: SpotifyAlbumItem[] } }) => {
+            results.albums = (data.albums?.items || []).map(a => ({
               spotifyId: a.id, name: a.name,
               imageUrl: a.images[0]?.url || null,
               releaseYear: a.release_date?.slice(0, 4) || "",
               artistName: a.artists?.[0]?.name || "",
               artistSpotifyId: a.artists?.[0]?.id || "",
             }));
-          }).catch(() => {})
+          }).catch(err => console.warn("[search] Spotify album search failed:", err))
         : Promise.resolve(),
 
       // Local places
@@ -333,7 +337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             results.places = places.slice(0, 6).map(p => ({
               id: p.id, name: p.name, city: p.city, country: p.country, category: p.category,
             }));
-          }).catch(() => {})
+          }).catch(err => console.warn("[search] Places search failed:", err))
         : Promise.resolve(),
     ]);
 
