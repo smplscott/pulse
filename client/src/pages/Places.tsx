@@ -1,9 +1,6 @@
-import { useState, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
@@ -11,15 +8,8 @@ import { Place } from "@shared/schema";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SearchIcon, MapPin, Star, Plus, Music2 } from "lucide-react";
+import { SearchIcon, MapPin, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const GENRE_OPTIONS = [
   "House", "Techno", "Drum & Bass", "Jungle", "Hip-Hop",
@@ -35,17 +25,6 @@ const CATEGORIES = [
   { id: "coffee_shop", label: "Coffee Shops" },
   { id: "other", label: "Other" },
 ];
-
-const addPlaceSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  city: z.string().min(1, "City is required"),
-  country: z.string().min(1, "Country is required"),
-  category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
-  description: z.string().min(10, "Description must be at least 10 characters").max(280, "Max 280 characters"),
-  mapsLink: z.string().optional(),
-});
-
-type AddPlaceForm = z.infer<typeof addPlaceSchema>;
 
 function categoryLabel(cat: string) {
   return CATEGORIES.find(c => c.id === cat)?.label ?? cat;
@@ -104,54 +83,10 @@ function PlaceCard({ place }: { place: Place }) {
 export default function Places() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const { toast } = useToast();
-  const { user } = useAuth();
-
-  const form = useForm<AddPlaceForm>({
-    resolver: zodResolver(addPlaceSchema),
-    defaultValues: {
-      name: "",
-      city: "",
-      country: "",
-      category: "club",
-      description: "",
-      mapsLink: "",
-    },
-  });
 
   const { data: places, isLoading } = useQuery<Place[]>({
     queryKey: ["/api/places"],
   });
-
-  const addMutation = useMutation({
-    mutationFn: (data: AddPlaceForm & { genres: string[] }) =>
-      apiRequest("POST", "/api/places", data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
-      if (user?.username) {
-        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
-      }
-      toast({ title: "Place added!", description: "Thanks for contributing to the community." });
-      setDialogOpen(false);
-      form.reset();
-      setSelectedGenres([]);
-    },
-    onError: (err: any) => {
-      toast({ title: "Failed to add place", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const onSubmit = (data: AddPlaceForm) => {
-    addMutation.mutate({ ...data, genres: selectedGenres });
-  };
-
-  const toggleGenre = (genre: string) => {
-    setSelectedGenres(prev =>
-      prev.includes(genre) ? prev.filter(g => g !== genre) : [...prev, genre]
-    );
-  };
 
   const filteredPlaces = places?.filter(p => {
     const matchesSearch = !searchQuery ||
@@ -168,155 +103,14 @@ export default function Places() {
       <Header />
 
       <main className="px-4 pt-4 pb-4">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="relative flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#B3B3B3]" />
-            <Input
-              placeholder="Search by venue, city, genre..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="pl-9 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] h-10 text-sm"
-            />
-          </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <button className="w-10 h-10 rounded-lg bg-[#c2f970] flex items-center justify-center flex-shrink-0 hover:bg-[#aee05a] transition-colors">
-                <Plus className="h-5 w-5 text-black" />
-              </button>
-            </DialogTrigger>
-            <DialogContent className="bg-[#121212] border-[#3E3E3E] text-white max-w-md mx-auto max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-lg font-bold">Add a Place</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs text-[#B3B3B3]">Venue Name *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="e.g. Fabric, Berghain" className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs text-[#B3B3B3]">City *</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="London" className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="country"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs text-[#B3B3B3]">Country *</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="UK" className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs text-[#B3B3B3]">Category *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-[#282828] border-[#3E3E3E] text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="bg-[#282828] border-[#3E3E3E]">
-                            <SelectItem value="bar">Bar</SelectItem>
-                            <SelectItem value="club">Club</SelectItem>
-                            <SelectItem value="record_store">Record Store</SelectItem>
-                            <SelectItem value="coffee_shop">Coffee Shop</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div>
-                    <p className="text-xs text-[#B3B3B3] mb-2">Genres (optional)</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {GENRE_OPTIONS.map(g => (
-                        <button
-                          key={g}
-                          type="button"
-                          onClick={() => toggleGenre(g)}
-                          className={cn(
-                            "px-2.5 py-1 rounded-full text-xs transition-colors",
-                            selectedGenres.includes(g)
-                              ? "bg-[#c2f970] text-black font-medium"
-                              : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
-                          )}
-                        >
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs text-[#B3B3B3]">Description * <span className="text-[#666]">(10–280 chars)</span></FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="What makes this place worth visiting?"
-                            className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] min-h-[80px] resize-none"
-                            maxLength={280}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="mapsLink"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs text-[#B3B3B3]">Google Maps Link (optional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="https://maps.google.com/..." className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <button
-                    type="submit"
-                    disabled={addMutation.isPending}
-                    className="w-full bg-[#c2f970] text-black font-semibold py-2.5 rounded-full text-sm hover:bg-[#aee05a] transition-colors disabled:opacity-50"
-                  >
-                    {addMutation.isPending ? "Adding..." : "Add Place"}
-                  </button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+        <div className="relative mb-4">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#B3B3B3]" />
+          <Input
+            placeholder="Search by venue, city, genre..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="pl-9 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] h-10 text-sm"
+          />
         </div>
 
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-4">
@@ -353,9 +147,12 @@ export default function Places() {
             <div className="w-14 h-14 rounded-full bg-[#181818] flex items-center justify-center mx-auto mb-3">
               <MapPin className="h-6 w-6 text-[#555]" />
             </div>
-            <p className="text-[#B3B3B3] text-sm">
+            <p className="text-[#B3B3B3] text-sm mb-1">
               {searchQuery || activeCategory !== "all" ? "No places found" : "No places yet — be the first to add one"}
             </p>
+            {!searchQuery && activeCategory === "all" && (
+              <p className="text-xs text-[#555]">Tap the + button to add a place.</p>
+            )}
           </div>
         )}
       </main>

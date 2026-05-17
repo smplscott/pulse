@@ -6,11 +6,9 @@ import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Search, Ticket, MapPin, Calendar, Plus, AlertCircle, Music2, Star, MessageCircle } from "lucide-react";
+import { Search, Ticket, MapPin, Calendar, AlertCircle, Music2, Star, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Show } from "@shared/schema";
 
@@ -114,11 +112,6 @@ export default function Shows() {
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [prefillArtist, setPrefillArtist] = useState("");
-  const [manualForm, setManualForm] = useState({
-    artistName: "", venueName: "", city: "", country: "", eventDate: "", notes: "",
-  });
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: shows, isLoading: showsLoading } = useQuery<ShowWithStats[]>({
@@ -149,44 +142,21 @@ export default function Shows() {
     onError: () => toast({ title: "Error", description: "Could not load this show", variant: "destructive" }),
   });
 
-  const addShowMutation = useMutation({
-    mutationFn: async (data: typeof manualForm) => {
-      const { notes, ...rest } = data;
-      const res = await apiRequest("POST", "/api/shows", { ...rest, notes: notes || undefined, isManual: true });
-      return res.json();
-    },
-    onSuccess: (show: Show) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shows"] });
-      setShowAddDialog(false);
-      setManualForm({ artistName: "", venueName: "", city: "", country: "", eventDate: "", notes: "" });
-      navigate(`/shows/${show.id}`);
-    },
-    onError: () => toast({ title: "Error", description: "Could not add show", variant: "destructive" }),
-  });
-
   const handleSearchChange = (val: string) => {
     setSearchInput(val);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     searchTimeoutRef.current = setTimeout(() => setSearchQuery(val.trim()), 500);
   };
 
-  const openAddDialog = (artist = "") => {
-    setPrefillArtist(artist);
-    setManualForm(f => ({ ...f, artistName: artist }));
-    setShowAddDialog(true);
-  };
-
   const noApiKey = searchData?.error?.includes("not configured");
   const setlistResults = searchData?.results ?? [];
   const isSearching = searchQuery.length >= 2;
 
-  // Derived filter values from local shows
   const allCities = Array.from(new Set((shows ?? []).map(s => s.city))).sort();
   const allGenres = Array.from(
     new Set((shows ?? []).flatMap(s => s.genres ?? []))
   ).sort();
 
-  // Filter local shows
   const filteredShows = (shows ?? []).filter(s => {
     if (isSearching && searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -211,22 +181,14 @@ export default function Shows() {
     <div className="min-h-screen pb-32">
       <Header />
       <main className="px-4 pt-4 max-w-lg mx-auto">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
-            <Input
-              value={searchInput}
-              onChange={e => handleSearchChange(e.target.value)}
-              placeholder="Search artist to find shows..."
-              className="pl-9 bg-[#181818] border-[#282828] text-white placeholder:text-[#555] focus:border-[#5271ff]"
-            />
-          </div>
-          <button
-            onClick={() => openAddDialog()}
-            className="w-10 h-10 rounded-lg bg-[#5271ff] flex items-center justify-center flex-shrink-0 hover:bg-[#4060ee] transition-colors"
-          >
-            <Plus className="h-5 w-5 text-white" />
-          </button>
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
+          <Input
+            value={searchInput}
+            onChange={e => handleSearchChange(e.target.value)}
+            placeholder="Search artist to find shows..."
+            className="pl-9 bg-[#181818] border-[#282828] text-white placeholder:text-[#555] focus:border-[#5271ff]"
+          />
         </div>
 
         <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
@@ -317,14 +279,8 @@ export default function Shows() {
               </div>
             ) : (
               <div className="bg-[#181818] rounded-xl p-4">
-                <p className="text-sm text-[#666] mb-3">No setlists found for "{searchQuery}".</p>
-                <button
-                  onClick={() => openAddDialog(searchQuery)}
-                  className="flex items-center gap-2 text-sm text-[#5271ff] font-medium hover:text-[#7090ff] transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Can't find it? Add manually
-                </button>
+                <p className="text-sm text-[#666]">No setlists found for "{searchQuery}".</p>
+                <p className="text-xs text-[#555] mt-1">Use the + button to add a show manually.</p>
               </div>
             )}
           </div>
@@ -347,98 +303,12 @@ export default function Shows() {
           ) : (
             <div className="bg-[#181818] rounded-xl p-8 text-center">
               <Music2 className="h-8 w-8 text-[#333] mx-auto mb-3" />
-              <p className="text-sm text-[#666] mb-3">No shows found</p>
-              <button
-                onClick={() => openAddDialog(searchQuery)}
-                className="flex items-center gap-2 text-sm text-[#5271ff] font-medium mx-auto hover:text-[#7090ff] transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                Add manually
-              </button>
+              <p className="text-sm text-[#666] mb-1">No shows found</p>
+              <p className="text-xs text-[#555]">Tap the + button to add one.</p>
             </div>
           )}
         </div>
       </main>
-
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-[#181818] border-[#282828] text-white max-w-sm mx-auto">
-          <DialogHeader>
-            <DialogTitle>Add a show manually</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 pt-2">
-            <div>
-              <Label className="text-xs text-[#B3B3B3] mb-1.5 block">Artist *</Label>
-              <Input
-                value={manualForm.artistName}
-                onChange={e => setManualForm(f => ({ ...f, artistName: e.target.value }))}
-                placeholder="e.g. Bicep"
-                className="bg-[#282828] border-[#3E3E3E] text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-[#B3B3B3] mb-1.5 block">Venue *</Label>
-              <Input
-                value={manualForm.venueName}
-                onChange={e => setManualForm(f => ({ ...f, venueName: e.target.value }))}
-                placeholder="e.g. Fabric"
-                className="bg-[#282828] border-[#3E3E3E] text-white"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs text-[#B3B3B3] mb-1.5 block">City *</Label>
-                <Input
-                  value={manualForm.city}
-                  onChange={e => setManualForm(f => ({ ...f, city: e.target.value }))}
-                  placeholder="London"
-                  className="bg-[#282828] border-[#3E3E3E] text-white"
-                />
-              </div>
-              <div>
-                <Label className="text-xs text-[#B3B3B3] mb-1.5 block">Country *</Label>
-                <Input
-                  value={manualForm.country}
-                  onChange={e => setManualForm(f => ({ ...f, country: e.target.value }))}
-                  placeholder="UK"
-                  className="bg-[#282828] border-[#3E3E3E] text-white"
-                />
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs text-[#B3B3B3] mb-1.5 block">Date *</Label>
-              <Input
-                type="date"
-                value={manualForm.eventDate}
-                onChange={e => setManualForm(f => ({ ...f, eventDate: e.target.value }))}
-                className="bg-[#282828] border-[#3E3E3E] text-white"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-[#B3B3B3] mb-1.5 block">Notes (optional)</Label>
-              <Input
-                value={manualForm.notes}
-                onChange={e => setManualForm(f => ({ ...f, notes: e.target.value }))}
-                placeholder="e.g. support acts, special guests..."
-                className="bg-[#282828] border-[#3E3E3E] text-white"
-              />
-            </div>
-            <button
-              onClick={() => addShowMutation.mutate(manualForm)}
-              disabled={
-                !manualForm.artistName.trim() ||
-                !manualForm.venueName.trim() ||
-                !manualForm.city.trim() ||
-                !manualForm.country.trim() ||
-                !manualForm.eventDate ||
-                addShowMutation.isPending
-              }
-              className="w-full py-2.5 rounded-full bg-[#5271ff] text-white font-semibold text-sm disabled:opacity-40 hover:bg-[#4060ee] transition-colors"
-            >
-              {addShowMutation.isPending ? "Adding..." : "Add Show"}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <MusicPlayer />
       <BottomNav />
