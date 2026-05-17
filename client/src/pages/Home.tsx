@@ -1,17 +1,13 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import ThreadCard from "@/components/cards/ThreadCard";
-import NewThreadDialog from "@/components/threads/NewThreadDialog";
 import { useAuth } from "@/context/AuthContext";
 import { Thread } from "@shared/schema";
-import { PlusIcon, Flame, MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Flame, MessageCircle } from "lucide-react";
 
 export default function Home() {
   const { user } = useAuth();
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: featuredThreads, isLoading: loadingFeatured } = useQuery<Thread[]>({
     queryKey: ["/api/threads/featured"],
@@ -27,7 +23,6 @@ export default function Home() {
       <Header />
 
       <main className="px-4 pt-4">
-        {/* Section: Featured / Popular Discussions */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -56,7 +51,6 @@ export default function Home() {
           )}
         </section>
 
-        {/* Section: Continue Your Threads */}
         {user && (
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
@@ -85,20 +79,6 @@ export default function Home() {
         )}
       </main>
 
-      {/* Floating New Thread button */}
-      <button
-        onClick={() => setDialogOpen(true)}
-        className={cn(
-          "fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full",
-          "bg-[#c2f970] hover:bg-[#aee05a] active:scale-95 transition-all",
-          "flex items-center justify-center shadow-lg"
-        )}
-        aria-label="New Thread"
-      >
-        <PlusIcon className="h-7 w-7 text-black font-bold" strokeWidth={3} />
-      </button>
-
-      <NewThreadDialog open={dialogOpen} onOpenChange={setDialogOpen} />
       <BottomNav />
     </div>
   );
