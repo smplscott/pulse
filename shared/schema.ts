@@ -261,6 +261,22 @@ export const insertTrackIdVoteSchema = createInsertSchema(trackIdVotes).pick({
   voteType: true,
 });
 
+// Thread follows table — users who watch a thread for activity
+export const threadFollows = pgTable("thread_follows", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  threadId: integer("thread_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertThreadFollowSchema = createInsertSchema(threadFollows).pick({
+  userId: true,
+  threadId: true,
+});
+
+export type ThreadFollow = typeof threadFollows.$inferSelect;
+export type InsertThreadFollow = z.infer<typeof insertThreadFollowSchema>;
+
 // Notifications table
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),

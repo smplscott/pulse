@@ -11,7 +11,8 @@ import type {
   SongRecommendation, InsertSongRecommendation,
   TrackId, InsertTrackId,
   TrackIdVote, InsertTrackIdVote,
-  Notification, InsertNotification
+  Notification, InsertNotification,
+  ThreadFollow
 } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
@@ -96,6 +97,12 @@ export interface IStorage {
   followSong(userId: number, songId: number): Promise<void>;
   unfollowSong(userId: number, songId: number): Promise<void>;
 
+  // Thread follow operations
+  getThreadFollowers(threadId: number): Promise<ThreadFollow[]>;
+  isFollowingThread(userId: number, threadId: number): Promise<boolean>;
+  followThread(userId: number, threadId: number): Promise<void>;
+  unfollowThread(userId: number, threadId: number): Promise<void>;
+
   // Notification operations
   getNotificationsByUser(userId: number): Promise<Notification[]>;
   getUnreadNotificationCount(userId: number): Promise<number>;
@@ -117,6 +124,7 @@ export class MemStorage implements IStorage {
   private trackIdVotesMap: Map<number, TrackIdVote> = new Map();
   private followedArtistsMap: Map<number, Set<number>> = new Map();
   private followedSongsMap: Map<number, Set<number>> = new Map();
+  private threadFollowsMap: Map<number, ThreadFollow> = new Map();
   private notificationsMap: Map<number, Notification> = new Map();
 
   private userCurrentId = 1;
@@ -129,6 +137,7 @@ export class MemStorage implements IStorage {
   private songRecommendationCurrentId = 1;
   private trackIdCurrentId = 1;
   private trackIdVoteCurrentId = 1;
+  private threadFollowCurrentId = 1;
   private notificationCurrentId = 1;
 
   constructor() {
@@ -528,6 +537,16 @@ export class MemStorage implements IStorage {
     // Seed testuser follows all 3 artists and all 4 songs
     this.followedArtistsMap.set(user.id, new Set([artist1.id, artist2.id, artist3.id]));
     this.followedSongsMap.set(user.id, new Set([1, 2, 3, 4]));
+
+    // Seed thread follows — testuser watches threads 1, 2, 3
+    const seedFollows: ThreadFollow[] = [
+      { id: this.threadFollowCurrentId++, userId: user.id, threadId: 1, createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) },
+      { id: this.threadFollowCurrentId++, userId: user.id, threadId: 2, createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+      { id: this.threadFollowCurrentId++, userId: user.id, threadId: 3, createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) },
+    ];
+    for (const f of seedFollows) {
+      this.threadFollowsMap.set(f.id, f);
+    }
 
     // Seed notifications for testuser
     const seedNotifications: Notification[] = [
@@ -1020,6 +1039,38 @@ export class MemStorage implements IStorage {
 
   async unfollowSong(userId: number, songId: number): Promise<void> {
     this.followedSongsMap.get(userId)?.delete(songId);
+  }
+
+  // Thread follow operations
+  async getThreadFollowers(threadId: number): Promise<ThreadFollow[]> {
+    return Array.from(this.threadFollowsMap.values()).filter(f => f.threadId === threadId);
+  }
+
+  async isFollowingThread(userId: number, threadId: number): Promise<boolean> {
+    return Array.from(this.threadFollowsMap.values()).some(
+      f => f.userId === userId && f.threadId === threadId
+    );
+  }
+
+  async followThread(userId: number, threadId: number): Promise<void> {
+    const already = await this.isFollowingThread(userId, threadId);
+    if (already) return;
+    const id = this.threadFollowCurrentId++;
+    this.threadFollowsMap.set(id, {
+      id,
+      userId,
+      threadId,
+      createdAt: new Date(),
+    });
+  }
+
+  async unfollowThread(userId: number, threadId: number): Promise<void> {
+    for (const [id, f] of this.threadFollowsMap.entries()) {
+      if (f.userId === userId && f.threadId === threadId) {
+        this.threadFollowsMap.delete(id);
+        return;
+      }
+    }
   }
 
   // Notification operations

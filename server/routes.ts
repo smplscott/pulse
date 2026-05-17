@@ -346,6 +346,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const thread = await storage.saveThread(id);
     if (!thread) return res.status(404).json({ message: "Thread not found" });
 
+    // Record user as a thread follower/watcher when they save
+    await storage.followThread(userId, id);
+
     // Notify thread owner when someone saves their thread (skip self-save)
     const actor = await storage.getUser(userId);
     if (actor && thread.userId !== userId) {
@@ -360,6 +363,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     return res.json(thread);
+  });
+
+  app.get("/api/threads/:id/follow-status", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
+    const following = await storage.isFollowingThread(userId, id);
+    return res.json({ following });
+  });
+
+  app.post("/api/threads/:id/follow", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
+    await storage.followThread(userId, id);
+    return res.json({ success: true });
+  });
+
+  app.post("/api/threads/:id/unfollow", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
+    await storage.unfollowThread(userId, id);
+    return res.json({ success: true });
   });
   
   // Comments routes
@@ -380,18 +410,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const commentData = insertCommentSchema.parse({ ...req.body, userId });
       const comment = await storage.createComment(commentData);
 
-      // Fire notification to thread owner (skip if owner is the commenter)
+      // Fire notifications to thread owner + all watchers (skip actor/self)
       const thread = await storage.getThread(commentData.threadId);
       const actor = await storage.getUser(userId);
-      if (thread && actor && thread.userId !== userId) {
-        await storage.createNotification({
-          userId: thread.userId,
-          type: "comment",
-          threadId: thread.id,
-          threadTitle: thread.title,
-          actorId: userId,
-          actorUsername: actor.username,
-        });
+      if (thread && actor) {
+        const followers = await storage.getThreadFollowers(thread.id);
+        // Build set of recipients: owner + watchers, excluding the commenter
+        const recipientIds = new Set<number>();
+        if (thread.userId !== userId) recipientIds.add(thread.userId);
+        for (const f of followers) {
+          if (f.userId !== userId) recipientIds.add(f.userId);
+        }
+        for (const recipientId of recipientIds) {
+          await storage.createNotification({
+            userId: recipientId,
+            type: "comment",
+            threadId: thread.id,
+            threadTitle: thread.title,
+            actorId: userId,
+            actorUsername: actor.username,
+          });
+        }
       }
 
       return res.status(201).json(comment);
