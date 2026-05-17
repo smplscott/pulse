@@ -41,7 +41,7 @@ const addPlaceSchema = z.object({
   country: z.string().min(1, "Country is required"),
   category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
   description: z.string().min(10, "Description must be at least 10 characters").max(280, "Max 280 characters"),
-  mapsLink: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  mapsLink: z.string().optional(),
 });
 
 type AddPlaceForm = z.infer<typeof addPlaceSchema>;
@@ -67,12 +67,8 @@ function PlaceCard({ place }: { place: Place }) {
                 <p className="text-xs text-[#B3B3B3] mt-0.5">{place.city}, {place.country}</p>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                {place.rating !== null && place.rating !== undefined && place.rating > 0 && (
-                  <>
-                    <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
-                    <span className="text-xs text-[#B3B3B3]">{place.rating}.0</span>
-                  </>
-                )}
+                <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
+                <span className="text-xs text-[#B3B3B3]">{place.rating ?? 0}.0</span>
               </div>
             </div>
             <p className="text-xs text-[#B3B3B3] mt-1 line-clamp-2 leading-relaxed">{place.description}</p>

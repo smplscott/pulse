@@ -78,7 +78,7 @@ function Router() {
       <Route path="/artist/:id" component={() => <ProtectedRoute component={ArtistDetail} />} />
       <Route path="/song/:id" component={() => <ProtectedRoute component={SongDetail} />} />
       <Route path="/thread/:id" component={() => <ProtectedRoute component={ThreadDetail} />} />
-      <Route path="/venue/:id" component={() => <ProtectedRoute component={VenueDetail} />} />
+      <Route path="/venue/:id" component={() => <Redirect to="/places" />} />
       {/* <Route path="/sets/:id" component={() => <ProtectedRoute component={SetDetail} />} /> */}
       <Route path="/credits/:id" component={() => <ProtectedRoute component={Credits} />} />
       <Route path="/samples/:id" component={() => <ProtectedRoute component={Samples} />} />

@@ -105,12 +105,10 @@ export default function PlaceDetail() {
                     <span className="text-xs px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
                       {CATEGORY_LABELS[place.category] ?? place.category}
                     </span>
-                    {place.rating !== null && place.rating > 0 && (
-                      <span className="flex items-center gap-1 text-xs text-[#B3B3B3]">
-                        <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
-                        {place.rating}.0
-                      </span>
-                    )}
+                    <span className="flex items-center gap-1 text-xs text-[#B3B3B3]">
+                      <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
+                      {place.rating ?? 0}.0
+                    </span>
                   </div>
                   <h1 className="text-2xl font-bold">{place.name}</h1>
                   <div className="flex items-center gap-1 text-[#B3B3B3] mt-1">
