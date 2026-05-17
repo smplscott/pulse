@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Place } from "@shared/schema";
 import {
-  X, ChevronLeft, Search, Music2, Ticket, Disc3, MessageSquare,
+  X, ChevronLeft, Search, Music2, Ticket, Disc3,
   MapPin, Calendar, Star, Plus, AlertCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -508,16 +508,6 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 </button>
               )}
 
-              <div className="border-t border-[#1e1e1e] pt-3">
-                <p className="text-xs text-[#555] text-center mb-2">or start a general discussion</p>
-                <button
-                  className="w-full py-3 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition-colors text-left px-4"
-                  onClick={() => { setSelectedType("topic"); setStep("thread_form"); }}
-                >
-                  <p className="text-sm font-semibold text-purple-400">Topic / General</p>
-                  <p className="text-xs text-[#B3B3B3] mt-0.5">Start a discussion — no artist needed</p>
-                </button>
-              </div>
             </div>
           )}
 
@@ -556,14 +546,6 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                     Icon: Disc3,
                     color: "text-blue-400",
                     bg: "bg-blue-500/10 border-blue-500/30 hover:border-blue-500/60",
-                  },
-                  {
-                    id: "topic" as const,
-                    label: "Topic / General",
-                    desc: "Open discussion — no linked release needed",
-                    Icon: MessageSquare,
-                    color: "text-purple-400",
-                    bg: "bg-purple-500/10 border-purple-500/30 hover:border-purple-500/60",
                   },
                 ].map(t => (
                   <button
