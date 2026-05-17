@@ -15,14 +15,14 @@ import Library from "@/pages/Library";
 import Profile from "@/pages/Profile";
 import Artists from "@/pages/Artists";
 import Songs from "@/pages/Songs";
-import Sets from "@/pages/Sets";
+// import Sets from "@/pages/Sets";        // Sets hidden from nav — re-enable when ready
+// import SetDetail from "@/pages/SetDetail"; // Sets hidden from nav — re-enable when ready
 import CommunityAchievements from "@/pages/CommunityAchievements";
 import Messages from "@/pages/Messages";
 import ArtistDetail from "@/pages/ArtistDetail";
 import SongDetail from "@/pages/SongDetail";
 import ThreadDetail from "@/pages/ThreadDetail";
 import VenueDetail from "@/pages/VenueDetail";
-import SetDetail from "@/pages/SetDetail";
 import CreateThread from "@/pages/CreateThread";
 import CreateSongRequest from "@/pages/CreateSongRequest";
 import Credits from "@/pages/Credits";
@@ -68,12 +68,12 @@ function Router() {
       <Route path="/messages" component={() => <ProtectedRoute component={Messages} />} />
       <Route path="/artists" component={() => <ProtectedRoute component={Artists} />} />
       <Route path="/songs" component={() => <ProtectedRoute component={Songs} />} />
-      <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} />
+      {/* <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} /> */}
       <Route path="/artist/:id" component={() => <ProtectedRoute component={ArtistDetail} />} />
       <Route path="/song/:id" component={() => <ProtectedRoute component={SongDetail} />} />
       <Route path="/thread/:id" component={() => <ProtectedRoute component={ThreadDetail} />} />
       <Route path="/venue/:id" component={() => <ProtectedRoute component={VenueDetail} />} />
-      <Route path="/sets/:id" component={() => <ProtectedRoute component={SetDetail} />} />
+      {/* <Route path="/sets/:id" component={() => <ProtectedRoute component={SetDetail} />} /> */}
       <Route path="/credits/:id" component={() => <ProtectedRoute component={Credits} />} />
       <Route path="/samples/:id" component={() => <ProtectedRoute component={Samples} />} />
       <Route path="/create-thread" component={() => <ProtectedRoute component={CreateThread} />} />
