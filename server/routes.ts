@@ -349,17 +349,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Record user as a thread follower/watcher when they save
     await storage.followThread(userId, id);
 
-    // Notify thread owner when someone saves their thread (skip self-save)
+    // Notify thread owner + all watchers (excluding the saver)
     const actor = await storage.getUser(userId);
-    if (actor && thread.userId !== userId) {
-      await storage.createNotification({
-        userId: thread.userId,
-        type: "save",
-        threadId: thread.id,
-        threadTitle: thread.title,
-        actorId: userId,
-        actorUsername: actor.username,
-      });
+    if (actor) {
+      const followers = await storage.getThreadFollowers(thread.id);
+      const recipientIds = new Set<number>();
+      if (thread.userId !== userId) recipientIds.add(thread.userId);
+      for (const f of followers) {
+        if (f.userId !== userId) recipientIds.add(f.userId);
+      }
+      for (const recipientId of recipientIds) {
+        await storage.createNotification({
+          userId: recipientId,
+          type: "save",
+          threadId: thread.id,
+          threadTitle: thread.title,
+          actorId: userId,
+          actorUsername: actor.username,
+        });
+      }
     }
 
     return res.json(thread);
