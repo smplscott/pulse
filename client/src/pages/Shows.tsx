@@ -102,13 +102,12 @@ function ShowCard({
   );
 }
 
-type CategoryFilter = "all" | "upcoming" | "past" | "community";
+type FilterMode = "all" | "city" | "genre";
 
-const SHOW_CATEGORIES: { id: CategoryFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "upcoming", label: "Upcoming" },
-  { id: "past", label: "Past" },
-  { id: "community", label: "Community Added" },
+const FILTER_CHIPS: { mode: FilterMode; label: string }[] = [
+  { mode: "all", label: "All" },
+  { mode: "city", label: "By City" },
+  { mode: "genre", label: "By Genre" },
 ];
 
 export default function Shows() {
@@ -116,7 +115,9 @@ export default function Shows() {
   const { toast } = useToast();
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("all");
+  const [filterMode, setFilterMode] = useState<FilterMode>("all");
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: shows, isLoading: showsLoading } = useQuery<ShowWithStats[]>({
@@ -157,7 +158,10 @@ export default function Shows() {
   const setlistResults = searchData?.results ?? [];
   const isSearching = searchQuery.length >= 2;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const allCities = Array.from(new Set((shows ?? []).map(s => s.city))).sort();
+  const allGenres = Array.from(
+    new Set((shows ?? []).flatMap(s => s.genres ?? []))
+  ).sort();
 
   const filteredShows = (shows ?? []).filter(s => {
     if (isSearching && searchQuery) {
@@ -168,9 +172,8 @@ export default function Shows() {
         !s.city.toLowerCase().includes(q)
       ) return false;
     }
-    if (activeCategory === "upcoming" && s.eventDate < today) return false;
-    if (activeCategory === "past" && s.eventDate >= today) return false;
-    if (activeCategory === "community" && !s.isManual) return false;
+    if (filterMode === "city" && selectedCity && s.city !== selectedCity) return false;
+    if (filterMode === "genre" && selectedGenre && !(s.genres ?? []).includes(selectedGenre)) return false;
     return true;
   });
 
@@ -178,24 +181,28 @@ export default function Shows() {
     <div className="min-h-screen pb-32">
       <Header />
       <main className="px-4 pt-4 max-w-lg mx-auto">
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#B3B3B3]" />
           <Input
             value={searchInput}
             onChange={e => handleSearchChange(e.target.value)}
-            placeholder="Search artist to find shows..."
-            className="pl-9 bg-[#181818] border-[#282828] text-white placeholder:text-[#555] focus:border-[#5271ff]"
+            placeholder="Search by artist, venue, city..."
+            className="pl-9 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] h-10 text-sm"
           />
         </div>
 
-        <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
-          {SHOW_CATEGORIES.map(({ id, label }) => (
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-4">
+          {FILTER_CHIPS.map(({ mode, label }) => (
             <button
-              key={id}
-              onClick={() => setActiveCategory(id)}
+              key={mode}
+              onClick={() => {
+                setFilterMode(mode);
+                setSelectedCity(null);
+                setSelectedGenre(null);
+              }}
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
-                activeCategory === id
+                filterMode === mode
                   ? "bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] text-white border-transparent"
                   : "bg-[#181818] text-[#B3B3B3] border border-[#3E3E3E]"
               )}
@@ -204,6 +211,44 @@ export default function Shows() {
             </button>
           ))}
         </div>
+
+        {filterMode === "city" && allCities.length > 0 && (
+          <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
+            {allCities.map(city => (
+              <button
+                key={city}
+                onClick={() => setSelectedCity(selectedCity === city ? null : city)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                  selectedCity === city
+                    ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black"
+                    : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
+                )}
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {filterMode === "genre" && allGenres.length > 0 && (
+          <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
+            {allGenres.map(genre => (
+              <button
+                key={genre}
+                onClick={() => setSelectedGenre(selectedGenre === genre ? null : genre)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                  selectedGenre === genre
+                    ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black"
+                    : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
+                )}
+              >
+                {genre}
+              </button>
+            ))}
+          </div>
+        )}
 
         {isSearching && (
           <div className="mb-6">
