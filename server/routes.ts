@@ -898,15 +898,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         country: z.string().min(1, "Country is required"),
         description: z.string().min(10, "Description must be at least 10 characters").max(280, "Max 280 characters"),
         category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
+        rating: z.number().int().min(1).max(5).optional(),
       });
-      const placeData = schema.parse({ ...req.body, userId });
-      const place = await storage.createPlace(placeData);
-      return res.status(201).json(place);
+      const { rating, ...placeFields } = schema.parse({ ...req.body, userId });
+      const place = await storage.createPlace(placeFields);
+      // Auto-create a review for the creator if they provided a rating
+      if (rating) {
+        await storage.createPlaceReview({ placeId: place.id, userId, rating, body: placeFields.description });
+      }
+      return res.status(201).json(await storage.getPlace(place.id));
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
       }
       return res.status(500).json({ message: "Failed to create place" });
+    }
+  });
+
+  app.get("/api/places/:id/reviews", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid place ID" });
+    const reviews = await storage.getPlaceReviews(id);
+    // Attach username for each review
+    const withUsers = await Promise.all(reviews.map(async r => {
+      const u = await storage.getUser(r.userId);
+      return { ...r, username: u?.username ?? "unknown" };
+    }));
+    return res.json(withUsers);
+  });
+
+  app.post("/api/places/:id/reviews", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const placeId = parseInt(req.params.id);
+      if (isNaN(placeId)) return res.status(400).json({ message: "Invalid place ID" });
+      const place = await storage.getPlace(placeId);
+      if (!place) return res.status(404).json({ message: "Place not found" });
+      const schema = z.object({
+        rating: z.number().int().min(1).max(5),
+        body: z.string().max(280).optional(),
+      });
+      const { rating, body } = schema.parse(req.body);
+      const review = await storage.createPlaceReview({ placeId, userId, rating, body });
+      const u = await storage.getUser(userId);
+      return res.status(201).json({ ...review, username: u?.username ?? "unknown" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to submit review" });
     }
   });
 

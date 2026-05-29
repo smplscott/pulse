@@ -69,10 +69,10 @@ function PlaceCard({ place }: { place: Place }) {
             )}
           </div>
           <button
-            onClick={() => navigate(`/places/${place.id}?dropIn=1`)}
+            onClick={() => navigate(`/places/${place.id}`)}
             className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold hover:opacity-90 transition-opacity flex-shrink-0 ml-2"
           >
-            Drop In
+            Review
           </button>
         </div>
       </div>

@@ -300,6 +300,26 @@ export const insertPlaceSchema = createInsertSchema(places).pick({
   category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
 });
 
+// Place reviews — one per user per place (upsert), star-rated
+export const placeReviews = pgTable("place_reviews", {
+  id: serial("id").primaryKey(),
+  placeId: integer("place_id").notNull(),
+  userId: integer("user_id").notNull(),
+  rating: integer("rating").notNull(), // 1–5
+  body: text("body"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPlaceReviewSchema = createInsertSchema(placeReviews).pick({
+  placeId: true,
+  userId: true,
+  rating: true,
+  body: true,
+});
+
+export type PlaceReview = typeof placeReviews.$inferSelect;
+export type InsertPlaceReview = z.infer<typeof insertPlaceReviewSchema>;
+
 // Place comments — open discussion on each place page
 export const placeComments = pgTable("place_comments", {
   id: serial("id").primaryKey(),

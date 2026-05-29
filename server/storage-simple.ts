@@ -14,6 +14,7 @@ import type {
   Notification, InsertNotification,
   ThreadFollow,
   Place, InsertPlace,
+  PlaceReview, InsertPlaceReview,
   PlaceComment, InsertPlaceComment,
   Show, InsertShow,
   ShowReview, InsertShowReview,
@@ -125,6 +126,8 @@ export interface IStorage {
   searchPlaces(query: string): Promise<Place[]>;
   createPlace(place: InsertPlace): Promise<Place>;
   updatePlace(id: number, updates: Partial<Place>): Promise<Place | undefined>;
+  getPlaceReviews(placeId: number): Promise<PlaceReview[]>;
+  createPlaceReview(review: InsertPlaceReview): Promise<PlaceReview>;
   getPlaceComments(placeId: number): Promise<PlaceComment[]>;
   createPlaceComment(comment: InsertPlaceComment): Promise<PlaceComment>;
 
@@ -157,6 +160,7 @@ export class MemStorage implements IStorage {
   private threadFollowsMap: Map<number, ThreadFollow> = new Map();
   private notificationsMap: Map<number, Notification> = new Map();
   private placesMap: Map<number, Place> = new Map();
+  private placeReviewsMap: Map<number, PlaceReview> = new Map();
   private placeCommentsMap: Map<number, PlaceComment> = new Map();
   private showsMap: Map<number, Show> = new Map();
   private showReviewsMap: Map<number, ShowReview> = new Map();
@@ -175,6 +179,7 @@ export class MemStorage implements IStorage {
   private threadFollowCurrentId = 1;
   private notificationCurrentId = 1;
   private placeCurrentId = 1;
+  private placeReviewCurrentId = 1;
   private placeCommentCurrentId = 1;
   private showCurrentId = 1;
   private showReviewCurrentId = 1;
@@ -1455,6 +1460,37 @@ export class MemStorage implements IStorage {
     const updated = { ...place, ...updates };
     this.placesMap.set(id, updated);
     return updated;
+  }
+
+  async getPlaceReviews(placeId: number): Promise<PlaceReview[]> {
+    return Array.from(this.placeReviewsMap.values())
+      .filter(r => r.placeId === placeId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async createPlaceReview(insertReview: InsertPlaceReview): Promise<PlaceReview> {
+    // Upsert: one review per user per place
+    const existing = Array.from(this.placeReviewsMap.values())
+      .find(r => r.placeId === insertReview.placeId && r.userId === insertReview.userId);
+    const id = existing ? existing.id : this.placeReviewCurrentId++;
+    const review: PlaceReview = {
+      id,
+      placeId: insertReview.placeId,
+      userId: insertReview.userId,
+      rating: insertReview.rating,
+      body: insertReview.body ?? null,
+      createdAt: existing ? existing.createdAt : new Date(),
+    };
+    this.placeReviewsMap.set(id, review);
+    // Recalculate aggregate rating for the place
+    const allReviews = Array.from(this.placeReviewsMap.values())
+      .filter(r => r.placeId === insertReview.placeId);
+    const avg = Math.round(allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length);
+    const place = this.placesMap.get(insertReview.placeId);
+    if (place) {
+      this.placesMap.set(place.id, { ...place, rating: avg, reviewsCount: allReviews.length });
+    }
+    return review;
   }
 
   async getPlaceComments(placeId: number): Promise<PlaceComment[]> {

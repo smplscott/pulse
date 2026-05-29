@@ -1,14 +1,15 @@
-import { useRef, useState } from "react";
-import { useParams, Link, useLocation } from "wouter";
+import { useState } from "react";
+import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
-import { Place, PlaceComment, User } from "@shared/schema";
+import { Place, PlaceReview } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ChevronLeft, MapPin, Star, ExternalLink, MessageCircle, Send } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ChevronLeft, MapPin, Star, ExternalLink, PenLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -35,47 +36,86 @@ function timeAgo(date: Date | string | null | undefined): string {
   return `${days}d ago`;
 }
 
+function StarDisplay({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
+  const sz = size === "md" ? "h-4 w-4" : "h-3 w-3";
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(n => (
+        <Star
+          key={n}
+          className={cn(sz, n <= rating ? "text-yellow-400 fill-yellow-400" : "text-[#3E3E3E] fill-[#3E3E3E]")}
+        />
+      ))}
+    </div>
+  );
+}
+
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-1.5">
+      {[1, 2, 3, 4, 5].map(n => (
+        <button
+          key={n}
+          type="button"
+          onMouseEnter={() => setHovered(n)}
+          onMouseLeave={() => setHovered(0)}
+          onClick={() => onChange(n)}
+        >
+          <Star className={cn("h-8 w-8 transition-colors",
+            (hovered || value) >= n ? "text-yellow-400 fill-yellow-400" : "text-[#3E3E3E]"
+          )} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+type ReviewWithUser = PlaceReview & { username: string };
+
 export default function PlaceDetail() {
   const params = useParams<{ id: string }>();
   const placeId = parseInt(params.id);
   const { user } = useAuth();
   const { toast } = useToast();
-  const [location, navigate] = useLocation();
-  const commentInputRef = useRef<HTMLTextAreaElement>(null);
-  const [commentText, setCommentText] = useState("");
+
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewBody, setReviewBody] = useState("");
 
   const { data: place, isLoading: placeLoading } = useQuery<Place>({
     queryKey: [`/api/places/${placeId}`],
   });
 
-  const { data: comments, isLoading: commentsLoading } = useQuery<PlaceComment[]>({
-    queryKey: [`/api/places/${placeId}/comments`],
+  const { data: reviews, isLoading: reviewsLoading } = useQuery<ReviewWithUser[]>({
+    queryKey: [`/api/places/${placeId}/reviews`],
   });
 
-  const commentMutation = useMutation({
-    mutationFn: (content: string) =>
-      apiRequest("POST", `/api/places/${placeId}/comments`, { content }),
+  const reviewMutation = useMutation({
+    mutationFn: (data: { rating: number; body?: string }) =>
+      apiRequest("POST", `/api/places/${placeId}/reviews`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}/comments`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}/reviews`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
-      setCommentText("");
+      setReviewOpen(false);
+      setReviewRating(0);
+      setReviewBody("");
+      toast({ title: "Review posted!" });
     },
     onError: (err: any) => {
-      toast({ title: "Failed to post", description: err.message, variant: "destructive" });
+      toast({ title: "Failed to post review", description: err.message, variant: "destructive" });
     },
   });
 
-  const handleDropIn = () => {
-    commentInputRef.current?.focus();
-    commentInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
-  const handleSubmitComment = () => {
-    if (!commentText.trim()) return;
-    commentMutation.mutate(commentText.trim());
+  const handleSubmitReview = () => {
+    if (reviewRating === 0) return;
+    reviewMutation.mutate({ rating: reviewRating, body: reviewBody.trim() || undefined });
   };
 
   const genres = place ? (place.genres ?? []) : [];
+  const avgRating = place?.rating ?? 0;
+  const reviewCount = reviews?.length ?? 0;
 
   return (
     <div className="min-h-screen pb-32">
@@ -107,7 +147,8 @@ export default function PlaceDetail() {
                     </span>
                     <span className="flex items-center gap-1 text-xs text-[#B3B3B3]">
                       <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
-                      {place.rating ?? 0}.0
+                      {avgRating > 0 ? avgRating.toFixed(1) : "–"}
+                      {reviewCount > 0 && <span className="text-[10px]">({reviewCount})</span>}
                     </span>
                   </div>
                   <h1 className="text-2xl font-bold">{place.name}</h1>
@@ -135,10 +176,11 @@ export default function PlaceDetail() {
 
               <div className="flex items-center gap-3 mt-4">
                 <button
-                  onClick={handleDropIn}
-                  className="flex-1 bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold py-2.5 rounded-full text-sm hover:opacity-90 transition-opacity"
+                  onClick={() => setReviewOpen(true)}
+                  className="flex-1 bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold py-2.5 rounded-full text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                 >
-                  Drop In
+                  <PenLine className="h-4 w-4" />
+                  Review
                 </button>
                 {place.mapsLink && (
                   <a
@@ -154,76 +196,88 @@ export default function PlaceDetail() {
             </div>
           </div>
 
+          {/* Reviews section */}
           <div className="px-4">
-            <div className="flex items-center gap-2 mb-3">
-              <MessageCircle className="h-4 w-4 text-[#B3B3B3]" />
-              <h2 className="font-semibold text-sm">Discussion</h2>
-              {comments && comments.length > 0 && (
-                <span className="text-xs text-[#B3B3B3]">({comments.length})</span>
+            <div className="flex items-center gap-2 mb-4">
+              <Star className="h-4 w-4 text-[#B3B3B3]" />
+              <h2 className="font-semibold text-sm">Reviews</h2>
+              {reviewCount > 0 && (
+                <span className="text-xs text-[#B3B3B3]">({reviewCount})</span>
               )}
             </div>
 
-            <div className="flex gap-3 mb-4">
-              <Avatar className="h-8 w-8 flex-shrink-0 mt-0.5">
-                <AvatarFallback className="bg-[#282828] text-[#B3B3B3] text-xs">
-                  {user?.username?.slice(0, 2).toUpperCase() ?? "?"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <Textarea
-                  ref={commentInputRef}
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                  placeholder="Share your experience..."
-                  className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] resize-none min-h-[72px] text-sm"
-                  maxLength={280}
-                  onKeyDown={e => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmitComment();
-                  }}
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-[10px] text-[#555]">{commentText.length}/280</span>
-                  <button
-                    onClick={handleSubmitComment}
-                    disabled={!commentText.trim() || commentMutation.isPending}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
-                  >
-                    <Send className="h-3 w-3" />
-                    {commentMutation.isPending ? "Posting..." : "Post"}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {commentsLoading ? (
+            {reviewsLoading ? (
               <div className="space-y-3">
-                {[1, 2].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+                {[1, 2].map(i => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
               </div>
-            ) : comments && comments.length > 0 ? (
+            ) : reviews && reviews.length > 0 ? (
               <div className="space-y-3 pb-4">
-                {comments.map(comment => (
-                  <div key={comment.id} className="flex gap-3">
-                    <Avatar className="h-7 w-7 flex-shrink-0 mt-0.5">
-                      <AvatarFallback className="bg-[#282828] text-[#B3B3B3] text-[10px]">
-                        U{comment.userId}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 bg-[#181818] rounded-xl px-3 py-2.5">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium text-[#c2f970]">User</span>
-                        <span className="text-[10px] text-[#555]">{timeAgo(comment.createdAt)}</span>
+                {reviews.map(review => (
+                  <div key={review.id} className="bg-[#181818] rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Avatar className="h-7 w-7 flex-shrink-0">
+                        <AvatarFallback className="bg-[#282828] text-[#B3B3B3] text-[10px]">
+                          {review.username.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-medium text-[#c2f970] truncate">{review.username}</span>
+                          <span className="text-[10px] text-[#555] flex-shrink-0">{timeAgo(review.createdAt)}</span>
+                        </div>
+                        <StarDisplay rating={review.rating} />
                       </div>
-                      <p className="text-sm text-[#E0E0E0] leading-relaxed">{comment.content}</p>
                     </div>
+                    {review.body && (
+                      <p className="text-sm text-[#E0E0E0] leading-relaxed">{review.body}</p>
+                    )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-[#B3B3B3] text-sm">
-                No comments yet. Drop in and share your thoughts.
+              <div className="text-center py-10 text-[#B3B3B3] text-sm">
+                <Star className="h-8 w-8 text-[#333] mx-auto mb-3" />
+                <p>No reviews yet.</p>
+                <p className="text-xs text-[#555] mt-1">Be the first to review this place.</p>
               </div>
             )}
           </div>
+
+          {/* Review dialog */}
+          <Dialog open={reviewOpen} onOpenChange={open => { setReviewOpen(open); if (!open) { setReviewRating(0); setReviewBody(""); } }}>
+            <DialogContent className="bg-[#1a1a1a] border-[#282828] text-white max-w-sm mx-auto">
+              <DialogHeader>
+                <DialogTitle className="text-base">Review {place.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-1">
+                <div>
+                  <p className="text-xs text-[#B3B3B3] mb-2">Your rating *</p>
+                  <StarPicker value={reviewRating} onChange={setReviewRating} />
+                </div>
+                <div>
+                  <p className="text-xs text-[#B3B3B3] mb-2">
+                    Your thoughts <span className="text-[#555]">(optional)</span>
+                  </p>
+                  <Textarea
+                    value={reviewBody}
+                    onChange={e => setReviewBody(e.target.value)}
+                    placeholder="What was it like?"
+                    className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] resize-none text-sm"
+                    rows={3}
+                    maxLength={280}
+                  />
+                  <p className="text-[10px] text-[#555] mt-1 text-right">{reviewBody.length}/280</p>
+                </div>
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={reviewRating === 0 || reviewMutation.isPending}
+                  className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
+                >
+                  {reviewMutation.isPending ? "Posting…" : "Post Review"}
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </>
       ) : (
         <div className="px-4 pt-4">

@@ -73,6 +73,8 @@ const placeFormSchema = z.object({
 });
 type PlaceFormValues = z.infer<typeof placeFormSchema>;
 
+const RATING_LABELS = ["", "Poor", "Below average", "Average", "Good", "Excellent"];
+
 const GENRE_OPTIONS = [
   "House", "Techno", "Drum & Bass", "Jungle", "Hip-Hop",
   "R&B", "Soul", "Jazz", "Electronic", "Disco", "Funk",
@@ -144,6 +146,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   // Place-path state
   const [placeQuery, setPlaceQuery] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [placeRating, setPlaceRating] = useState(0);
 
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -171,7 +174,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       setSelectedType(null); setSelectedShow(null); setSelectedAlbum(null);
       setStarRating(0); setShowManualForm(false);
       setManualShow({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
-      setPlaceQuery(""); setSelectedGenres([]);
+      setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0);
       threadForm.reset(); placeForm.reset();
     }, 300);
   }
@@ -1006,6 +1009,21 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
               </div>
 
               <div>
+                <p className="text-xs text-[#B3B3B3] mb-2 font-medium">
+                  Your rating *
+                </p>
+                <div className="flex items-center gap-3">
+                  <StarPicker value={placeRating} onChange={setPlaceRating} />
+                  {placeRating > 0 && (
+                    <span className="text-xs text-[#B3B3B3]">{RATING_LABELS[placeRating]}</span>
+                  )}
+                </div>
+                {placeRating === 0 && (
+                  <p className="text-xs text-[#555] mt-1">Select a star rating to continue</p>
+                )}
+              </div>
+
+              <div>
                 <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">
                   Google Maps link <span className="text-[#555]">(optional)</span>
                 </p>
@@ -1019,9 +1037,10 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
               <button
                 onClick={placeForm.handleSubmit(vals => {
                   if (!user) return;
-                  placeMutation.mutate({ ...vals, genres: selectedGenres });
+                  if (placeRating === 0) return;
+                  placeMutation.mutate({ ...vals, genres: selectedGenres, rating: placeRating } as any);
                 })}
-                disabled={placeMutation.isPending}
+                disabled={placeMutation.isPending || placeRating === 0}
                 className="w-full py-3 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-bold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
               >
                 {placeMutation.isPending ? "Adding…" : "Add Place"}
