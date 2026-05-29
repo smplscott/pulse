@@ -373,8 +373,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Threads routes
   app.get("/api/threads/featured", async (req: Request, res: Response) => {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
-    const threads = await storage.getFeaturedThreads(limit);
-    return res.json(threads);
+    const threadType = req.query.threadType as string | undefined;
+    let threads = await storage.getFeaturedThreads(limit * 3);
+    if (threadType) {
+      if (threadType === "artist") {
+        threads = threads.filter(t => t.threadType === "live_show_review" || t.threadType === "album_review");
+      } else {
+        threads = threads.filter(t => t.threadType === threadType);
+      }
+    }
+    return res.json(threads.slice(0, limit));
   });
 
   app.get("/api/threads", async (req: Request, res: Response) => {

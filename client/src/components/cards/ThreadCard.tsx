@@ -102,7 +102,7 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
               @{user?.username || "user"} · {formatRelativeTime(createdAt)}
             </p>
 
-            {thread.threadType === "live_show_review" && thread.starRating && (
+            {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && thread.starRating && (
               <div className="flex items-center gap-0.5 mb-2">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
