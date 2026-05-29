@@ -102,16 +102,21 @@ function ShowCard({
   );
 }
 
-type FilterMode = "all" | "city" | "genre";
+type CategoryFilter = "all" | "upcoming" | "past" | "community";
+
+const SHOW_CATEGORIES: { id: CategoryFilter; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "upcoming", label: "Upcoming" },
+  { id: "past", label: "Past" },
+  { id: "community", label: "Community Added" },
+];
 
 export default function Shows() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("all");
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: shows, isLoading: showsLoading } = useQuery<ShowWithStats[]>({
@@ -152,10 +157,7 @@ export default function Shows() {
   const setlistResults = searchData?.results ?? [];
   const isSearching = searchQuery.length >= 2;
 
-  const allCities = Array.from(new Set((shows ?? []).map(s => s.city))).sort();
-  const allGenres = Array.from(
-    new Set((shows ?? []).flatMap(s => s.genres ?? []))
-  ).sort();
+  const today = new Date().toISOString().slice(0, 10);
 
   const filteredShows = (shows ?? []).filter(s => {
     if (isSearching && searchQuery) {
@@ -166,16 +168,11 @@ export default function Shows() {
         !s.city.toLowerCase().includes(q)
       ) return false;
     }
-    if (filterMode === "city" && selectedCity && s.city !== selectedCity) return false;
-    if (filterMode === "genre" && selectedGenre && !(s.genres ?? []).includes(selectedGenre)) return false;
+    if (activeCategory === "upcoming" && s.eventDate < today) return false;
+    if (activeCategory === "past" && s.eventDate >= today) return false;
+    if (activeCategory === "community" && !s.isManual) return false;
     return true;
   });
-
-  const filterChips: { mode: FilterMode; label: string }[] = [
-    { mode: "all", label: "All" },
-    { mode: "city", label: "By City" },
-    { mode: "genre", label: "By Genre" },
-  ];
 
   return (
     <div className="min-h-screen pb-32">
@@ -192,63 +189,21 @@ export default function Shows() {
         </div>
 
         <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
-          {filterChips.map(({ mode, label }) => (
+          {SHOW_CATEGORIES.map(({ id, label }) => (
             <button
-              key={mode}
-              onClick={() => {
-                setFilterMode(mode);
-                setSelectedCity(null);
-                setSelectedGenre(null);
-              }}
+              key={id}
+              onClick={() => setActiveCategory(id)}
               className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
-                filterMode === mode
-                  ? "bg-[#5271ff] text-white"
-                  : "bg-[#181818] text-[#B3B3B3] hover:bg-[#282828]"
+                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                activeCategory === id
+                  ? "bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] text-white border-transparent"
+                  : "bg-[#181818] text-[#B3B3B3] border border-[#3E3E3E]"
               )}
             >
               {label}
             </button>
           ))}
         </div>
-
-        {filterMode === "city" && allCities.length > 0 && (
-          <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
-            {allCities.map(city => (
-              <button
-                key={city}
-                onClick={() => setSelectedCity(selectedCity === city ? null : city)}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
-                  selectedCity === city
-                    ? "bg-[#c2f970] text-black"
-                    : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
-                )}
-              >
-                {city}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {filterMode === "genre" && allGenres.length > 0 && (
-          <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
-            {allGenres.map(genre => (
-              <button
-                key={genre}
-                onClick={() => setSelectedGenre(selectedGenre === genre ? null : genre)}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
-                  selectedGenre === genre
-                    ? "bg-[#c2f970] text-black"
-                    : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
-                )}
-              >
-                {genre}
-              </button>
-            ))}
-          </div>
-        )}
 
         {isSearching && (
           <div className="mb-6">

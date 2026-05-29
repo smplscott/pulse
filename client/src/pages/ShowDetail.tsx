@@ -423,7 +423,7 @@ export default function ShowDetail() {
                     <button
                       onClick={() => commentMutation.mutate()}
                       disabled={!commentText.trim() || commentMutation.isPending}
-                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#c2f970] text-black text-xs font-semibold disabled:opacity-40 hover:bg-[#aee05a] transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
                     >
                       <Send className="h-3 w-3" />
                       {commentMutation.isPending ? "Posting..." : "Post"}

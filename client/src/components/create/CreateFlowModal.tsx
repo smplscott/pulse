@@ -411,11 +411,11 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
             <div className="space-y-3">
               <button
                 onClick={() => setStep("artist")}
-                className="w-full text-left p-5 rounded-2xl border border-[#5271ff]/40 bg-[#0d1630] hover:bg-[#142048] transition-colors"
+                className="w-full text-left p-5 rounded-2xl border border-[#b388eb]/40 bg-[#160d2a] hover:bg-[#1e1040] transition-colors"
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-9 h-9 rounded-xl bg-[#5271ff]/20 flex items-center justify-center">
-                    <Music2 className="h-5 w-5 text-[#5271ff]" />
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#b388eb]/20 to-[#ff6fd8]/20 flex items-center justify-center">
+                    <Music2 className="h-5 w-5 text-[#b388eb]" />
                   </div>
                   <p className="font-bold text-white text-base">Artist</p>
                 </div>
@@ -880,7 +880,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                       placeForm.setValue("name", placeQuery.trim());
                       setStep("place_form");
                     }}
-                    className="w-full py-2.5 rounded-xl bg-[#c2f970] text-black font-bold text-sm hover:bg-[#aee05a] transition-colors"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-bold text-sm hover:opacity-90 transition-opacity"
                   >
                     Add it →
                   </button>
@@ -979,7 +979,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                       className={cn(
                         "text-xs px-2.5 py-1 rounded-full border transition-colors",
                         selectedGenres.includes(g)
-                          ? "bg-[#c2f970] text-black border-[#c2f970]"
+                          ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black border-transparent"
                           : "bg-[#282828] text-[#B3B3B3] border-[#3E3E3E] hover:border-[#555]"
                       )}
                     >
@@ -1022,7 +1022,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                   placeMutation.mutate({ ...vals, genres: selectedGenres });
                 })}
                 disabled={placeMutation.isPending}
-                className="w-full py-3 rounded-full bg-[#c2f970] text-black font-bold text-sm disabled:opacity-40 hover:bg-[#aee05a] transition-colors"
+                className="w-full py-3 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-bold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
               >
                 {placeMutation.isPending ? "Adding…" : "Add Place"}
               </button>

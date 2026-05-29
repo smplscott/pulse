@@ -136,7 +136,7 @@ export default function PlaceDetail() {
               <div className="flex items-center gap-3 mt-4">
                 <button
                   onClick={handleDropIn}
-                  className="flex-1 bg-[#c2f970] text-black font-semibold py-2.5 rounded-full text-sm hover:bg-[#aee05a] transition-colors"
+                  className="flex-1 bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold py-2.5 rounded-full text-sm hover:opacity-90 transition-opacity"
                 >
                   Drop In
                 </button>
@@ -186,7 +186,7 @@ export default function PlaceDetail() {
                   <button
                     onClick={handleSubmitComment}
                     disabled={!commentText.trim() || commentMutation.isPending}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#c2f970] text-black text-xs font-semibold disabled:opacity-40 hover:bg-[#aee05a] transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
                   >
                     <Send className="h-3 w-3" />
                     {commentMutation.isPending ? "Posting..." : "Post"}

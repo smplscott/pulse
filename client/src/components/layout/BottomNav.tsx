@@ -39,7 +39,7 @@ export default function BottomNav() {
       {/* Global floating action button */}
       <button
         onClick={() => setCreateOpen(true)}
-        className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-[#c2f970] hover:bg-[#aee05a] active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-black/30"
+        className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] hover:opacity-90 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-black/30"
         aria-label="Create"
       >
         <Plus className="h-7 w-7 text-black" strokeWidth={3} />

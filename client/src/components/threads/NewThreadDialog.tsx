@@ -698,7 +698,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
                 )} />
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-full bg-[#c2f970] text-black font-semibold text-sm disabled:opacity-40 hover:bg-[#aee05a] transition-colors"
+                  className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
                   disabled={createThread.isPending}
                 >
                   {createThread.isPending ? "Posting…" : "Post Thread"}

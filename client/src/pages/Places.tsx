@@ -70,7 +70,7 @@ function PlaceCard({ place }: { place: Place }) {
           </div>
           <button
             onClick={() => navigate(`/places/${place.id}?dropIn=1`)}
-            className="text-xs px-3 py-1 rounded-full bg-[#c2f970] text-black font-semibold hover:bg-[#aee05a] transition-colors flex-shrink-0 ml-2"
+            className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold hover:opacity-90 transition-opacity flex-shrink-0 ml-2"
           >
             Drop In
           </button>
@@ -121,7 +121,7 @@ export default function Places() {
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
                 activeCategory === cat.id
-                  ? "bg-[#c2f970] text-black"
+                  ? "bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] text-white border-transparent"
                   : "bg-[#181818] text-[#B3B3B3] border border-[#3E3E3E]"
               )}
             >

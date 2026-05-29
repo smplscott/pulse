@@ -126,7 +126,7 @@ export default function Home() {
             className={cn(
               "flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
               pill === id
-                ? "bg-[#c2f970] text-black border-[#c2f970]"
+                ? "bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] text-white border-transparent"
                 : "bg-transparent text-[#B3B3B3] border-[#3E3E3E] hover:border-[#666]"
             )}
           >
