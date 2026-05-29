@@ -111,7 +111,7 @@ export default function GlobalSearch() {
                   onClick={() => setFilter(f)}
                   className={cn(
                     "shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors",
-                    filter === f ? "bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] text-white" : "bg-[#2A2A2A] text-[#B3B3B3] hover:text-white"
+                    filter === f ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black" : "bg-[#2A2A2A] text-[#B3B3B3] hover:text-white"
                   )}
                 >
                   {f.charAt(0).toUpperCase() + f.slice(1)}

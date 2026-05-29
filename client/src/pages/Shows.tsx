@@ -221,8 +221,8 @@ export default function Shows() {
                 className={cn(
                   "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
                   selectedCity === city
-                    ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black"
-                    : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
+                    ? "bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] text-white border-transparent"
+                    : "bg-[#181818] text-[#B3B3B3] border border-[#3E3E3E]"
                 )}
               >
                 {city}
@@ -240,8 +240,8 @@ export default function Shows() {
                 className={cn(
                   "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
                   selectedGenre === genre
-                    ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black"
-                    : "bg-[#282828] text-[#B3B3B3] hover:bg-[#333]"
+                    ? "bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] text-white border-transparent"
+                    : "bg-[#181818] text-[#B3B3B3] border border-[#3E3E3E]"
                 )}
               >
                 {genre}
