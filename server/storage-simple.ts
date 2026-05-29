@@ -185,6 +185,26 @@ export class MemStorage implements IStorage {
   }
 
   private async seedData() {
+    // Create dev quick-login user (login: dev / dev@pulse.local / dev)
+    const devPassword = await hashPassword("dev");
+    const devUser: User = {
+      id: this.userCurrentId++,
+      username: "dev",
+      email: "dev@pulse.local",
+      password: devPassword,
+      displayName: "Dev User",
+      bio: "Development account.",
+      city: null,
+      profilePicture: null,
+      favoriteSongs: [],
+      favoriteGenres: [],
+      favoriteSubGenres: [],
+      favoriteCountries: [],
+      badges: [],
+      createdAt: new Date()
+    };
+    this.users.set(devUser.id, devUser);
+
     const hashedPassword = await hashPassword("testpass123");
     // Create basic test user (login: testuser / testpass123 or test@pulse.fm / testpass123)
     const user: User = {

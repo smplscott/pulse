@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Zap } from "lucide-react";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Email or username is required"),
@@ -23,6 +23,18 @@ export default function Login() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  const [devLoading, setDevLoading] = useState(false);
+
+  const handleDevLogin = async () => {
+    setDevLoading(true);
+    try {
+      await login("dev", "dev");
+    } catch {
+      toast({ title: "Dev login failed", variant: "destructive" });
+    } finally {
+      setDevLoading(false);
+    }
+  };
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -147,6 +159,21 @@ export default function Login() {
             Sign up
           </Link>
         </p>
+
+        {import.meta.env.DEV && (
+          <div className="border-t border-[#2A2A2A] pt-4">
+            <button
+              type="button"
+              onClick={handleDevLogin}
+              disabled={devLoading}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-[#3E3E3E] text-[#666] hover:border-[#c2f970]/50 hover:text-[#c2f970] transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              <Zap className="h-4 w-4" />
+              {devLoading ? "Logging in…" : "Dev login"}
+            </button>
+            <p className="text-center text-[#444] text-xs mt-1.5">Only visible in development</p>
+          </div>
+        )}
       </div>
     </div>
   );
