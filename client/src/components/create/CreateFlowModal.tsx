@@ -354,7 +354,6 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
     else if (step === "place_form") setStep("place_search");
   }
 
-  const spotifyNotConfigured = !!spotifyData?.error?.includes("not configured");
   const artistResults = spotifyData?.results ?? [];
 
   const stepTitle: Record<FlowStep, string> = {
@@ -459,12 +458,6 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 />
               </div>
 
-              {spotifyNotConfigured && artistInput.length >= 2 && (
-                <div className="flex items-start gap-2 bg-[#1e1e1e] border border-[#333] rounded-lg p-3 mb-3">
-                  <AlertCircle className="h-4 w-4 text-[#555] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#666]">Spotify not configured — search is manual.</p>
-                </div>
-              )}
 
               {spotifySearching && (
                 <div className="flex justify-center py-4">
@@ -472,7 +465,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 </div>
               )}
 
-              {!spotifySearching && !spotifyNotConfigured && artistResults.length > 0 && (
+              {!spotifySearching && artistResults.length > 0 && (
                 <div className="space-y-1 mb-3">
                   {artistResults.map(a => (
                     <button

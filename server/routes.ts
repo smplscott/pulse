@@ -935,18 +935,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/spotify/artists/search", async (req: Request, res: Response) => {
     const q = ((req.query.q as string) || "").trim();
     if (!q) return res.json({ results: [] });
+
+    // Always include local artists that match the query
+    const allLocal = await storage.getAllArtists();
+    const ql = q.toLowerCase();
+    const localResults = allLocal
+      .filter(a => a.name.toLowerCase().includes(ql))
+      .map(a => ({
+        spotifyId: `local-${a.id}`,
+        name: a.name,
+        imageUrl: a.profilePicture || null,
+        genres: (a.genres ?? []).slice(0, 3),
+      }));
+
     const token = await getSpotifyToken();
-    if (!token) return res.json({ error: "SPOTIFY credentials not configured", results: [] });
+    if (!token) return res.json({ results: localResults });
+
     try {
       const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=artist&limit=8`;
       const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      if (!response.ok) return res.json({ error: "Spotify API error", results: [] });
+      if (!response.ok) return res.json({ results: localResults });
       const data = await response.json() as { artists: { items: Array<{ id: string; name: string; images: Array<{ url: string }>; genres: string[] }> } };
-      const results = data.artists.items.map(a => ({
+      const spotifyResults = data.artists.items.map(a => ({
         spotifyId: a.id, name: a.name, imageUrl: a.images[0]?.url || null, genres: a.genres.slice(0, 3),
       }));
-      return res.json({ results });
-    } catch { return res.json({ error: "Failed to search Spotify", results: [] }); }
+      // Merge: Spotify first, then any local artists not already represented
+      const spotifyNames = new Set(spotifyResults.map(a => a.name.toLowerCase()));
+      const extra = localResults.filter(a => !spotifyNames.has(a.name.toLowerCase()));
+      return res.json({ results: [...spotifyResults, ...extra] });
+    } catch { return res.json({ results: localResults }); }
   });
 
   app.get("/api/spotify/artists/:spotifyId/albums", async (req: Request, res: Response) => {
