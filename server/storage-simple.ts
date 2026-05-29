@@ -1090,7 +1090,7 @@ export class MemStorage implements IStorage {
 
   async getFeaturedThreads(limit: number = 20): Promise<Thread[]> {
     return Array.from(this.threads.values())
-      .sort((a, b) => ((b.commentsCount || 0) + (b.savesCount || 0)) - ((a.commentsCount || 0) + (a.savesCount || 0)))
+      .sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0))
       .slice(0, limit);
   }
 
