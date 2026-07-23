@@ -253,8 +253,10 @@ export default function ShowDetail() {
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 flex-wrap">
                 <h1 className="text-xl font-bold text-white leading-tight">{show.artistName}</h1>
-                <FollowArtistButton artistName={show.artistName} className="self-center" />
-                <SaveArtistWishlistButton artistName={show.artistName} className="self-center" />
+                <div className="flex items-center gap-1.5 self-center flex-shrink-0">
+                  <FollowArtistButton artistName={show.artistName} />
+                  <SaveArtistWishlistButton artistName={show.artistName} />
+                </div>
                 {show.isManual && (
                   <span className="text-[10px] bg-[#1a3a1a] text-[#c2f970] px-2 py-0.5 rounded-full self-center flex-shrink-0">
                     Community added

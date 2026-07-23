@@ -1510,13 +1510,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
     const listId = parseInt(req.params.listId);
     if (isNaN(listId)) return res.status(400).json({ message: "Invalid list ID" });
+    const lists = await storage.getPlaceLists(id);
+    if (!lists.find(l => l.id === listId)) return res.status(403).json({ message: "Forbidden" });
     await storage.deletePlaceList(listId);
     return res.json({ success: true });
   });
 
   app.get("/api/place-lists/:listId/items", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
     const listId = parseInt(req.params.listId);
     if (isNaN(listId)) return res.status(400).json({ message: "Invalid list ID" });
+    const lists = await storage.getPlaceLists(sessionUserId);
+    if (!lists.find(l => l.id === listId)) return res.status(403).json({ message: "Forbidden" });
     const items = await storage.getPlaceListItems(listId);
     return res.json(items);
   });

@@ -121,12 +121,14 @@ function AlbumHero({ album, onArtistClick }: { album: SpotifyAlbumDetail; onArti
         <div className="flex items-center gap-1.5 mt-1">
           <button
             onClick={onArtistClick}
-            className="text-sm text-[#B3B3B3] hover:text-[#c2f970] transition-colors"
+            className="text-sm text-[#B3B3B3] hover:text-[#c2f970] transition-colors truncate"
           >
             {album.artistName}
           </button>
-          <FollowArtistButton artistName={album.artistName} />
-          <SaveArtistWishlistButton artistName={album.artistName} />
+          <div className="flex items-center gap-1.5 flex-shrink-0 ml-0.5">
+            <FollowArtistButton artistName={album.artistName} />
+            <SaveArtistWishlistButton artistName={album.artistName} />
+          </div>
         </div>
         <div className="flex items-center gap-3 mt-1.5 text-xs text-[#555]">
           {album.releaseYear && <span>{album.releaseYear}</span>}

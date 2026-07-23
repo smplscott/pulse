@@ -107,8 +107,10 @@ export default function SongDetail() {
             <h1 className="text-xl font-bold truncate">{song.title}</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               <p className="text-sm text-[#B3B3B3] truncate">{song.artist}</p>
-              <FollowArtistButton artistName={song.artist} />
-              <SaveArtistWishlistButton artistName={song.artist} />
+              <div className="flex items-center gap-1.5 flex-shrink-0 ml-0.5">
+                <FollowArtistButton artistName={song.artist} />
+                <SaveArtistWishlistButton artistName={song.artist} />
+              </div>
             </div>
             <p className="text-xs text-[#B3B3B3] truncate mt-0.5">
               {song.albumName ? song.albumName : "Single"}
