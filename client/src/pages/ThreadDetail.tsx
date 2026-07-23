@@ -149,13 +149,10 @@ export default function ThreadDetail() {
   // Add comment mutation
   const addCommentMutation = useMutation({
     mutationFn: async (content: string) => {
-      const result = await apiRequest(`/api/comments`, {
-        method: 'POST',
-        body: JSON.stringify({
-          content,
-          threadId: threadId,
-          userId: userId,
-        }),
+      const result = await apiRequest('POST', `/api/comments`, {
+        content,
+        threadId: threadId,
+        userId: userId,
       });
       return result;
     },
@@ -179,9 +176,7 @@ export default function ThreadDetail() {
   // Upvote comment mutation
   const upvoteCommentMutation = useMutation({
     mutationFn: async (commentId: number) => {
-      const result = await apiRequest(`/api/comments/${commentId}/upvote`, {
-        method: 'POST',
-      });
+      const result = await apiRequest('POST', `/api/comments/${commentId}/upvote`);
       return result;
     },
     onSuccess: () => {
@@ -282,7 +277,7 @@ export default function ThreadDetail() {
                     <h2 className="font-bold text-xl">{getContentTitle()}</h2>
                     <div className="text-sm text-[#B3B3B3] flex items-center">
                       {isArtistThread && (
-                        <span>{artistContent?.genres?.[0] || 'Artist'}</span>
+                        <span>{(Array.isArray(artistContent?.genres) ? (artistContent.genres as string[])[0] : null) || 'Artist'}</span>
                       )}
                       {isVenueThread && (
                         <span>{venueContent?.location || 'Venue'}</span>
@@ -353,7 +348,7 @@ export default function ThreadDetail() {
                 <div className="flex items-center space-x-3">
                   <h2 className="text-lg font-semibold text-white">Discussion</h2>
                   <span className="text-sm text-[#707070]">
-                    {(comments || mockComments) && (comments || mockComments).length > 0 ? `${(comments || mockComments).length} comments` : 'Join the conversation'}
+                    {(comments ?? mockComments) && (comments ?? mockComments)!.length > 0 ? `${(comments ?? mockComments)!.length} comments` : 'Join the conversation'}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -379,9 +374,9 @@ export default function ThreadDetail() {
                     </div>
                   ))}
                 </div>
-              ) : (comments || mockComments) && (comments || mockComments).length > 0 ? (
+              ) : (comments ?? mockComments) && (comments ?? mockComments)!.length > 0 ? (
                 <div className="space-y-1 max-h-[calc(70vh-180px)] overflow-y-auto">
-                  {(comments || mockComments).map((comment, index) => (
+                  {(comments ?? mockComments)!.map((comment, index) => (
                     <div key={comment.id} className="bg-[#0a0a0a] border-l-2 border-[#333] px-3 py-3 hover:bg-[#111]">
                       <div className="flex items-start space-x-3">
                         <Avatar className="h-8 w-8 flex-shrink-0">

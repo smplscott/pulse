@@ -550,7 +550,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
                 <button
                   onClick={() => {
                     if (!manualShow.venueName || !manualShow.city || !manualShow.country || !manualShow.eventDate) return;
-                    selectShow({ artistName: artistDisplayName, ...manualShow });
+                    selectShow({ ...manualShow, artistName: artistDisplayName });
                   }}
                   disabled={!manualShow.venueName || !manualShow.city || !manualShow.country || !manualShow.eventDate}
                   className="w-full py-1.5 rounded-lg green-gradient text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"

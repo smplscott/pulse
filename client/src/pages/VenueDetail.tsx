@@ -48,7 +48,9 @@ export default function VenueDetail() {
 
   // Check if the venue has events tonight
   const today = new Date().toDateString();
-  const hasEventsTonight = venue?.upcomingEvents?.some(
+  type VenueEvent = { date: string; artist: string; ticketsUrl?: string };
+  const venueEvents = Array.isArray(venue?.upcomingEvents) ? (venue.upcomingEvents as VenueEvent[]) : [];
+  const hasEventsTonight = venueEvents.some(
     event => new Date(event.date).toDateString() === today
   );
 
@@ -114,7 +116,7 @@ export default function VenueDetail() {
             
             <div className="flex justify-between items-center mb-6">
               <div className="flex space-x-2">
-                {venue.genres?.map((genre, index) => (
+                {Array.isArray(venue.genres) && (venue.genres as string[]).map((genre, index) => (
                   <Badge key={index} variant="genre" className="text-xs">
                     {genre}
                   </Badge>
@@ -122,7 +124,7 @@ export default function VenueDetail() {
               </div>
               <div className="flex items-center">
                 <Star className="h-4 w-4 text-[#c2f970] mr-1" />
-                <span className="text-sm">{(venue.rating / 10).toFixed(1)}</span>
+                <span className="text-sm">{((venue.rating ?? 0) / 10).toFixed(1)}</span>
               </div>
             </div>
             
@@ -161,9 +163,9 @@ export default function VenueDetail() {
           <div className="px-4 mb-6">
             <h2 className="text-lg font-semibold mb-4">Upcoming Events</h2>
             
-            {venue.upcomingEvents && venue.upcomingEvents.length > 0 ? (
+            {venueEvents.length > 0 ? (
               <div className="space-y-3">
-                {venue.upcomingEvents.map((event, index) => {
+                {venueEvents.map((event, index) => {
                   const eventDate = new Date(event.date);
                   const isToday = eventDate.toDateString() === today;
                   

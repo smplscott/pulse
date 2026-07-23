@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Thread } from "@shared/schema";
 import { Link } from "wouter";
-import { Smile } from "lucide-react";
+import { Smile, MessageCircle } from "lucide-react";
 import { TrophyIcon } from "@/components/icons/TrophyIcon";
 import { formatRelativeTime } from "@/lib/utils";
 

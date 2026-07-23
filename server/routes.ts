@@ -998,7 +998,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         spotifyId: `local-${a.id}`,
         name: a.name,
         imageUrl: a.profilePicture || null,
-        genres: (a.genres ?? []).slice(0, 3),
+        genres: (Array.isArray(a.genres) ? (a.genres as string[]) : []).slice(0, 3),
       }));
 
     const token = await getSpotifyToken();

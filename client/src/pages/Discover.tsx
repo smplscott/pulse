@@ -22,11 +22,11 @@ export default function Discover() {
   const { toast } = useToast();
 
   const tabs = [
-    { label: "For You", path: "/" },
-    { label: "Discover", path: "/discover" },
-    { label: "Threads", path: "/threads" },
-    { label: "What's That Song", path: "/whats-this-song" },
-    { label: "Live Venues", path: "/venues" },
+    { id: "for-you", label: "For You", path: "/" },
+    { id: "discover", label: "Discover", path: "/discover" },
+    { id: "threads", label: "Threads", path: "/threads" },
+    { id: "whats-that-song", label: "What's That Song", path: "/whats-this-song" },
+    { id: "live-venues", label: "Live Venues", path: "/venues" },
   ];
   
   // Define the type structure for our genre hierarchy

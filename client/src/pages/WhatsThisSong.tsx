@@ -21,10 +21,10 @@ export default function WhatsThisSong() {
   const [hasMore, setHasMore] = useState(true);
 
   const tabs = [
-    { label: "For You", path: "/" },
-    { label: "Discover", path: "/discover" },
-    { label: "What's That Song", path: "/whats-this-song" },
-    { label: "Live Venues", path: "/venues" },
+    { id: "for-you", label: "For You", path: "/" },
+    { id: "discover", label: "Discover", path: "/discover" },
+    { id: "whats-that-song", label: "What's That Song", path: "/whats-this-song" },
+    { id: "live-venues", label: "Live Venues", path: "/venues" },
   ];
 
   // Genre filters

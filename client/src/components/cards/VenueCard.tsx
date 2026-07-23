@@ -11,8 +11,9 @@ type VenueCardProps = {
 };
 
 export default function VenueCard({ venue, className }: VenueCardProps) {
-  const hasUpcomingEvents = venue.upcomingEvents && venue.upcomingEvents.length > 0;
-  const firstEvent = hasUpcomingEvents ? venue.upcomingEvents[0] : null;
+  const upcomingEvents = Array.isArray(venue.upcomingEvents) ? (venue.upcomingEvents as Array<{ date: string; artist: string; ticketsUrl?: string }>) : [];
+  const hasUpcomingEvents = upcomingEvents.length > 0;
+  const firstEvent = hasUpcomingEvents ? upcomingEvents[0] : null;
   const isTonight = firstEvent && new Date(firstEvent.date).toDateString() === new Date().toDateString();
   
   return (
@@ -41,7 +42,7 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
         <div className="p-4">
           <div className="flex justify-between items-center mb-3">
             <div className="flex space-x-2">
-              {venue.genres && venue.genres.slice(0, 2).map((genre, index) => (
+              {Array.isArray(venue.genres) && (venue.genres as string[]).slice(0, 2).map((genre, index) => (
                 <Badge key={index} variant="genre" className="text-xs px-2 py-0.5 rounded-full">
                   {genre}
                 </Badge>
@@ -49,7 +50,7 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
             </div>
             <div className="flex items-center">
               <StarIcon className="h-3 w-3 text-[#ff6fd8] mr-1" />
-              <span className="text-sm">{(venue.rating / 10).toFixed(1)}</span>
+              <span className="text-sm">{((venue.rating ?? 0) / 10).toFixed(1)}</span>
             </div>
           </div>
           <p className="text-sm mb-4">{venue.description}</p>

@@ -7,8 +7,8 @@ type Tab = {
 
 type TabNavigatorProps = {
   tabs: Tab[];
-  activeTab: string;
-  onTabChange: (tabId: string) => void;
+  activeTab?: string;
+  onTabChange?: (tabId: string) => void;
   className?: string;
 };
 
@@ -21,7 +21,7 @@ export default function TabNavigator({ tabs, activeTab, onTabChange, className }
           return (
             <button
               key={tab.id}
-              onClick={() => onTabChange(tab.id)}
+              onClick={() => onTabChange?.(tab.id)}
               className={cn(
                 "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap",
                 isActive

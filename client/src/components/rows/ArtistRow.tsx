@@ -31,7 +31,7 @@ export default function ArtistRow({ artist, onClick }: ArtistRowProps) {
           <div className="flex-1">
             <h3 className="font-semibold text-base">{artist.name}</h3>
             <p className="text-sm text-[#A0A0A0]">
-              {artist.trackCount || 1} Tracks
+              1 Tracks
             </p>
           </div>
           <div className="flex gap-2">

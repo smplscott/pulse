@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Smile } from "lucide-react";
+import { Smile, Play, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Song } from "@shared/schema";
 import { truncateText } from "@/lib/utils";

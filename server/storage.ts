@@ -261,26 +261,26 @@ export class MemStorage implements IStorage {
     });
 
     // Add threads
-    const user1 = this.createUser({
+    this.createUser({
       username: "techno_junkie",
       password: "securepassword123",
       displayName: "Techno Junkie"
     });
 
-    const user2 = this.createUser({
+    this.createUser({
       username: "vinyl_collector",
       password: "securepassword123",
       displayName: "Vinyl Collector",
       profilePicture: "https://pixabay.com/get/g051135cec709001c5dce7f0375d03411671ae9703a2df3548a5fe46cd0e7eda36f80995b9d2d9170c10899871575bca8e17d19e27b64384e81a4f8054fd6a18e_1280.jpg"
     });
 
-    const user3 = this.createUser({
+    this.createUser({
       username: "musiclover44",
       password: "securepassword123",
       displayName: "Music Lover"
     });
 
-    const user4 = this.createUser({
+    this.createUser({
       username: "bass_hunter",
       password: "securepassword123",
       displayName: "Bass Hunter"
@@ -289,45 +289,33 @@ export class MemStorage implements IStorage {
     this.createThread({
       title: "Best Techno Albums of 2023 So Far",
       content: "I'm looking for recommendations on the best techno albums released this year. I've been really into minimal techno lately and would love to discover new artists...",
-      userId: user1.id,
+      userId: 1,
       type: "discussion",
       status: "active",
-      upvotes: 128,
-      commentsCount: 42,
-      recommendationsCount: 24
     });
 
     this.createThread({
       title: "Vinyl vs. Digital - The Sound Quality Debate",
       content: "Let's settle this once and for all. I've been collecting vinyl for years and genuinely believe the warmth of analog can't be matched, but some new high-res digital...",
-      userId: user2.id,
+      userId: 2,
       type: "discussion",
       status: "active",
-      upvotes: 215,
-      commentsCount: 87,
-      recommendationsCount: 12
     });
 
     this.createThread({
       title: "Help identify this track",
       content: "I heard this track at Boiler Room NYC last night. It had a deep bass line and female vocals saying something like 'take me higher'...",
-      userId: user3.id,
+      userId: 3,
       type: "song_request",
       status: "active",
-      upvotes: 18,
-      commentsCount: 12,
-      recommendationsCount: 3
     });
 
     this.createThread({
       title: "Track identified!",
       content: "That deep house track from the underground club in Berlin with the distinctive piano riff...",
-      userId: user4.id,
+      userId: 4,
       type: "song_request",
       status: "solved",
-      upvotes: 32,
-      commentsCount: 8,
-      recommendationsCount: 1
     });
 
     // Add sets without await (since createSet is synchronous)
@@ -370,8 +358,8 @@ export class MemStorage implements IStorage {
       tags: ["r&b", "soul", "track-ids"]
     });
 
-    // Mark the first set as featured
-    this.updateSet(set1.id, { featured: true });
+    // Mark the first set as featured (id=1 since setCurrentId starts at 1)
+    this.updateSet(1, { featured: true });
   }
 
   // User operations
@@ -397,10 +385,11 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id,
-      email: insertUser.email || null,
-      displayName: insertUser.displayName || null,
-      bio: insertUser.bio || null,
-      profilePicture: insertUser.profilePicture || null,
+      email: insertUser.email ?? null,
+      displayName: insertUser.displayName ?? null,
+      bio: insertUser.bio ?? null,
+      city: insertUser.city ?? null,
+      profilePicture: insertUser.profilePicture ?? null,
       favoriteSongs: [],
       favoriteGenres: [],
       favoriteSubGenres: [],
@@ -445,7 +434,21 @@ export class MemStorage implements IStorage {
   async createArtist(insertArtist: InsertArtist): Promise<Artist> {
     const id = this.artistCurrentId++;
     const now = new Date();
-    const artist: Artist = { ...insertArtist, id, ranking: 0, createdAt: now };
+    const artist: Artist = {
+      ...insertArtist,
+      id,
+      ranking: 0,
+      createdAt: now,
+      genres: insertArtist.genres ?? [],
+      streamingLinks: insertArtist.streamingLinks ?? [],
+      profilePicture: insertArtist.profilePicture ?? null,
+      sample: insertArtist.sample ?? null,
+      story: insertArtist.story ?? null,
+      realName: insertArtist.realName ?? null,
+      firstDiscoveredIn: insertArtist.firstDiscoveredIn ?? null,
+      firstAlbumReleaseDate: insertArtist.firstAlbumReleaseDate ?? null,
+      verified: insertArtist.verified ?? false,
+    };
     this.artists.set(id, artist);
     return artist;
   }
@@ -467,11 +470,9 @@ export class MemStorage implements IStorage {
   async getSongsByArtist(artistName: string): Promise<Song[]> {
     return Array.from(this.songs.values()).filter(
       (song) => song.artist.toLowerCase() === artistName.toLowerCase() ||
-                song.features?.some(feature => 
-                  typeof feature === 'string' 
-                    ? feature.toLowerCase() === artistName.toLowerCase()
-                    : feature.toLowerCase() === artistName.toLowerCase()
-                )
+                (Array.isArray(song.features) && (song.features as string[]).some(feature => 
+                  feature.toLowerCase() === artistName.toLowerCase()
+                ))
     );
   }
 
@@ -482,7 +483,22 @@ export class MemStorage implements IStorage {
   async createSong(insertSong: InsertSong): Promise<Song> {
     const id = this.songCurrentId++;
     const now = new Date();
-    const song: Song = { ...insertSong, id, ranking: 0, createdAt: now };
+    const song: Song = {
+      ...insertSong,
+      id,
+      ranking: 0,
+      createdAt: now,
+      features: insertSong.features ?? [],
+      sample: insertSong.sample ?? null,
+      story: insertSong.story ?? null,
+      dialects: insertSong.dialects ?? [],
+      streamingLinks: insertSong.streamingLinks ?? [],
+      genre: insertSong.genre ?? null,
+      subGenres: insertSong.subGenres ?? [],
+      albumArt: insertSong.albumArt ?? null,
+      albumName: insertSong.albumName ?? null,
+      releaseDate: insertSong.releaseDate ?? null,
+    };
     this.songs.set(id, song);
     return song;
   }
@@ -508,7 +524,17 @@ export class MemStorage implements IStorage {
   async createVenue(insertVenue: InsertVenue): Promise<Venue> {
     const id = this.venueCurrentId++;
     const now = new Date();
-    const venue: Venue = { ...insertVenue, id, createdAt: now };
+    const venue: Venue = {
+      ...insertVenue,
+      id,
+      createdAt: now,
+      image: insertVenue.image ?? null,
+      description: insertVenue.description ?? null,
+      rating: insertVenue.rating ?? null,
+      currentDj: insertVenue.currentDj ?? null,
+      genres: insertVenue.genres ?? [],
+      upcomingEvents: insertVenue.upcomingEvents ?? [],
+    };
     this.venues.set(id, venue);
     return venue;
   }
@@ -535,26 +561,38 @@ export class MemStorage implements IStorage {
     }
     
     return threads
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0))
       .slice(0, limit);
   }
 
   async getThreadsByUser(userId: number): Promise<Thread[]> {
     return Array.from(this.threads.values())
       .filter(thread => thread.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
   }
 
   async createThread(insertThread: InsertThread): Promise<Thread> {
     const id = this.threadCurrentId++;
     const now = new Date();
     const thread: Thread = { 
-      ...insertThread, 
-      id, 
-      upvotes: 0, 
+      ...insertThread,
+      id,
+      type: insertThread.type ?? "discussion",
+      threadType: insertThread.threadType ?? "topic",
+      songId: insertThread.songId ?? null,
+      artistId: insertThread.artistId ?? null,
+      setId: insertThread.setId ?? null,
+      showId: insertThread.showId ?? null,
+      albumId: insertThread.albumId ?? null,
+      albumName: insertThread.albumName ?? null,
+      artistName: insertThread.artistName ?? null,
+      starRating: insertThread.starRating ?? null,
+      status: insertThread.status ?? "active",
+      upvotes: 0,
+      savesCount: 0,
       commentsCount: 0, 
       recommendationsCount: 0, 
-      createdAt: now 
+      createdAt: now,
     };
     this.threads.set(id, thread);
     return thread;
@@ -573,7 +611,7 @@ export class MemStorage implements IStorage {
     const thread = this.threads.get(id);
     if (!thread) return undefined;
     
-    const updatedThread = { ...thread, upvotes: thread.upvotes + 1 };
+    const updatedThread = { ...thread, upvotes: (thread.upvotes ?? 0) + 1 };
     this.threads.set(id, updatedThread);
     return updatedThread;
   }
@@ -586,7 +624,7 @@ export class MemStorage implements IStorage {
   async getCommentsByThread(threadId: number): Promise<Comment[]> {
     return Array.from(this.comments.values())
       .filter(comment => comment.threadId === threadId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
   }
 
   async createComment(insertComment: InsertComment): Promise<Comment> {
@@ -600,7 +638,7 @@ export class MemStorage implements IStorage {
     if (thread) {
       this.threads.set(thread.id, {
         ...thread,
-        commentsCount: thread.commentsCount + 1
+        commentsCount: (thread.commentsCount ?? 0) + 1
       });
     }
     
@@ -611,7 +649,7 @@ export class MemStorage implements IStorage {
     const comment = this.comments.get(id);
     if (!comment) return undefined;
     
-    const updatedComment = { ...comment, upvotes: comment.upvotes + 1 };
+    const updatedComment = { ...comment, upvotes: (comment.upvotes ?? 0) + 1 };
     this.comments.set(id, updatedComment);
     return updatedComment;
   }
@@ -629,14 +667,14 @@ export class MemStorage implements IStorage {
 
   async getAllSets(limit: number = 50): Promise<MusicSet[]> {
     return Array.from(this.sets.values())
-      .sort((a, b) => b.saves - a.saves)
+      .sort((a, b) => (b.saves ?? 0) - (a.saves ?? 0))
       .slice(0, limit);
   }
 
   async getFeaturedSets(limit: number = 10): Promise<MusicSet[]> {
     return Array.from(this.sets.values())
       .filter(set => set.featured)
-      .sort((a, b) => b.saves - a.saves)
+      .sort((a, b) => (b.saves ?? 0) - (a.saves ?? 0))
       .slice(0, limit);
   }
 
@@ -649,8 +687,18 @@ export class MemStorage implements IStorage {
       saves: 0,
       featured: false,
       verified: false,
+      type: insertSet.type ?? null,
+      description: insertSet.description ?? null,
+      city: insertSet.city ?? null,
+      country: insertSet.country ?? null,
+      eventDate: insertSet.eventDate ?? null,
+      streamingLink: insertSet.streamingLink ?? null,
+      genres: insertSet.genres ?? [],
+      songs: insertSet.songs ?? [],
+      tags: insertSet.tags ?? [],
+      image: insertSet.image ?? null,
       createdAt: now, 
-      updatedAt: now 
+      updatedAt: now,
     };
     this.sets.set(id, set);
     return set;
@@ -674,7 +722,7 @@ export class MemStorage implements IStorage {
   async getSongRecommendationsByThread(threadId: number): Promise<SongRecommendation[]> {
     return Array.from(this.songRecommendations.values())
       .filter(rec => rec.threadId === threadId)
-      .sort((a, b) => b.upvotes - a.upvotes);
+      .sort((a, b) => (b.upvotes ?? 0) - (a.upvotes ?? 0));
   }
 
   async createSongRecommendation(insertRecommendation: InsertSongRecommendation): Promise<SongRecommendation> {
@@ -683,8 +731,9 @@ export class MemStorage implements IStorage {
     const recommendation: SongRecommendation = { 
       ...insertRecommendation, 
       id, 
-      upvotes: 0, 
-      createdAt: now 
+      upvotes: 0,
+      comment: insertRecommendation.comment ?? null,
+      createdAt: now,
     };
     this.songRecommendations.set(id, recommendation);
     
@@ -693,7 +742,7 @@ export class MemStorage implements IStorage {
     if (thread) {
       this.threads.set(thread.id, {
         ...thread,
-        recommendationsCount: thread.recommendationsCount + 1
+        recommendationsCount: (thread.recommendationsCount ?? 0) + 1
       });
     }
     
@@ -704,7 +753,7 @@ export class MemStorage implements IStorage {
     const recommendation = this.songRecommendations.get(id);
     if (!recommendation) return undefined;
     
-    const updatedRecommendation = { ...recommendation, upvotes: recommendation.upvotes + 1 };
+    const updatedRecommendation = { ...recommendation, upvotes: (recommendation.upvotes ?? 0) + 1 };
     this.songRecommendations.set(id, updatedRecommendation);
     return updatedRecommendation;
   }
