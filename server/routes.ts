@@ -1473,16 +1473,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ─── Followed artists page ────────────────────────────────────────────────
   app.get("/api/users/:id/followed-artists", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
     const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
     const artists = await storage.getFollowedArtists(id);
     return res.json(artists);
   });
 
   // ─── Place lists ──────────────────────────────────────────────────────────
   app.get("/api/users/:id/place-lists", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
     const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
     const lists = await storage.getPlaceLists(id);
     return res.json(lists);
   });
