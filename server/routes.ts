@@ -1077,6 +1077,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/places/:id/reviews/:reviewId", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const placeId = parseInt(req.params.id);
+      const reviewId = parseInt(req.params.reviewId);
+      if (isNaN(placeId) || isNaN(reviewId)) return res.status(400).json({ message: "Invalid ID" });
+      const reviews = await storage.getPlaceReviews(placeId);
+      const review = reviews.find(r => r.id === reviewId);
+      if (!review) return res.status(404).json({ message: "Review not found" });
+      if (review.userId !== userId) return res.status(403).json({ message: "Not your review" });
+      const schema = z.object({
+        rating: z.number().int().min(1).max(5),
+        body: z.string().max(280).optional(),
+      });
+      const data = schema.parse(req.body);
+      const updated = await storage.updatePlaceReview(reviewId, data.rating, data.body);
+      const u = await storage.getUser(userId);
+      return res.json({ ...updated, username: u?.username ?? "unknown" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to update review" });
+    }
+  });
+
   app.delete("/api/places/:id/reviews/:reviewId", async (req: Request, res: Response) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
@@ -1361,6 +1388,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
       }
       return res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  app.patch("/api/shows/:id/reviews/:reviewId", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const showId = parseInt(req.params.id);
+      const reviewId = parseInt(req.params.reviewId);
+      if (isNaN(showId) || isNaN(reviewId)) return res.status(400).json({ message: "Invalid ID" });
+      const review = await storage.getUserShowReview(userId, showId);
+      if (!review || review.id !== reviewId) return res.status(404).json({ message: "Review not found" });
+      const schema = z.object({
+        rating: z.number().int().min(1).max(5),
+        content: z.string().min(10).max(1000).optional(),
+        imageUrl: z.string().nullable().optional(),
+      });
+      const data = schema.parse(req.body);
+      const updated = await storage.updateShowReview(reviewId, data.rating, data.content, data.imageUrl);
+      if (!updated) return res.status(404).json({ message: "Review not found" });
+      return res.json(updated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to update review" });
     }
   });
 

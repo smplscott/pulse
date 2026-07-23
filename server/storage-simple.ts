@@ -146,6 +146,7 @@ export interface IStorage {
   updatePlace(id: number, updates: Partial<Place>): Promise<Place | undefined>;
   getPlaceReviews(placeId: number): Promise<PlaceReview[]>;
   createPlaceReview(review: InsertPlaceReview): Promise<PlaceReview>;
+  updatePlaceReview(id: number, rating: number, body?: string): Promise<PlaceReview | undefined>;
   deletePlaceReview(id: number): Promise<void>;
   getPlaceComments(placeId: number): Promise<PlaceComment[]>;
   createPlaceComment(comment: InsertPlaceComment): Promise<PlaceComment>;
@@ -167,6 +168,7 @@ export interface IStorage {
   getShowReviews(showId: number): Promise<ShowReview[]>;
   getUserShowReview(userId: number, showId: number): Promise<ShowReview | undefined>;
   createShowReview(review: InsertShowReview): Promise<ShowReview>;
+  updateShowReview(id: number, rating: number, content?: string, imageUrl?: string | null): Promise<ShowReview | undefined>;
   deleteShowReview(id: number): Promise<void>;
   getShowComments(showId: number): Promise<ShowComment[]>;
   createShowComment(comment: InsertShowComment): Promise<ShowComment>;
@@ -1567,6 +1569,20 @@ export class MemStorage implements IStorage {
     return review;
   }
 
+  async updatePlaceReview(id: number, rating: number, body?: string): Promise<PlaceReview | undefined> {
+    const review = this.placeReviewsMap.get(id);
+    if (!review) return undefined;
+    const updated: PlaceReview = { ...review, rating, body: body ?? review.body };
+    this.placeReviewsMap.set(id, updated);
+    const allReviews = Array.from(this.placeReviewsMap.values()).filter(r => r.placeId === review.placeId);
+    const place = this.placesMap.get(review.placeId);
+    if (place) {
+      const avg = Math.round(allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length);
+      this.placesMap.set(place.id, { ...place, rating: avg });
+    }
+    return updated;
+  }
+
   async deletePlaceReview(id: number): Promise<void> {
     const review = this.placeReviewsMap.get(id);
     this.placeReviewsMap.delete(id);
@@ -1666,6 +1682,19 @@ export class MemStorage implements IStorage {
     };
     this.showReviewsMap.set(id, review);
     return review;
+  }
+
+  async updateShowReview(id: number, rating: number, content?: string, imageUrl?: string | null): Promise<ShowReview | undefined> {
+    const review = this.showReviewsMap.get(id);
+    if (!review) return undefined;
+    const updated: ShowReview = {
+      ...review,
+      rating,
+      content: content ?? review.content,
+      imageUrl: imageUrl !== undefined ? imageUrl : review.imageUrl,
+    };
+    this.showReviewsMap.set(id, updated);
+    return updated;
   }
 
   async deleteShowReview(id: number): Promise<void> {

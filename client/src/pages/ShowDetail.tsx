@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
   ChevronLeft, Ticket, MapPin, Calendar, Star,
-  ThumbsUp, MessageCircle, Send, CheckCircle, LogIn, Trash2,
+  ThumbsUp, MessageCircle, Send, CheckCircle, LogIn, Trash2, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Show, ShowReview, ShowComment } from "@shared/schema";
@@ -110,6 +110,10 @@ export default function ShowDetail() {
   const [reviewImage, setReviewImage] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const [editing, setEditing] = useState(false);
+  const [editRating, setEditRating] = useState(0);
+  const [editText, setEditText] = useState("");
+  const [editImage, setEditImage] = useState<string | null>(null);
 
   const { data: show, isLoading: showLoading } = useQuery<ShowWithStats>({
     queryKey: ["/api/shows", showId],
@@ -189,6 +193,34 @@ export default function ShowDetail() {
         queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
       }
       toast({ title: "Review deleted" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const editReviewMutation = useMutation({
+    mutationFn: async ({ reviewId, rating, content, imageUrl }: { reviewId: number; rating: number; content: string; imageUrl: string | null }) => {
+      const res = await apiRequest("PATCH", `/api/shows/${showId}/reviews/${reviewId}`, {
+        rating,
+        content,
+        imageUrl,
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to update review");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/shows", showId, "reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shows", showId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shows"] });
+      if (user?.username) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
+      }
+      setEditing(false);
+      toast({ title: "Review updated" });
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -384,6 +416,47 @@ export default function ShowDetail() {
                       </p>
                     )}
                   </div>
+                ) : editing ? (
+                  <div className="bg-[#181818] rounded-xl p-4 mb-4">
+                    <p className="text-sm font-semibold text-white mb-3">Edit your review</p>
+                    <div className="mb-3">
+                      <StarRating value={editRating} onChange={setEditRating} />
+                    </div>
+                    <Textarea
+                      value={editText}
+                      onChange={e => setEditText(e.target.value)}
+                      placeholder="Share your experience of the show..."
+                      className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] resize-none min-h-[80px] text-sm mb-3"
+                      maxLength={1000}
+                    />
+                    <ReviewImageUpload value={editImage} onChange={setEditImage} />
+                    <div className="flex items-center justify-between mt-2">
+                      <button
+                        onClick={() => setEditing(false)}
+                        className="text-xs text-[#555] hover:text-[#B3B3B3] transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => editReviewMutation.mutate({
+                          reviewId: userReview!.id,
+                          rating: editRating,
+                          content: editText,
+                          imageUrl: editImage,
+                        })}
+                        disabled={!editRating || editText.trim().length < 10 || !editImage || editReviewMutation.isPending}
+                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full green-gradient text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
+                      >
+                        <Send className="h-3 w-3" />
+                        {editReviewMutation.isPending ? "Saving..." : "Save Changes"}
+                      </button>
+                    </div>
+                    {!editImage && (
+                      <p className="text-xs text-[#555] mt-2 text-right">
+                        Add a photo to enable saving
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div className="bg-[#181818] rounded-xl p-4 mb-4">
                     <div className="flex items-center justify-between mb-2">
@@ -391,18 +464,39 @@ export default function ShowDetail() {
                         <CheckCircle className="h-4 w-4 text-[#c2f970] flex-shrink-0" />
                         <span className="text-xs text-[#B3B3B3]">Your review</span>
                       </div>
-                      <button
-                        onClick={() => deleteReviewMutation.mutate(userReview.id)}
-                        disabled={deleteReviewMutation.isPending}
-                        className="text-[#555] hover:text-red-400 transition-colors disabled:opacity-40"
-                        title="Delete review"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditRating(userReview.rating);
+                            setEditText(userReview.content ?? "");
+                            setEditImage(userReview.imageUrl ?? null);
+                            setEditing(true);
+                          }}
+                          className="text-[#555] hover:text-[#B3B3B3] transition-colors"
+                          title="Edit review"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteReviewMutation.mutate(userReview.id)}
+                          disabled={deleteReviewMutation.isPending}
+                          className="text-[#555] hover:text-red-400 transition-colors disabled:opacity-40"
+                          title="Delete review"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                     <StarRating value={userReview.rating} readonly size="sm" />
                     {userReview.content && (
                       <p className="text-sm text-[#B3B3B3] mt-2 leading-relaxed">{userReview.content}</p>
+                    )}
+                    {userReview.imageUrl && (
+                      <img
+                        src={userReview.imageUrl}
+                        alt="Your review artwork"
+                        className="w-16 h-16 rounded-lg object-cover mt-2 border border-[#282828]"
+                      />
                     )}
                   </div>
                 )}

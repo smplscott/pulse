@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, MapPin, Star, ExternalLink, PenLine, Trash2 } from "lucide-react";
+import { ChevronLeft, MapPin, Star, ExternalLink, PenLine, Trash2, Pencil } from "lucide-react";
 import SaveToListButton from "@/components/SaveToListButton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -83,6 +83,7 @@ export default function PlaceDetail() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewBody, setReviewBody] = useState("");
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
 
   const { data: place, isLoading: placeLoading } = useQuery<Place>({
     queryKey: [`/api/places/${placeId}`],
@@ -112,6 +113,27 @@ export default function PlaceDetail() {
     },
   });
 
+  const editReviewMutation = useMutation({
+    mutationFn: ({ reviewId, rating, body }: { reviewId: number; rating: number; body?: string }) =>
+      apiRequest("PATCH", `/api/places/${placeId}/reviews/${reviewId}`, { rating, body }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}/reviews`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      if (user?.username) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
+      }
+      setReviewOpen(false);
+      setEditingReviewId(null);
+      setReviewRating(0);
+      setReviewBody("");
+      toast({ title: "Review updated!" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to update review", description: err.message, variant: "destructive" });
+    },
+  });
+
   const deleteReviewMutation = useMutation({
     mutationFn: async (reviewId: number) =>
       apiRequest("DELETE", `/api/places/${placeId}/reviews/${reviewId}`),
@@ -131,7 +153,27 @@ export default function PlaceDetail() {
 
   const handleSubmitReview = () => {
     if (reviewRating === 0) return;
-    reviewMutation.mutate({ rating: reviewRating, body: reviewBody.trim() || undefined });
+    if (editingReviewId !== null) {
+      editReviewMutation.mutate({ reviewId: editingReviewId, rating: reviewRating, body: reviewBody.trim() || undefined });
+    } else {
+      reviewMutation.mutate({ rating: reviewRating, body: reviewBody.trim() || undefined });
+    }
+  };
+
+  const handleOpenEdit = (review: ReviewWithUser) => {
+    setEditingReviewId(review.id);
+    setReviewRating(review.rating);
+    setReviewBody(review.body ?? "");
+    setReviewOpen(true);
+  };
+
+  const handleCloseDialog = (open: boolean) => {
+    setReviewOpen(open);
+    if (!open) {
+      setEditingReviewId(null);
+      setReviewRating(0);
+      setReviewBody("");
+    }
   };
 
   const genres = place ? (place.genres ?? []) : [];
@@ -248,14 +290,23 @@ export default function PlaceDetail() {
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <span className="text-[10px] text-[#555]">{timeAgo(review.createdAt)}</span>
                             {user && review.username === user.username && (
-                              <button
-                                onClick={() => deleteReviewMutation.mutate(review.id)}
-                                disabled={deleteReviewMutation.isPending}
-                                className="text-[#555] hover:text-red-400 transition-colors disabled:opacity-40"
-                                title="Delete review"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handleOpenEdit(review)}
+                                  className="text-[#555] hover:text-[#B3B3B3] transition-colors"
+                                  title="Edit review"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => deleteReviewMutation.mutate(review.id)}
+                                  disabled={deleteReviewMutation.isPending}
+                                  className="text-[#555] hover:text-red-400 transition-colors disabled:opacity-40"
+                                  title="Delete review"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>
@@ -278,10 +329,12 @@ export default function PlaceDetail() {
           </div>
 
           {/* Review dialog */}
-          <Dialog open={reviewOpen} onOpenChange={open => { setReviewOpen(open); if (!open) { setReviewRating(0); setReviewBody(""); } }}>
+          <Dialog open={reviewOpen} onOpenChange={handleCloseDialog}>
             <DialogContent className="bg-[#1a1a1a] border-[#282828] text-white max-w-sm mx-auto">
               <DialogHeader>
-                <DialogTitle className="text-base">Review {place.name}</DialogTitle>
+                <DialogTitle className="text-base">
+                  {editingReviewId !== null ? "Edit your review" : `Review ${place.name}`}
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-1">
                 <div>
@@ -304,10 +357,12 @@ export default function PlaceDetail() {
                 </div>
                 <button
                   onClick={handleSubmitReview}
-                  disabled={reviewRating === 0 || reviewMutation.isPending}
+                  disabled={reviewRating === 0 || reviewMutation.isPending || editReviewMutation.isPending}
                   className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
                 >
-                  {reviewMutation.isPending ? "Posting…" : "Post Review"}
+                  {(reviewMutation.isPending || editReviewMutation.isPending)
+                    ? (editingReviewId !== null ? "Saving…" : "Posting…")
+                    : (editingReviewId !== null ? "Save Changes" : "Post Review")}
                 </button>
               </div>
             </DialogContent>
