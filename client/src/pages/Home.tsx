@@ -199,7 +199,7 @@ function AlbumCard({ album }: { album: AlbumFeedItem }) {
 
 function AlbumsFeed() {
   const { data: albums, isLoading } = useQuery<AlbumFeedItem[]>({
-    queryKey: ["/api/feed/albums"],
+    queryKey: ["/api/albums"],
   });
 
   if (isLoading) return <CardSkeleton />;

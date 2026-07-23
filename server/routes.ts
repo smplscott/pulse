@@ -1034,7 +1034,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const u = await storage.getUser(firstReview.userId);
       firstReviewerUsername = u?.username ?? null;
     }
-    return { ...place, firstReviewerUsername };
+    const reviewsWithRating = reviews.filter(r => r.rating != null);
+    const averageRating = reviewsWithRating.length > 0
+      ? Math.round((reviewsWithRating.reduce((s, r) => s + (r.rating ?? 0), 0) / reviewsWithRating.length) * 10) / 10
+      : null;
+    return { ...place, firstReviewerUsername, reviewCount: reviews.length, averageRating };
   }
 
   app.get("/api/places", async (_req: Request, res: Response) => {
