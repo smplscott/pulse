@@ -1342,6 +1342,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return { ...show, avgRating, reviewCount: reviews.length, commentCount: comments.length, firstReviewerUsername };
   }
 
+  // Album endpoints
+  app.get("/api/albums", async (_req: Request, res: Response) => {
+    // Returns the same aggregated list as /api/feed/albums
+    const allThreads = await storage.getAllThreads("album_review");
+    const byAlbum = new Map<string, typeof allThreads>();
+    for (const t of allThreads) {
+      if (!t.albumId) continue;
+      if (!byAlbum.has(t.albumId)) byAlbum.set(t.albumId, []);
+      byAlbum.get(t.albumId)!.push(t);
+    }
+    const result = await Promise.all(
+      Array.from(byAlbum.entries()).map(async ([albumId, albumThreads]) => {
+        const withRatings = albumThreads.filter(t => t.starRating);
+        const avgRating = withRatings.length > 0
+          ? withRatings.reduce((s, t) => s + (t.starRating ?? 0), 0) / withRatings.length
+          : null;
+        const chronological = [...albumThreads].sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
+        const firstThread = chronological[0];
+        let firstReviewerUsername: string | null = null;
+        if (firstThread) {
+          const u = await storage.getUser(firstThread.userId);
+          firstReviewerUsername = u?.username ?? null;
+        }
+        return { albumId, albumName: albumThreads[0].albumName, artistName: albumThreads[0].artistName, reviewCount: albumThreads.length, avgRating, firstReviewerUsername };
+      })
+    );
+    result.sort((a, b) => b.reviewCount - a.reviewCount);
+    return res.json(result);
+  });
+
+  app.get("/api/albums/:albumId", async (req: Request, res: Response) => {
+    const { albumId } = req.params;
+    const allThreads = await storage.getAllThreads("album_review");
+    const albumThreads = allThreads.filter(t => t.albumId === albumId);
+    if (albumThreads.length === 0) return res.status(404).json({ message: "Album not found" });
+    const withRatings = albumThreads.filter(t => t.starRating);
+    const avgRating = withRatings.length > 0
+      ? withRatings.reduce((s, t) => s + (t.starRating ?? 0), 0) / withRatings.length
+      : null;
+    const chronological = [...albumThreads].sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
+    const firstThread = chronological[0];
+    let firstReviewerUsername: string | null = null;
+    if (firstThread) {
+      const u = await storage.getUser(firstThread.userId);
+      firstReviewerUsername = u?.username ?? null;
+    }
+    return res.json({
+      albumId,
+      albumName: albumThreads[0].albumName,
+      artistName: albumThreads[0].artistName,
+      reviewCount: albumThreads.length,
+      avgRating,
+      firstReviewerUsername,
+    });
+  });
+
   // Album review feed — aggregate album_review threads by albumId
   app.get("/api/feed/albums", async (_req: Request, res: Response) => {
     const allThreads = await storage.getAllThreads("album_review");

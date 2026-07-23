@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
-  ChevronLeft, Ticket, MapPin, Calendar, Star,
+  ChevronLeft, Ticket, MapPin, Calendar, Star, Crown,
   ThumbsUp, MessageCircle, Send, CheckCircle, LogIn, Trash2, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -341,7 +341,8 @@ export default function ShowDetail() {
                 </div>
               )}
               {show.firstReviewerUsername && (
-                <p className="text-[10px] text-[#555] mt-1">
+                <p className="text-[10px] text-[#555] mt-1 flex items-center gap-1">
+                  <Crown className="h-2.5 w-2.5 text-[#c2f970] flex-shrink-0" />
                   First reviewed by <span className="text-[#c2f970]">@{show.firstReviewerUsername}</span>
                 </p>
               )}

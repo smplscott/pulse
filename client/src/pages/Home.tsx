@@ -160,7 +160,7 @@ interface AlbumFeedItem {
 
 function AlbumCard({ album }: { album: AlbumFeedItem }) {
   return (
-    <Link href={`/album/${album.albumId}`}>
+    <Link href={`/albums/${album.albumId}`}>
       <div className="bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-full bg-[#b388eb]/20 flex items-center justify-center flex-shrink-0 mt-0.5">

@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, MapPin, Star, ExternalLink, PenLine, Trash2, Pencil } from "lucide-react";
+import { ChevronLeft, MapPin, Star, ExternalLink, PenLine, Trash2, Pencil, Crown } from "lucide-react";
 import SaveToListButton from "@/components/SaveToListButton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -221,7 +221,8 @@ export default function PlaceDetail() {
                     <span className="text-sm">{place.city}, {place.country}</span>
                   </div>
                   {place.firstReviewerUsername && (
-                    <p className="text-[10px] text-[#555] mt-1.5">
+                    <p className="text-[10px] text-[#555] mt-1.5 flex items-center gap-1">
+                      <Crown className="h-2.5 w-2.5 text-[#c2f970] flex-shrink-0" />
                       First reviewed by <span className="text-[#c2f970]">@{place.firstReviewerUsername}</span>
                     </p>
                   )}

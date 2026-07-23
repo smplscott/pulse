@@ -74,7 +74,7 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
     thread.threadType === "live_show_review" && thread.showId
       ? `/shows/${thread.showId}`
       : thread.threadType === "album_review" && thread.albumId
-      ? `/album/${thread.albumId}`
+      ? `/albums/${thread.albumId}`
       : `/thread/${thread.id}`;
 
   return (
