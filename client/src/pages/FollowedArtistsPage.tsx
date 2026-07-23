@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useEffect, useRef } from "react";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
@@ -16,11 +17,49 @@ const FOLLOWED_KEY = ["/api/users/me/followed-artists"];
 export default function FollowedArtistsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const enrichedIds = useRef<Set<number>>(new Set());
 
   const { data: artists, isLoading } = useQuery<Artist[]>({
     queryKey: FOLLOWED_KEY,
     enabled: !!user,
   });
+
+  useEffect(() => {
+    if (!artists) return;
+    const missing = artists.filter(
+      (a) => !a.profilePicture && !enrichedIds.current.has(a.id)
+    );
+    if (missing.length === 0) return;
+
+    missing.forEach((artist) => {
+      enrichedIds.current.add(artist.id);
+      fetch(`/api/spotify/artists/search?q=${encodeURIComponent(artist.name)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          const results: { spotifyId: string; name: string; imageUrl: string | null }[] =
+            data.results ?? [];
+          const match = results.find(
+            (r) => r.name.toLowerCase() === artist.name.toLowerCase() && r.imageUrl
+          ) ?? results.find((r) => r.imageUrl);
+          if (!match?.imageUrl) return;
+          return apiRequest("PATCH", `/api/artists/${artist.id}`, {
+            profilePicture: match.imageUrl,
+            spotifyId: match.spotifyId.startsWith("local-") ? undefined : match.spotifyId,
+          });
+        })
+        .then((updated) => {
+          if (!updated) return;
+          return updated.json().then((updatedArtist: Artist) => {
+            qc.setQueryData<Artist[]>(FOLLOWED_KEY, (old) =>
+              old
+                ? old.map((a) => (a.id === updatedArtist.id ? updatedArtist : a))
+                : old
+            );
+          });
+        })
+        .catch(() => {});
+    });
+  }, [artists, qc]);
 
   const unfollowMutation = useMutation({
     mutationFn: (artistId: number) =>

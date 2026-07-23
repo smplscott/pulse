@@ -356,6 +356,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Failed to create artist" });
     }
   });
+
+  app.patch("/api/artists/:id", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid artist ID" });
+    const schema = z.object({
+      profilePicture: z.string().url().nullable().optional(),
+      spotifyId: z.string().nullable().optional(),
+    });
+    try {
+      const updates = schema.parse(req.body);
+      const artist = await storage.updateArtist(id, updates);
+      if (!artist) return res.status(404).json({ message: "Artist not found" });
+      return res.json(normalizeArtist(artist));
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to update artist" });
+    }
+  });
   
   // Songs routes
   app.get("/api/songs", async (_req: Request, res: Response) => {
