@@ -140,7 +140,7 @@ function ShowsFeed() {
 
   const sorted = [...shows].sort((a, b) => b.reviewCount - a.reviewCount || b.eventDate.localeCompare(a.eventDate));
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {sorted.map(show => <ShowCard key={show.id} show={show} />)}
     </div>
   );
@@ -206,7 +206,7 @@ function AlbumsFeed() {
   if (!albums || albums.length === 0) return <EmptyState icon={Disc3} message="No album reviews yet." />;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {albums.map(album => <AlbumCard key={album.albumId} album={album} />)}
     </div>
   );
@@ -269,7 +269,7 @@ function PlacesFeed() {
   if (!places || places.length === 0) return <EmptyState icon={MapPin} message="No places added yet." />;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {places.map(place => <PlaceCard key={place.id} place={place} />)}
     </div>
   );
