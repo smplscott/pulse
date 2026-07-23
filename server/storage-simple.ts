@@ -19,6 +19,8 @@ import type {
   Show, InsertShow,
   ShowReview, InsertShowReview,
   ShowComment, InsertShowComment,
+  UserTravelPlan, InsertUserTravelPlan,
+  UserShowWishlistItem, InsertUserShowWishlistItem,
 } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
@@ -119,6 +121,19 @@ export interface IStorage {
   // User IRL stat helpers
   getShowReviewCountByUser(userId: number): Promise<number>;
   getPlacesCountByUser(userId: number): Promise<number>;
+  getPlacesByUser(userId: number): Promise<Place[]>;
+  getShowReviewsByUser(userId: number): Promise<(ShowReview & { show: Show })[]>;
+
+  // Travel plan operations
+  getUserTravelPlans(userId: number): Promise<UserTravelPlan[]>;
+  createUserTravelPlan(plan: InsertUserTravelPlan): Promise<UserTravelPlan>;
+  deleteUserTravelPlan(id: number): Promise<void>;
+
+  // Show wishlist operations
+  getUserShowWishlist(userId: number): Promise<UserShowWishlistItem[]>;
+  addToShowWishlist(item: InsertUserShowWishlistItem): Promise<UserShowWishlistItem>;
+  removeFromShowWishlist(id: number): Promise<void>;
+  removeFromShowWishlistByArtist(userId: number, artistName: string): Promise<void>;
 
   // Place operations
   getPlace(id: number): Promise<Place | undefined>;
@@ -165,6 +180,8 @@ export class MemStorage implements IStorage {
   private showsMap: Map<number, Show> = new Map();
   private showReviewsMap: Map<number, ShowReview> = new Map();
   private showCommentsMap: Map<number, ShowComment> = new Map();
+  private userTravelPlansMap: Map<number, UserTravelPlan> = new Map();
+  private userShowWishlistMap: Map<number, UserShowWishlistItem> = new Map();
 
   private userCurrentId = 1;
   private artistCurrentId = 1;
@@ -184,6 +201,8 @@ export class MemStorage implements IStorage {
   private showCurrentId = 1;
   private showReviewCurrentId = 1;
   private showCommentCurrentId = 1;
+  private userTravelPlanCurrentId = 1;
+  private userShowWishlistCurrentId = 1;
 
   constructor() {
     void this.seedData();
@@ -1607,6 +1626,78 @@ export class MemStorage implements IStorage {
     const updated = { ...comment, upvotes: (comment.upvotes || 0) + 1 };
     this.showCommentsMap.set(id, updated);
     return updated;
+  }
+
+  async getPlacesByUser(userId: number): Promise<Place[]> {
+    return Array.from(this.placesMap.values())
+      .filter(p => p.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getShowReviewsByUser(userId: number): Promise<(ShowReview & { show: Show })[]> {
+    const reviews = Array.from(this.showReviewsMap.values()).filter(r => r.userId === userId);
+    const result: (ShowReview & { show: Show })[] = [];
+    for (const review of reviews) {
+      const show = this.showsMap.get(review.showId);
+      if (show) result.push({ ...review, show });
+    }
+    return result.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getUserTravelPlans(userId: number): Promise<UserTravelPlan[]> {
+    return Array.from(this.userTravelPlansMap.values())
+      .filter(p => p.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async createUserTravelPlan(plan: InsertUserTravelPlan): Promise<UserTravelPlan> {
+    const id = this.userTravelPlanCurrentId++;
+    const item: UserTravelPlan = {
+      id,
+      userId: plan.userId,
+      city: plan.city,
+      country: plan.country,
+      targetDate: plan.targetDate,
+      note: plan.note ?? null,
+      createdAt: new Date(),
+    };
+    this.userTravelPlansMap.set(id, item);
+    return item;
+  }
+
+  async deleteUserTravelPlan(id: number): Promise<void> {
+    this.userTravelPlansMap.delete(id);
+  }
+
+  async getUserShowWishlist(userId: number): Promise<UserShowWishlistItem[]> {
+    return Array.from(this.userShowWishlistMap.values())
+      .filter(w => w.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async addToShowWishlist(item: InsertUserShowWishlistItem): Promise<UserShowWishlistItem> {
+    const id = this.userShowWishlistCurrentId++;
+    const entry: UserShowWishlistItem = {
+      id,
+      userId: item.userId,
+      artistName: item.artistName,
+      createdAt: new Date(),
+    };
+    this.userShowWishlistMap.set(id, entry);
+    return entry;
+  }
+
+  async removeFromShowWishlist(id: number): Promise<void> {
+    this.userShowWishlistMap.delete(id);
+  }
+
+  async removeFromShowWishlistByArtist(userId: number, artistName: string): Promise<void> {
+    const lc = artistName.toLowerCase();
+    for (const [id, w] of this.userShowWishlistMap.entries()) {
+      if (w.userId === userId && w.artistName.toLowerCase() === lc) {
+        this.userShowWishlistMap.delete(id);
+      }
+    }
   }
 }
 

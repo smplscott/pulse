@@ -482,3 +482,41 @@ export type ShowReview = typeof showReviews.$inferSelect;
 export type InsertShowReview = z.infer<typeof insertShowReviewSchema>;
 export type ShowComment = typeof showComments.$inferSelect;
 export type InsertShowComment = z.infer<typeof insertShowCommentSchema>;
+
+// User Travel Plans — upcoming trips the user wants to attend shows at
+export const userTravelPlans = pgTable("user_travel_plans", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  targetDate: text("target_date").notNull(),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserTravelPlanSchema = createInsertSchema(userTravelPlans).pick({
+  userId: true,
+  city: true,
+  country: true,
+  targetDate: true,
+  note: true,
+});
+
+export type UserTravelPlan = typeof userTravelPlans.$inferSelect;
+export type InsertUserTravelPlan = z.infer<typeof insertUserTravelPlanSchema>;
+
+// User Show Wishlist — artists the user wants to see live
+export const userShowWishlist = pgTable("user_show_wishlist", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  artistName: text("artist_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserShowWishlistSchema = createInsertSchema(userShowWishlist).pick({
+  userId: true,
+  artistName: true,
+});
+
+export type UserShowWishlistItem = typeof userShowWishlist.$inferSelect;
+export type InsertUserShowWishlistItem = z.infer<typeof insertUserShowWishlistSchema>;

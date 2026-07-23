@@ -4,7 +4,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-simple";
 import { z } from "zod";
-import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertPlaceCommentSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema } from "@shared/schema";
+import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertPlaceCommentSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema, insertUserTravelPlanSchema, insertUserShowWishlistSchema } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
 
@@ -450,6 +450,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       const threadData = schema.parse({ ...req.body, userId });
       const thread = await storage.createThread(threadData);
+      // Auto-remove artist from wishlist when a live show review is posted
+      if (thread.threadType === "live_show_review" && thread.artistName) {
+        await storage.removeFromShowWishlistByArtist(userId, thread.artistName);
+      }
       return res.status(201).json(thread);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1262,6 +1266,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!comment) return res.status(404).json({ message: "Comment not found" });
     if (comment.showId !== showId) return res.status(404).json({ message: "Comment not found" });
     return res.json(comment);
+  });
+
+  // User places, show-reviews, travel plans, show wishlist routes
+  app.get("/api/users/:id/places", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    const places = await storage.getPlacesByUser(id);
+    return res.json(places);
+  });
+
+  app.get("/api/users/:id/show-reviews", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    const reviews = await storage.getShowReviewsByUser(id);
+    return res.json(reviews);
+  });
+
+  app.get("/api/users/:id/travel-plans", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    const plans = await storage.getUserTravelPlans(id);
+    return res.json(plans);
+  });
+
+  app.post("/api/users/:id/travel-plans", async (req: Request, res: Response) => {
+    try {
+      const sessionUserId = req.session.userId;
+      if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+      const id = parseInt(req.params.id);
+      if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
+      const schema = z.object({
+        city: z.string().min(1, "City is required").max(100),
+        country: z.string().min(1, "Country is required").max(100),
+        targetDate: z.string().min(1, "Date is required").max(50),
+        note: z.string().max(200).optional(),
+      });
+      const { city, country, targetDate, note } = schema.parse(req.body);
+      const plan = await storage.createUserTravelPlan({ userId: id, city, country, targetDate, note });
+      return res.status(201).json(plan);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      return res.status(500).json({ message: "Failed to create travel plan" });
+    }
+  });
+
+  app.delete("/api/users/:id/travel-plans/:planId", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
+    const planId = parseInt(req.params.planId);
+    if (isNaN(planId)) return res.status(400).json({ message: "Invalid plan ID" });
+    const plans = await storage.getUserTravelPlans(id);
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) return res.status(404).json({ message: "Plan not found" });
+    await storage.deleteUserTravelPlan(planId);
+    return res.json({ success: true });
+  });
+
+  app.get("/api/users/:id/show-wishlist", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    const wishlist = await storage.getUserShowWishlist(id);
+    return res.json(wishlist);
+  });
+
+  app.post("/api/users/:id/show-wishlist", async (req: Request, res: Response) => {
+    try {
+      const sessionUserId = req.session.userId;
+      if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+      const id = parseInt(req.params.id);
+      if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
+      const schema = z.object({ artistName: z.string().min(1, "Artist name required").max(100) });
+      const { artistName } = schema.parse(req.body);
+      const item = await storage.addToShowWishlist({ userId: id, artistName });
+      return res.status(201).json(item);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      return res.status(500).json({ message: "Failed to add to wishlist" });
+    }
+  });
+
+  app.delete("/api/users/:id/show-wishlist/:itemId", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
+    const itemId = parseInt(req.params.itemId);
+    if (isNaN(itemId)) return res.status(400).json({ message: "Invalid item ID" });
+    const wishlist = await storage.getUserShowWishlist(id);
+    const item = wishlist.find(w => w.id === itemId);
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    await storage.removeFromShowWishlist(itemId);
+    return res.json({ success: true });
   });
 
   const httpServer = createServer(app);
