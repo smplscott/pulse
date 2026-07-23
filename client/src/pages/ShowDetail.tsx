@@ -24,6 +24,7 @@ interface ShowWithStats extends Show {
   avgRating: number | null;
   reviewCount: number;
   commentCount: number;
+  firstReviewerUsername: string | null;
 }
 
 function formatDate(dateStr: string) {
@@ -333,11 +334,16 @@ export default function ShowDetail() {
                 </span>
               </div>
               {show.avgRating !== null && (
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <StarRating value={Math.round(show.avgRating)} readonly size="sm" />
                   <span className="text-xs text-[#f5c518]">{show.avgRating.toFixed(1)}</span>
                   <span className="text-xs text-[#555]">({show.reviewCount} review{show.reviewCount !== 1 ? "s" : ""})</span>
                 </div>
+              )}
+              {show.firstReviewerUsername && (
+                <p className="text-[10px] text-[#555] mt-1">
+                  First reviewed by <span className="text-[#c2f970]">@{show.firstReviewerUsername}</span>
+                </p>
               )}
             </div>
           </div>

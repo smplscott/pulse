@@ -85,7 +85,8 @@ export default function PlaceDetail() {
   const [reviewBody, setReviewBody] = useState("");
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
 
-  const { data: place, isLoading: placeLoading } = useQuery<Place>({
+  type PlaceWithStats = Place & { firstReviewerUsername: string | null };
+  const { data: place, isLoading: placeLoading } = useQuery<PlaceWithStats>({
     queryKey: [`/api/places/${placeId}`],
   });
 
@@ -219,6 +220,11 @@ export default function PlaceDetail() {
                     <MapPin className="h-3.5 w-3.5" />
                     <span className="text-sm">{place.city}, {place.country}</span>
                   </div>
+                  {place.firstReviewerUsername && (
+                    <p className="text-[10px] text-[#555] mt-1.5">
+                      First reviewed by <span className="text-[#c2f970]">@{place.firstReviewerUsername}</span>
+                    </p>
+                  )}
                 </div>
                 <div className="w-12 h-12 rounded-xl bg-[#1a2a1a] border border-[#c2f970]/20 flex items-center justify-center flex-shrink-0">
                   <MapPin className="h-6 w-6 text-[#c2f970]" />

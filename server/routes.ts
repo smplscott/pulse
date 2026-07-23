@@ -1023,9 +1023,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Places routes
+  async function enrichPlace(place: Awaited<ReturnType<typeof storage.getPlace>>) {
+    if (!place) return null;
+    const reviews = await storage.getPlaceReviews(place.id);
+    let firstReviewerUsername: string | null = null;
+    if (reviews.length > 0) {
+      const firstReview = reviews.reduce((oldest, r) =>
+        (r.createdAt?.getTime() || 0) < (oldest.createdAt?.getTime() || 0) ? r : oldest
+      );
+      const u = await storage.getUser(firstReview.userId);
+      firstReviewerUsername = u?.username ?? null;
+    }
+    return { ...place, firstReviewerUsername };
+  }
+
   app.get("/api/places", async (_req: Request, res: Response) => {
     const places = await storage.getAllPlaces();
-    return res.json(places);
+    const enriched = await Promise.all(places.map(enrichPlace));
+    return res.json(enriched);
   });
 
   app.get("/api/places/:id", async (req: Request, res: Response) => {
@@ -1033,7 +1048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (isNaN(id)) return res.status(400).json({ message: "Invalid place ID" });
     const place = await storage.getPlace(id);
     if (!place) return res.status(404).json({ message: "Place not found" });
-    return res.json(place);
+    return res.json(await enrichPlace(place));
   });
 
   app.post("/api/places", async (req: Request, res: Response) => {
@@ -1316,8 +1331,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const avgRating = reviews.length > 0
       ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
       : null;
-    return { ...show, avgRating, reviewCount: reviews.length, commentCount: comments.length };
+    let firstReviewerUsername: string | null = null;
+    if (reviews.length > 0) {
+      const firstReview = reviews.reduce((oldest, r) =>
+        (r.createdAt?.getTime() || 0) < (oldest.createdAt?.getTime() || 0) ? r : oldest
+      );
+      const u = await storage.getUser(firstReview.userId);
+      firstReviewerUsername = u?.username ?? null;
+    }
+    return { ...show, avgRating, reviewCount: reviews.length, commentCount: comments.length, firstReviewerUsername };
   }
+
+  // Album review feed — aggregate album_review threads by albumId
+  app.get("/api/feed/albums", async (_req: Request, res: Response) => {
+    const allThreads = await storage.getAllThreads("album_review");
+    const byAlbum = new Map<string, typeof allThreads>();
+    for (const t of allThreads) {
+      if (!t.albumId) continue;
+      if (!byAlbum.has(t.albumId)) byAlbum.set(t.albumId, []);
+      byAlbum.get(t.albumId)!.push(t);
+    }
+    const result = await Promise.all(
+      Array.from(byAlbum.entries()).map(async ([albumId, albumThreads]) => {
+        const withRatings = albumThreads.filter(t => t.starRating);
+        const avgRating = withRatings.length > 0
+          ? withRatings.reduce((s, t) => s + (t.starRating ?? 0), 0) / withRatings.length
+          : null;
+        const chronological = [...albumThreads].sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
+        const firstThread = chronological[0];
+        let firstReviewerUsername: string | null = null;
+        if (firstThread) {
+          const u = await storage.getUser(firstThread.userId);
+          firstReviewerUsername = u?.username ?? null;
+        }
+        const latest = [...albumThreads].sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))[0];
+        return {
+          albumId,
+          albumName: albumThreads[0].albumName,
+          artistName: albumThreads[0].artistName,
+          reviewCount: albumThreads.length,
+          avgRating,
+          firstReviewerUsername,
+          latestThreadId: latest?.id ?? null,
+        };
+      })
+    );
+    result.sort((a, b) => b.reviewCount - a.reviewCount);
+    return res.json(result);
+  });
 
   app.get("/api/shows", async (req: Request, res: Response) => {
     const q = ((req.query.q as string) || "").toLowerCase().trim();

@@ -935,6 +935,137 @@ export class MemStorage implements IStorage {
     for (const c of seedShowComments) {
       this.showCommentsMap.set(c.id, c);
     }
+
+    // Seed show reviews for shows 2–5
+    const extraShowReviews: ShowReview[] = [
+      {
+        id: this.showReviewCurrentId++,
+        showId: 2,
+        userId: user.id,
+        rating: 5,
+        content: "The Weeknd at Wembley was just on another level. Starboy into Blinding Lights — the whole stadium erupted.",
+        imageUrl: null,
+        createdAt: new Date(Date.now() - 115 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showReviewCurrentId++,
+        showId: 3,
+        userId: devUser.id,
+        rating: 5,
+        content: "Four Tet at Printworks was one of those rare magic nights. The way the light rig synced to the music was unreal.",
+        imageUrl: null,
+        createdAt: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showReviewCurrentId++,
+        showId: 4,
+        userId: user.id,
+        rating: 4,
+        content: "Aphex Twin at Field Day — chaotic, weird, brilliant. Not for everyone but if you know, you know.",
+        imageUrl: null,
+        createdAt: new Date(Date.now() - 105 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.showReviewCurrentId++,
+        showId: 5,
+        userId: devUser.id,
+        rating: 5,
+        content: "Disclosure at Coachella absolutely killed it. Energy was through the roof from the first track.",
+        imageUrl: null,
+        createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+      },
+    ];
+    for (const r of extraShowReviews) {
+      this.showReviewsMap.set(r.id, r);
+    }
+
+    // Seed place reviews so firstReviewerUsername is populated
+    const seedPlaceReviews: PlaceReview[] = [
+      { id: this.placeReviewCurrentId++, placeId: 1, userId: user.id, rating: 5, body: "Room 1 is a religious experience. The sound system is the best I've ever heard.", createdAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000) },
+      { id: this.placeReviewCurrentId++, placeId: 2, userId: devUser.id, rating: 5, body: "Getting in is half the journey. Once inside, time disappears entirely.", createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000) },
+      { id: this.placeReviewCurrentId++, placeId: 3, userId: user.id, rating: 5, body: "Could spend an entire day here. The selection is overwhelming in the best way.", createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000) },
+      { id: this.placeReviewCurrentId++, placeId: 4, userId: devUser.id, rating: 4, body: "The rooftop is magical in summer. Great booking policy for emerging acts.", createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) },
+      { id: this.placeReviewCurrentId++, placeId: 5, userId: user.id, rating: 5, body: "A proper record shop with soul. Staff actually know music.", createdAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000) },
+    ];
+    for (const r of seedPlaceReviews) {
+      this.placeReviewsMap.set(r.id, r);
+    }
+
+    // Seed album_review threads
+    const albumReviewThreads: Thread[] = [
+      {
+        id: this.threadCurrentId++,
+        title: "After Hours is a masterpiece — still unmatched 5 years on",
+        content: "The production, the storytelling, the atmosphere — nothing else sounds like it. Save Your Tears might be the perfect pop song.",
+        userId: user.id,
+        type: "discussion",
+        threadType: "album_review",
+        songId: null,
+        artistId: null,
+        setId: null,
+        showId: null,
+        albumId: "3TSz00N4l21XFMIqS09vJX",
+        albumName: "After Hours",
+        artistName: "The Weeknd",
+        starRating: 5,
+        reviewImageUrl: null,
+        status: "active",
+        upvotes: 94,
+        savesCount: 58,
+        commentsCount: 210,
+        recommendationsCount: 0,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.threadCurrentId++,
+        title: "Isles by Bicep — an emotional rollercoaster from start to finish",
+        content: "Apricots, Saku, Sundial — every track hits different. Bicep managed to make something deeply personal feel universal.",
+        userId: devUser.id,
+        type: "discussion",
+        threadType: "album_review",
+        songId: null,
+        artistId: null,
+        setId: null,
+        showId: null,
+        albumId: "7KvOBpQdLuXRqAoSKVBF6l",
+        albumName: "Isles",
+        artistName: "Bicep",
+        starRating: 5,
+        reviewImageUrl: null,
+        status: "active",
+        upvotes: 67,
+        savesCount: 42,
+        commentsCount: 134,
+        recommendationsCount: 0,
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: this.threadCurrentId++,
+        title: "Midnight Minds EP is everything I needed this winter",
+        content: "Four tracks, zero filler. The title track has been stuck in my head for two weeks solid.",
+        userId: user.id,
+        type: "discussion",
+        threadType: "album_review",
+        songId: null,
+        artistId: null,
+        setId: null,
+        showId: null,
+        albumId: "3TSz00N4l21XFMIqS09vJX",
+        albumName: "After Hours",
+        artistName: "The Weeknd",
+        starRating: 4,
+        reviewImageUrl: null,
+        status: "active",
+        upvotes: 31,
+        savesCount: 19,
+        commentsCount: 77,
+        recommendationsCount: 0,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      },
+    ];
+    for (const t of albumReviewThreads) {
+      this.threads.set(t.id, t);
+    }
   }
 
   // User operations
