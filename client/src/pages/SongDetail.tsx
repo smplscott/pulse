@@ -40,8 +40,8 @@ export default function SongDetail() {
 
   const songThreads = threads?.filter(t => t.songId === songId).slice(0, 3);
 
-  const streamingLinks = (song?.streamingLinks && typeof song.streamingLinks === "object" && !Array.isArray(song.streamingLinks))
-    ? Object.entries(song.streamingLinks as Record<string, string>).map(([platform, url]) => ({ platform, url }))
+  const streamingLinks = song?.streamingLinks
+    ? Object.entries(song.streamingLinks).map(([platform, url]) => ({ platform, url }))
     : [];
 
   if (isLoading) {
@@ -251,10 +251,10 @@ export default function SongDetail() {
                 <span className="font-medium text-right">{c.name}</span>
               </div>
             ))}
-            {!!song.features && Array.isArray(song.features) && (song.features as string[]).length > 0 && (
+            {Array.isArray(song.features) && song.features.length > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-[#B3B3B3]">Featuring</span>
-                <span className="font-medium text-right">{(song.features as string[]).join(", ")}</span>
+                <span className="font-medium text-right">{song.features.join(", ")}</span>
               </div>
             )}
           </div>

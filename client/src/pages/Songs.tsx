@@ -196,8 +196,8 @@ export default function Songs() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{song.title}</p>
                         <p className="text-xs text-[#B3B3B3] truncate">
-                          {Array.isArray(song.features) && (song.features as string[]).length > 0
-                            ? `${song.artist}, ${(song.features as string[]).join(", ")}`
+                          {Array.isArray(song.features) && song.features.length > 0
+                            ? `${song.artist}, ${song.features.join(", ")}`
                             : song.artist}
                         </p>
                       </div>

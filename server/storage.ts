@@ -170,9 +170,7 @@ export class MemStorage implements IStorage {
       features: ["Tripolism"],
       genre: "Electronic",
       albumArt: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100",
-      streamingLinks: [
-        { platform: "Spotify", url: "https://open.spotify.com/track/sample" }
-      ]
+      streamingLinks: { spotify: "https://open.spotify.com/track/sample" }
     });
 
     this.createSong({
@@ -182,9 +180,7 @@ export class MemStorage implements IStorage {
       genre: "Electronic",
       subGenres: ["House"],
       albumArt: "https://images.unsplash.com/photo-1543610892-0b1f7e6d8ac1?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=256",
-      streamingLinks: [
-        { platform: "Spotify", url: "https://open.spotify.com/track/sample" }
-      ]
+      streamingLinks: { spotify: "https://open.spotify.com/track/sample" }
     });
 
     this.createSong({
@@ -193,9 +189,7 @@ export class MemStorage implements IStorage {
       genre: "Electronic",
       subGenres: ["House", "Minimal"],
       albumArt: "https://images.unsplash.com/photo-1536640712-4d4c36ff0e4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=256",
-      streamingLinks: [
-        { platform: "Spotify", url: "https://open.spotify.com/track/sample" }
-      ]
+      streamingLinks: { spotify: "https://open.spotify.com/track/sample" }
     });
 
     this.createSong({
@@ -205,9 +199,7 @@ export class MemStorage implements IStorage {
       genre: "Electronic",
       subGenres: ["French House", "Indie"],
       albumArt: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100",
-      streamingLinks: [
-        { platform: "Spotify", url: "https://open.spotify.com/track/sample" }
-      ]
+      streamingLinks: { spotify: "https://open.spotify.com/track/sample" }
     });
 
     this.createSong({
@@ -216,9 +208,7 @@ export class MemStorage implements IStorage {
       genre: "Electronic",
       subGenres: ["Tech House"],
       albumArt: "https://images.unsplash.com/photo-1542791048-3c4b45101695?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=256",
-      streamingLinks: [
-        { platform: "Spotify", url: "https://open.spotify.com/track/sample" }
-      ]
+      streamingLinks: { spotify: "https://open.spotify.com/track/sample" }
     });
 
     this.createSong({
@@ -228,9 +218,7 @@ export class MemStorage implements IStorage {
       genre: "Electronic",
       subGenres: ["Tech House"],
       albumArt: "https://images.unsplash.com/photo-1546707504-6bf1bd588fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&h=256",
-      streamingLinks: [
-        { platform: "Spotify", url: "https://open.spotify.com/track/sample" }
-      ]
+      streamingLinks: { spotify: "https://open.spotify.com/track/sample" }
     });
 
     // Add venues
@@ -492,7 +480,7 @@ export class MemStorage implements IStorage {
       sample: insertSong.sample ?? null,
       story: insertSong.story ?? null,
       dialects: insertSong.dialects ?? [],
-      streamingLinks: insertSong.streamingLinks ?? [],
+      streamingLinks: insertSong.streamingLinks ?? {},
       genre: insertSong.genre ?? null,
       subGenres: insertSong.subGenres ?? [],
       albumArt: insertSong.albumArt ?? null,

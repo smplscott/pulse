@@ -69,9 +69,9 @@ export default function Sets() {
       set.curator.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGenre =
       selectedGenre === "All" ||
-      (Array.isArray(set.genres) && (set.genres as string[]).some(g =>
+      Array.isArray(set.genres) && set.genres.some(g =>
         g.toLowerCase().includes(selectedGenre.toLowerCase())
-      ));
+      );
     return matchesSearch && matchesGenre;
   }) || [];
 
@@ -173,9 +173,9 @@ export default function Sets() {
                             </span>
                             {set.eventDate && <span>· {set.eventDate}</span>}
                           </div>
-                          {Array.isArray(set.genres) && (set.genres as string[]).length > 0 && (
+                          {(set.genres?.length ?? 0) > 0 && (
                             <div className="flex flex-wrap gap-1 mt-2">
-                              {(set.genres as string[]).slice(0, 3).map((g, i) => (
+                              {(set.genres ?? []).slice(0, 3).map((g, i) => (
                                 <span key={i} className="text-xs bg-[#282828] px-2 py-0.5 rounded-full text-[#B3B3B3]">
                                   {g}
                                 </span>

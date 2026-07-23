@@ -93,7 +93,7 @@ export default function Places() {
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.genres as string[])?.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
+      p.genres?.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCategory = activeCategory === "all" || p.category === activeCategory;
     return matchesSearch && matchesCategory;
   });

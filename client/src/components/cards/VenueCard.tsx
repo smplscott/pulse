@@ -11,7 +11,7 @@ type VenueCardProps = {
 };
 
 export default function VenueCard({ venue, className }: VenueCardProps) {
-  const upcomingEvents = Array.isArray(venue.upcomingEvents) ? (venue.upcomingEvents as Array<{ date: string; artist: string; ticketsUrl?: string }>) : [];
+  const upcomingEvents = venue.upcomingEvents ?? [];
   const hasUpcomingEvents = upcomingEvents.length > 0;
   const firstEvent = hasUpcomingEvents ? upcomingEvents[0] : null;
   const isTonight = firstEvent && new Date(firstEvent.date).toDateString() === new Date().toDateString();
@@ -42,7 +42,7 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
         <div className="p-4">
           <div className="flex justify-between items-center mb-3">
             <div className="flex space-x-2">
-              {Array.isArray(venue.genres) && (venue.genres as string[]).slice(0, 2).map((genre, index) => (
+              {(venue.genres ?? []).slice(0, 2).map((genre, index) => (
                 <Badge key={index} variant="genre" className="text-xs px-2 py-0.5 rounded-full">
                   {genre}
                 </Badge>

@@ -48,7 +48,7 @@ export default function ArtistDetail() {
   });
 
   const { data: localArtist, isLoading: localLoading } = useQuery<{
-    id: number; name: string; genres: unknown; profilePicture?: string | null; firstDiscoveredIn?: string | null;
+    id: number; name: string; genres: string[]; profilePicture?: string | null; firstDiscoveredIn?: string | null;
   }>({
     queryKey: ["/api/artists", id],
     queryFn: () => fetch(`/api/artists/${id}`).then(r => r.json()),
@@ -69,7 +69,7 @@ export default function ArtistDetail() {
       ? {
           name: localArtist.name,
           imageUrl: localArtist.profilePicture ?? null,
-          genres: (localArtist.genres as string[]) ?? [],
+          genres: localArtist.genres ?? [],
           followers: undefined as number | undefined,
           country: localArtist.firstDiscoveredIn ?? null,
         }

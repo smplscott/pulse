@@ -23,8 +23,8 @@ export default function MusicPlayer() {
         <p className="font-medium text-sm truncate">{truncateText(currentSong.title, 30)}</p>
         <p className="text-xs text-[#B3B3B3] truncate">
           {truncateText(
-            Array.isArray(currentSong.features) && (currentSong.features as string[]).length > 0
-              ? `${currentSong.artist}, ${(currentSong.features as string[]).join(", ")}`
+            Array.isArray(currentSong.features) && currentSong.features.length > 0
+              ? `${currentSong.artist}, ${currentSong.features.join(", ")}`
               : currentSong.artist,
             40
           )}

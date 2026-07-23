@@ -201,7 +201,7 @@ export default function Profile() {
     enabled: activeSection === "shows" && !!userId,
   });
 
-  const genres = (profileUser?.favoriteGenres as string[] | undefined) ?? [];
+  const genres = profileUser?.favoriteGenres ?? [];
 
   const { data: wlSpotifyData, isFetching: wlSpotifySearching } = useQuery<{
     results: SpotifyArtist[]; error?: string;

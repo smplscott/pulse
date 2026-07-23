@@ -75,7 +75,7 @@ export const MusicPlayerProvider = ({ children }: MusicPlayerProviderProps) => {
     }
 
     // If we have an audio element and song has streaming links, simulate playback
-    if (audioElement && Array.isArray(song.streamingLinks) && (song.streamingLinks as unknown[]).length > 0) {
+    if (audioElement && song.streamingLinks && Object.keys(song.streamingLinks).length > 0) {
       // In a real app, we would set the audio source to the actual streaming URL
       // For now, we'll simulate playback behavior
       audioElement.pause();

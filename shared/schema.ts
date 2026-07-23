@@ -1,6 +1,41 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// ─── Shared jsonb sub-types ──────────────────────────────────────────────────
+
+/** A platform→URL link stored inside an artist's streamingLinks array. */
+export interface ArtistStreamingLink {
+  platform: string;
+  url: string;
+}
+
+/** A single upcoming event stored inside a venue's upcomingEvents array. */
+export interface VenueEvent {
+  date: string;
+  artist: string;
+  ticketsUrl?: string;
+}
+
+/** A badge entry stored in the user's badges jsonb field. */
+export interface Badge {
+  type: string;
+  earnedAt?: string;
+}
+
+// ─── Zod sub-schemas (used in insert schemas and response schemas) ────────────
+
+export const artistStreamingLinkSchema = z.object({
+  platform: z.string(),
+  url: z.string().url(),
+});
+
+export const venueEventSchema = z.object({
+  date: z.string(),
+  artist: z.string(),
+  ticketsUrl: z.string().url().optional(),
+});
 
 // Users table
 export const users = pgTable("users", {
@@ -12,11 +47,11 @@ export const users = pgTable("users", {
   bio: text("bio"),
   city: text("city"),
   profilePicture: text("profile_picture"),
-  favoriteSongs: jsonb("favorite_songs").default('[]'),
-  favoriteGenres: jsonb("favorite_genres").default('[]'),
-  favoriteSubGenres: jsonb("favorite_sub_genres").default('[]'),
-  favoriteCountries: jsonb("favorite_countries").default('[]'),
-  badges: jsonb("badges").default('[]'),
+  favoriteSongs: jsonb("favorite_songs").$type<unknown[]>().default(sql`'[]'::jsonb`),
+  favoriteGenres: jsonb("favorite_genres").$type<string[]>().default(sql`'[]'::jsonb`),
+  favoriteSubGenres: jsonb("favorite_sub_genres").$type<string[]>().default(sql`'[]'::jsonb`),
+  favoriteCountries: jsonb("favorite_countries").$type<string[]>().default(sql`'[]'::jsonb`),
+  badges: jsonb("badges").$type<Badge[]>().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -35,14 +70,14 @@ export const songs = pgTable("songs", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   artist: text("artist").notNull(),
-  features: jsonb("features").default('[]'),
+  features: jsonb("features").$type<string[]>().default(sql`'[]'::jsonb`),
   sample: text("sample"),
   story: text("story"),
-  dialects: jsonb("dialects").default('[]'),
-  streamingLinks: jsonb("streaming_links").default('[]'),
+  dialects: jsonb("dialects").$type<string[]>().default(sql`'[]'::jsonb`),
+  streamingLinks: jsonb("streaming_links").$type<Record<string, string>>().default(sql`'{}'::jsonb`),
   ranking: integer("ranking").default(0),
   genre: text("genre"),
-  subGenres: jsonb("sub_genres").default('[]'),
+  subGenres: jsonb("sub_genres").$type<string[]>().default(sql`'[]'::jsonb`),
   albumArt: text("album_art"),
   albumName: text("album_name"),
   releaseDate: timestamp("release_date"),
@@ -52,16 +87,17 @@ export const songs = pgTable("songs", {
 export const insertSongSchema = createInsertSchema(songs).pick({
   title: true,
   artist: true,
-  features: true,
   sample: true,
   story: true,
-  dialects: true,
-  streamingLinks: true,
   genre: true,
-  subGenres: true,
   albumArt: true,
   albumName: true,
   releaseDate: true,
+}).extend({
+  features: z.array(z.string()).optional(),
+  dialects: z.array(z.string()).optional(),
+  subGenres: z.array(z.string()).optional(),
+  streamingLinks: z.record(z.string(), z.string()).optional(),
 });
 
 // Artists table
@@ -73,9 +109,9 @@ export const artists = pgTable("artists", {
   firstAlbumReleaseDate: timestamp("first_album_release_date"),
   sample: text("sample"),
   story: text("story"),
-  streamingLinks: jsonb("streaming_links").default('[]'),
+  streamingLinks: jsonb("streaming_links").$type<ArtistStreamingLink[]>().default(sql`'[]'::jsonb`),
   ranking: integer("ranking").default(0),
-  genres: jsonb("genres").default('[]'),
+  genres: jsonb("genres").$type<string[]>().default(sql`'[]'::jsonb`),
   profilePicture: text("profile_picture"),
   verified: boolean("verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -88,10 +124,11 @@ export const insertArtistSchema = createInsertSchema(artists).pick({
   firstAlbumReleaseDate: true,
   sample: true,
   story: true,
-  streamingLinks: true,
-  genres: true,
   profilePicture: true,
   verified: true,
+}).extend({
+  genres: z.array(z.string()).optional(),
+  streamingLinks: z.array(artistStreamingLinkSchema).optional(),
 });
 
 // Venues table
@@ -100,10 +137,10 @@ export const venues = pgTable("venues", {
   name: text("name").notNull(),
   location: text("location").notNull(),
   description: text("description"),
-  genres: jsonb("genres").default('[]'),
+  genres: jsonb("genres").$type<string[]>().default(sql`'[]'::jsonb`),
   rating: integer("rating").default(0),
   image: text("image"),
-  upcomingEvents: jsonb("upcoming_events").default('[]'),
+  upcomingEvents: jsonb("upcoming_events").$type<VenueEvent[]>().default(sql`'[]'::jsonb`),
   currentDj: text("current_dj"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -112,11 +149,12 @@ export const insertVenueSchema = createInsertSchema(venues).pick({
   name: true,
   location: true,
   description: true,
-  genres: true,
   rating: true,
   image: true,
-  upcomingEvents: true,
   currentDj: true,
+}).extend({
+  genres: z.array(z.string()).optional().default([]),
+  upcomingEvents: z.array(venueEventSchema).optional().default([]),
 });
 
 // Threads table
@@ -185,11 +223,11 @@ export const sets = pgTable("sets", {
   userId: integer("user_id").notNull(),
   image: text("image"),
   streamingLink: text("streaming_link"),
-  songs: jsonb("songs").default('[]'),
+  songs: jsonb("songs").$type<unknown[]>().default(sql`'[]'::jsonb`),
   saves: integer("saves").default(0),
-  genres: jsonb("genres").default('[]'),
+  genres: jsonb("genres").$type<string[]>().default(sql`'[]'::jsonb`),
   type: text("type").default('set'),
-  tags: jsonb("tags").default('[]'),
+  tags: jsonb("tags").$type<string[]>().default(sql`'[]'::jsonb`),
   city: text("city"),
   country: text("country"),
   eventDate: text("event_date"),
@@ -206,13 +244,14 @@ export const insertSetSchema = createInsertSchema(sets).pick({
   userId: true,
   image: true,
   streamingLink: true,
-  songs: true,
-  genres: true,
   type: true,
-  tags: true,
   city: true,
   country: true,
   eventDate: true,
+}).extend({
+  genres: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).optional().default([]),
+  songs: z.array(z.unknown()).optional().default([]),
 });
 
 // Song recommendations for threads
@@ -520,3 +559,82 @@ export const insertUserShowWishlistSchema = createInsertSchema(userShowWishlist)
 
 export type UserShowWishlistItem = typeof userShowWishlist.$inferSelect;
 export type InsertUserShowWishlistItem = z.infer<typeof insertUserShowWishlistSchema>;
+
+// ─── Zod response schemas ────────────────────────────────────────────────────
+// These schemas describe the exact runtime shape returned by GET endpoints
+// for the four core entities. Use them to validate API responses and catch
+// data-shape mismatches before they reach UI rendering code.
+
+export const artistResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  realName: z.string().nullable(),
+  firstDiscoveredIn: z.string().nullable(),
+  firstAlbumReleaseDate: z.coerce.date().nullable(),
+  sample: z.string().nullable(),
+  story: z.string().nullable(),
+  streamingLinks: z.array(artistStreamingLinkSchema).default([]),
+  ranking: z.number().nullable(),
+  genres: z.array(z.string()).default([]),
+  profilePicture: z.string().nullable(),
+  verified: z.boolean().nullable(),
+  createdAt: z.coerce.date().nullable(),
+});
+
+export const songResponseSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  artist: z.string(),
+  features: z.array(z.string()).default([]),
+  sample: z.string().nullable(),
+  story: z.string().nullable(),
+  dialects: z.array(z.string()).default([]),
+  streamingLinks: z.record(z.string(), z.string()).default({}),
+  ranking: z.number().nullable(),
+  genre: z.string().nullable(),
+  subGenres: z.array(z.string()).default([]),
+  albumArt: z.string().nullable(),
+  albumName: z.string().nullable(),
+  releaseDate: z.coerce.date().nullable(),
+  createdAt: z.coerce.date().nullable(),
+});
+
+export const venueResponseSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  location: z.string(),
+  description: z.string().nullable(),
+  genres: z.array(z.string()).default([]),
+  rating: z.number().nullable(),
+  image: z.string().nullable(),
+  upcomingEvents: z.array(venueEventSchema).default([]),
+  currentDj: z.string().nullable(),
+  createdAt: z.coerce.date().nullable(),
+});
+
+export const musicSetResponseSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  description: z.string().nullable(),
+  curator: z.string(),
+  userId: z.number(),
+  image: z.string().nullable(),
+  streamingLink: z.string().nullable(),
+  songs: z.array(z.unknown()).default([]),
+  saves: z.number().nullable(),
+  genres: z.array(z.string()).default([]),
+  type: z.string().nullable(),
+  tags: z.array(z.string()).default([]),
+  city: z.string().nullable(),
+  country: z.string().nullable(),
+  eventDate: z.string().nullable(),
+  featured: z.boolean().nullable(),
+  verified: z.boolean().nullable(),
+  createdAt: z.coerce.date().nullable(),
+  updatedAt: z.coerce.date().nullable(),
+});
+
+export type ArtistResponse = z.infer<typeof artistResponseSchema>;
+export type SongResponse = z.infer<typeof songResponseSchema>;
+export type VenueResponse = z.infer<typeof venueResponseSchema>;
+export type MusicSetResponse = z.infer<typeof musicSetResponseSchema>;

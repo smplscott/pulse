@@ -4,7 +4,112 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-simple";
 import { z } from "zod";
-import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertPlaceCommentSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema, insertUserTravelPlanSchema, insertUserShowWishlistSchema } from "@shared/schema";
+import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertPlaceCommentSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema, insertUserTravelPlanSchema, insertUserShowWishlistSchema, artistResponseSchema, songResponseSchema, venueResponseSchema, musicSetResponseSchema } from "@shared/schema";
+import type { Artist, Song, Venue, MusicSet, ArtistResponse, SongResponse, VenueResponse, MusicSetResponse, Badge } from "@shared/schema";
+
+// ─── Runtime normalization helpers ───────────────────────────────────────────
+// These coerce jsonb fields to their expected shapes, then validate against the
+// Zod response schemas.  Element-level filtering removes entries that don't fit
+// the declared type (e.g. non-string genres, malformed streaming links).
+// safeParse logs mismatches without blocking the response.
+
+function normalizeArtist(a: Artist): ArtistResponse {
+  const pre = {
+    ...a,
+    genres: Array.isArray(a.genres)
+      ? a.genres.filter((g): g is string => typeof g === "string")
+      : [],
+    streamingLinks: Array.isArray(a.streamingLinks)
+      ? a.streamingLinks.filter(
+          (l): l is { platform: string; url: string } => {
+            const obj = l as unknown as Record<string, unknown>;
+            return obj !== null && typeof obj === "object" &&
+              typeof obj.platform === "string" && typeof obj.url === "string";
+          },
+        )
+      : [],
+  };
+  const result = artistResponseSchema.safeParse(pre);
+  if (!result.success) {
+    console.warn("[normalizeArtist] shape mismatch:", result.error.flatten());
+    return pre as ArtistResponse;
+  }
+  return result.data;
+}
+
+function normalizeSong(s: Song): SongResponse {
+  const pre = {
+    ...s,
+    features: Array.isArray(s.features)
+      ? s.features.filter((f): f is string => typeof f === "string")
+      : [],
+    dialects: Array.isArray(s.dialects)
+      ? s.dialects.filter((d): d is string => typeof d === "string")
+      : [],
+    subGenres: Array.isArray(s.subGenres)
+      ? s.subGenres.filter((g): g is string => typeof g === "string")
+      : [],
+    streamingLinks:
+      s.streamingLinks !== null &&
+      typeof s.streamingLinks === "object" &&
+      !Array.isArray(s.streamingLinks)
+        ? Object.fromEntries(
+            Object.entries(s.streamingLinks as Record<string, unknown>).filter(
+              ([, v]) => typeof v === "string",
+            ) as [string, string][],
+          )
+        : {},
+  };
+  const result = songResponseSchema.safeParse(pre);
+  if (!result.success) {
+    console.warn("[normalizeSong] shape mismatch:", result.error.flatten());
+    return pre as SongResponse;
+  }
+  return result.data;
+}
+
+function normalizeVenue(v: Venue): VenueResponse {
+  const pre = {
+    ...v,
+    genres: Array.isArray(v.genres)
+      ? v.genres.filter((g): g is string => typeof g === "string")
+      : [],
+    upcomingEvents: Array.isArray(v.upcomingEvents)
+      ? v.upcomingEvents.filter(
+          (e): e is { date: string; artist: string; ticketsUrl?: string } => {
+            const obj = e as unknown as Record<string, unknown>;
+            return obj !== null && typeof obj === "object" &&
+              typeof obj.date === "string" && typeof obj.artist === "string";
+          },
+        )
+      : [],
+  };
+  const result = venueResponseSchema.safeParse(pre);
+  if (!result.success) {
+    console.warn("[normalizeVenue] shape mismatch:", result.error.flatten());
+    return pre as VenueResponse;
+  }
+  return result.data;
+}
+
+function normalizeMusicSet(s: MusicSet): MusicSetResponse {
+  const pre = {
+    ...s,
+    genres: Array.isArray(s.genres)
+      ? s.genres.filter((g): g is string => typeof g === "string")
+      : [],
+    songs: Array.isArray(s.songs) ? s.songs : [],
+    tags: Array.isArray(s.tags)
+      ? s.tags.filter((t): t is string => typeof t === "string")
+      : [],
+  };
+  const result = musicSetResponseSchema.safeParse(pre);
+  if (!result.success) {
+    console.warn("[normalizeMusicSet] shape mismatch:", result.error.flatten());
+    return pre as MusicSetResponse;
+  }
+  return result.data;
+}
 
 const scryptAsync = promisify(scrypt);
 
@@ -207,12 +312,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Artists routes
   app.get("/api/artists", async (_req: Request, res: Response) => {
     const artists = await storage.getAllArtists();
-    return res.json(artists);
+    return res.json(artists.map(normalizeArtist));
   });
   
   app.get("/api/artists/featured", async (_req: Request, res: Response) => {
     const artists = await storage.getFeaturedArtists();
-    return res.json(artists);
+    return res.json(artists.map(normalizeArtist));
   });
   
   app.get("/api/artists/name/:name", async (req: Request, res: Response) => {
@@ -220,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!artist) {
       return res.status(404).json({ message: "Artist not found" });
     }
-    return res.json(artist);
+    return res.json(normalizeArtist(artist));
   });
 
   app.get("/api/artists/:id", async (req: Request, res: Response) => {
@@ -234,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Artist not found" });
     }
     
-    return res.json(artist);
+    return res.json(normalizeArtist(artist));
   });
 
   app.post("/api/artists", async (req: Request, res: Response) => {
@@ -255,13 +360,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Songs routes
   app.get("/api/songs", async (_req: Request, res: Response) => {
     const songs = await storage.getAllSongs();
-    return res.json(songs);
+    return res.json(songs.map(normalizeSong));
   });
   
   app.get("/api/songs/artist/:artistName", async (req: Request, res: Response) => {
     const artistName = req.params.artistName;
     const songs = await storage.getSongsByArtist(artistName);
-    return res.json(songs);
+    return res.json(songs.map(normalizeSong));
   });
 
   app.get("/api/songs/:id", async (req: Request, res: Response) => {
@@ -275,13 +380,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Song not found" });
     }
     
-    return res.json(song);
+    return res.json(normalizeSong(song));
   });
   
   // Venues routes
   app.get("/api/venues", async (_req: Request, res: Response) => {
     const venues = await storage.getAllVenues();
-    return res.json(venues);
+    return res.json(venues.map(normalizeVenue));
   });
   
   app.get("/api/venues/:id", async (req: Request, res: Response) => {
@@ -295,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Venue not found" });
     }
     
-    return res.json(venue);
+    return res.json(normalizeVenue(venue));
   });
   
   // Global search — aggregates Spotify artists, Setlist.fm shows, Spotify albums, local places
@@ -608,12 +713,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sets routes
   app.get("/api/sets", async (_req: Request, res: Response) => {
     const sets = await storage.getAllSets();
-    return res.json(sets);
+    return res.json(sets.map(normalizeMusicSet));
   });
   
   app.get("/api/sets/featured", async (_req: Request, res: Response) => {
     const sets = await storage.getFeaturedSets();
-    return res.json(sets);
+    return res.json(sets.map(normalizeMusicSet));
   });
   
   app.get("/api/sets/:id", async (req: Request, res: Response) => {
@@ -627,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Set not found" });
     }
     
-    return res.json(set);
+    return res.json(normalizeMusicSet(set));
   });
   
   app.get("/api/users/:userId/threads", async (req: Request, res: Response) => {
@@ -1211,11 +1316,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Award "I was there" badge if user doesn't already have it
       const user = await storage.getUser(userId);
       if (user) {
-        const badges = (user.badges as Array<{ type: string }>) || [];
+        const badges = (Array.isArray(user.badges) ? user.badges : []) as Array<{ type: string; earnedAt?: string }>;
         const hasBadge = badges.some(b => b.type === "i_was_there");
         if (!hasBadge) {
           await storage.updateUser(userId, {
-            badges: [...badges, { type: "i_was_there", earnedAt: new Date().toISOString() }],
+            badges: [...badges, { type: "i_was_there", earnedAt: new Date().toISOString() }] as Badge[],
           });
         }
       }

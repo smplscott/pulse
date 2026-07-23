@@ -48,8 +48,7 @@ export default function VenueDetail() {
 
   // Check if the venue has events tonight
   const today = new Date().toDateString();
-  type VenueEvent = { date: string; artist: string; ticketsUrl?: string };
-  const venueEvents = Array.isArray(venue?.upcomingEvents) ? (venue.upcomingEvents as VenueEvent[]) : [];
+  const venueEvents = venue?.upcomingEvents ?? [];
   const hasEventsTonight = venueEvents.some(
     event => new Date(event.date).toDateString() === today
   );
@@ -116,7 +115,7 @@ export default function VenueDetail() {
             
             <div className="flex justify-between items-center mb-6">
               <div className="flex space-x-2">
-                {Array.isArray(venue.genres) && (venue.genres as string[]).map((genre, index) => (
+                {(venue.genres ?? []).map((genre, index) => (
                   <Badge key={index} variant="genre" className="text-xs">
                     {genre}
                   </Badge>

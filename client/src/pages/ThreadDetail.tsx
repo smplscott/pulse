@@ -277,7 +277,7 @@ export default function ThreadDetail() {
                     <h2 className="font-bold text-xl">{getContentTitle()}</h2>
                     <div className="text-sm text-[#B3B3B3] flex items-center">
                       {isArtistThread && (
-                        <span>{(Array.isArray(artistContent?.genres) ? (artistContent.genres as string[])[0] : null) || 'Artist'}</span>
+                        <span>{artistContent?.genres?.[0] || 'Artist'}</span>
                       )}
                       {isVenueThread && (
                         <span>{venueContent?.location || 'Venue'}</span>

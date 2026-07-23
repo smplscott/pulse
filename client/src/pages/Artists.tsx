@@ -106,9 +106,9 @@ export default function Artists() {
       artist.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGenre =
       selectedGenre === "All" ||
-      (Array.isArray(artist.genres) && (artist.genres as string[]).some(g =>
+      Array.isArray(artist.genres) && artist.genres.some(g =>
         g.toLowerCase().includes(selectedGenre.toLowerCase())
-      ));
+      );
     return matchesSearch && matchesGenre;
   });
 
@@ -207,7 +207,7 @@ export default function Artists() {
                         </div>
                         <p className="text-xs text-[#B3B3B3] truncate">
                           {artist.firstDiscoveredIn ? `${COUNTRY_EMOJIS[artist.firstDiscoveredIn] || "🌍"} ${artist.firstDiscoveredIn} · ` : ""}
-                          {(artist.genres as string[] || []).slice(0, 2).join(", ") || "Artist"}
+                          {(artist.genres ?? []).slice(0, 2).join(", ") || "Artist"}
                         </p>
                       </div>
                     </div>

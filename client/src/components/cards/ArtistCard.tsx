@@ -32,8 +32,8 @@ export default function ArtistCard({ artist, className }: ArtistCardProps) {
         <div className="p-3">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-[#B3B3B3]">
-              {Array.isArray(artist.genres) && (artist.genres as string[]).length > 0
-                ? (artist.genres as string[]).slice(0, 2).join(" / ")
+              {Array.isArray(artist.genres) && artist.genres.length > 0
+                ? artist.genres.slice(0, 2).join(" / ")
                 : "Genre not specified"}
             </span>
             {artist.verified && (
