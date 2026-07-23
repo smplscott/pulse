@@ -77,7 +77,7 @@ export default function Threads() {
                 key={filter.id}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center ${
                   isActive
-                    ? "bg-[#282828] text-white"
+                    ? "pink-gradient text-white"
                     : "bg-[#181818] border border-[#3E3E3E] text-[#B3B3B3]"
                 }`}
                 onClick={() => setSelectedFilter(filter.id)}

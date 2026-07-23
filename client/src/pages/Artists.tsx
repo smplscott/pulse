@@ -123,7 +123,7 @@ export default function Artists() {
             onClick={() => setShowAdd(true)}
             className="w-9 h-9 rounded-full green-gradient flex items-center justify-center hover:opacity-90 transition"
           >
-            <Plus className="h-5 w-5 text-white" />
+            <Plus className="h-5 w-5 text-black" />
           </button>
         </div>
 
