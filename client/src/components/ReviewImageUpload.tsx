@@ -7,11 +7,13 @@ interface Props {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
   required?: boolean;
+  label?: string;
+  hint?: string;
 }
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
-export default function ReviewImageUpload({ value, onChange }: Props) {
+export default function ReviewImageUpload({ value, onChange, label, hint }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -47,7 +49,7 @@ export default function ReviewImageUpload({ value, onChange }: Props) {
   return (
     <div className="mb-3">
       <div className="flex items-center gap-1.5 mb-1.5">
-        <p className="text-xs text-[#B3B3B3] font-medium">Verify with Image *</p>
+        <p className="text-xs text-[#B3B3B3] font-medium">{label ?? "Verify with Image *"}</p>
         <Tooltip>
           <TooltipTrigger asChild>
             <button type="button" className="text-[#555] hover:text-[#B3B3B3] transition-colors">
@@ -55,7 +57,7 @@ export default function ReviewImageUpload({ value, onChange }: Props) {
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-[200px] text-center text-xs">
-            Your photo verifies you were there and becomes the artwork for your review
+            {hint ?? "Your photo verifies you were there and becomes the artwork for your review"}
           </TooltipContent>
         </Tooltip>
       </div>

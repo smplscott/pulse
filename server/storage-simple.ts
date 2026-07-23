@@ -1789,6 +1789,7 @@ export class MemStorage implements IStorage {
       id,
       userId: list.userId,
       name: list.name,
+      coverImageUrl: list.coverImageUrl ?? null,
       createdAt: new Date(),
     };
     this.placeListsMap.set(id, entry);

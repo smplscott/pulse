@@ -10,6 +10,7 @@ import { ChevronLeft, MapPin, List, Plus, Trash2, ChevronRight } from "lucide-re
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import ReviewImageUpload from "@/components/ReviewImageUpload";
 import type { PlaceList, Place, PlaceListItem } from "@shared/schema";
 
 type PlaceListItemWithPlace = PlaceListItem & { place: Place };
@@ -22,7 +23,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-function ListDetail({ list, userId, onBack }: { list: PlaceList; userId: number; onBack: () => void }) {
+function ListDetail({ list, onBack }: { list: PlaceList; userId: number; onBack: () => void }) {
   const { toast } = useToast();
 
   const { data: items, isLoading } = useQuery<PlaceListItemWithPlace[]>({
@@ -48,8 +49,18 @@ function ListDetail({ list, userId, onBack }: { list: PlaceList; userId: number;
         <span className="text-sm">My Lists</span>
       </button>
 
-      <div className="flex items-center gap-2 mb-5">
-        <List className="h-5 w-5 text-[#b388eb]" />
+      <div className="flex items-center gap-3 mb-5">
+        {list.coverImageUrl ? (
+          <img
+            src={list.coverImageUrl}
+            alt={list.name}
+            className="w-10 h-10 rounded-lg object-cover border border-[#3E3E3E] flex-shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-lg bg-[#1a0d2e] border border-[#b388eb]/20 flex items-center justify-center flex-shrink-0">
+            <List className="h-5 w-5 text-[#b388eb]" />
+          </div>
+        )}
         <h2 className="text-xl font-bold">{list.name}</h2>
         <span className="text-xs text-[#555] mt-0.5">
           {items ? `${items.length} place${items.length !== 1 ? "s" : ""}` : ""}
@@ -106,6 +117,7 @@ export default function SavedPlacesPage() {
   const { toast } = useToast();
   const [selectedList, setSelectedList] = useState<PlaceList | null>(null);
   const [newListName, setNewListName] = useState("");
+  const [coverImage, setCoverImage] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
   const { data: lists, isLoading } = useQuery<PlaceList[]>({
@@ -114,11 +126,12 @@ export default function SavedPlacesPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (name: string) =>
-      apiRequest("POST", `/api/users/${user?.id}/place-lists`, { name }),
+    mutationFn: ({ name, coverImageUrl }: { name: string; coverImageUrl?: string | null }) =>
+      apiRequest("POST", `/api/users/${user?.id}/place-lists`, { name, coverImageUrl }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/place-lists`] });
       setNewListName("");
+      setCoverImage(null);
       setShowCreate(false);
       toast({ title: "List created" });
     },
@@ -134,6 +147,17 @@ export default function SavedPlacesPage() {
     },
     onError: () => toast({ title: "Failed to delete list", variant: "destructive" }),
   });
+
+  function handleCreate() {
+    if (!newListName.trim()) return;
+    createMutation.mutate({ name: newListName.trim(), coverImageUrl: coverImage });
+  }
+
+  function handleCancelCreate() {
+    setShowCreate(false);
+    setNewListName("");
+    setCoverImage(null);
+  }
 
   if (selectedList) {
     return (
@@ -178,26 +202,40 @@ export default function SavedPlacesPage() {
         </div>
 
         {showCreate && (
-          <div className="flex gap-2 mb-4">
+          <div className="bg-[#181818] rounded-xl p-3 mb-4 space-y-2">
             <Input
               autoFocus
               placeholder="List name…"
               value={newListName}
               onChange={e => setNewListName(e.target.value)}
               maxLength={80}
-              className="bg-[#282828] border-[#3E3E3E] text-white text-sm h-9 flex-1"
+              className="bg-[#282828] border-[#3E3E3E] text-white text-sm h-9"
               onKeyDown={e => {
-                if (e.key === "Enter" && newListName.trim()) createMutation.mutate(newListName.trim());
-                if (e.key === "Escape") { setShowCreate(false); setNewListName(""); }
+                if (e.key === "Enter") handleCreate();
+                if (e.key === "Escape") handleCancelCreate();
               }}
             />
-            <button
-              onClick={() => newListName.trim() && createMutation.mutate(newListName.trim())}
-              disabled={!newListName.trim() || createMutation.isPending}
-              className="px-3 h-9 rounded-lg bg-[#b388eb]/20 text-[#b388eb] text-sm font-medium hover:bg-[#b388eb]/30 transition-colors disabled:opacity-40 flex-shrink-0"
-            >
-              {createMutation.isPending ? "…" : "Create"}
-            </button>
+            <ReviewImageUpload
+              value={coverImage}
+              onChange={setCoverImage}
+              label="Cover image (optional)"
+              hint="Add a photo to personalise your list"
+            />
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={handleCancelCreate}
+                className="flex-1 h-9 rounded-lg text-sm text-[#666] hover:text-[#999] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreate}
+                disabled={!newListName.trim() || createMutation.isPending}
+                className="flex-1 h-9 rounded-lg bg-[#b388eb]/20 text-[#b388eb] text-sm font-medium hover:bg-[#b388eb]/30 transition-colors disabled:opacity-40"
+              >
+                {createMutation.isPending ? "…" : "Create"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -213,9 +251,17 @@ export default function SavedPlacesPage() {
                 className="bg-[#181818] rounded-xl px-4 py-3 flex items-center gap-3 hover:bg-[#1e1e1e] transition-colors cursor-pointer"
                 onClick={() => setSelectedList(list)}
               >
-                <div className="w-10 h-10 rounded-lg bg-[#1a0d2e] border border-[#b388eb]/20 flex items-center justify-center flex-shrink-0">
-                  <List className="h-5 w-5 text-[#b388eb]" />
-                </div>
+                {list.coverImageUrl ? (
+                  <img
+                    src={list.coverImageUrl}
+                    alt={list.name}
+                    className="w-10 h-10 rounded-lg object-cover border border-[#3E3E3E] flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-[#1a0d2e] border border-[#b388eb]/20 flex items-center justify-center flex-shrink-0">
+                    <List className="h-5 w-5 text-[#b388eb]" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{list.name}</p>
                 </div>

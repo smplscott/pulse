@@ -572,12 +572,15 @@ export const placeLists = pgTable("place_lists", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
+  coverImageUrl: text("cover_image_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertPlaceListSchema = createInsertSchema(placeLists).pick({
   userId: true,
   name: true,
+}).extend({
+  coverImageUrl: z.string().nullable().optional(),
 });
 
 export const placeListItems = pgTable("place_list_items", {

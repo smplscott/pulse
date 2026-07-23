@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import ReviewImageUpload from "@/components/ReviewImageUpload";
 import type { PlaceList } from "@shared/schema";
 
 interface Props {
@@ -22,6 +23,7 @@ export default function SaveToListButton({ placeId, placeName, className }: Prop
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [newListName, setNewListName] = useState("");
+  const [coverImage, setCoverImage] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
   const { data: lists, isLoading: listsLoading } = useQuery<PlaceList[]>({
@@ -60,17 +62,23 @@ export default function SaveToListButton({ placeId, placeName, className }: Prop
   });
 
   const createListMutation = useMutation({
-    mutationFn: (name: string) =>
-      apiRequest("POST", `/api/users/${user?.id}/place-lists`, { name }),
+    mutationFn: ({ name, coverImageUrl }: { name: string; coverImageUrl?: string | null }) =>
+      apiRequest("POST", `/api/users/${user?.id}/place-lists`, { name, coverImageUrl }),
     onSuccess: async (res) => {
       const newList = await res.json();
       queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/place-lists`] });
       setNewListName("");
+      setCoverImage(null);
       setCreating(false);
       addMutation.mutate(newList.id);
     },
     onError: () => toast({ title: "Failed to create list", variant: "destructive" }),
   });
+
+  function handleCreateList() {
+    if (!newListName.trim()) return;
+    createListMutation.mutate({ name: newListName.trim(), coverImageUrl: coverImage });
+  }
 
   if (!user) return null;
 
@@ -117,11 +125,26 @@ export default function SaveToListButton({ placeId, placeName, className }: Prop
                     disabled={addMutation.isPending || removeMutation.isPending}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#282828] hover:bg-[#333] transition-colors text-left"
                   >
-                    <div className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 border",
-                      isSaved ? "bg-[#b388eb]/20 border-[#b388eb]" : "border-[#444]"
-                    )}>
-                      {isSaved && <Check className="h-3 w-3 text-[#b388eb]" />}
+                    <div className="relative flex-shrink-0">
+                      {list.coverImageUrl ? (
+                        <img
+                          src={list.coverImageUrl}
+                          alt={list.name}
+                          className="w-7 h-7 rounded object-cover"
+                        />
+                      ) : (
+                        <div className={cn(
+                          "w-7 h-7 rounded-full flex items-center justify-center border",
+                          isSaved ? "bg-[#b388eb]/20 border-[#b388eb]" : "border-[#444]"
+                        )}>
+                          {isSaved && <Check className="h-3 w-3 text-[#b388eb]" />}
+                        </div>
+                      )}
+                      {list.coverImageUrl && isSaved && (
+                        <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#b388eb] flex items-center justify-center">
+                          <Check className="h-2 w-2 text-white" />
+                        </div>
+                      )}
                     </div>
                     <span className="text-sm flex-1">{list.name}</span>
                     {isSaved && (
@@ -135,26 +158,40 @@ export default function SaveToListButton({ placeId, placeName, className }: Prop
             )}
 
             {creating ? (
-              <div className="flex gap-2 pt-1">
+              <div className="space-y-2 pt-1">
                 <Input
                   autoFocus
                   placeholder="List name…"
                   value={newListName}
                   onChange={e => setNewListName(e.target.value)}
                   maxLength={80}
-                  className="bg-[#282828] border-[#3E3E3E] text-white text-sm h-9 flex-1"
+                  className="bg-[#282828] border-[#3E3E3E] text-white text-sm h-9"
                   onKeyDown={e => {
-                    if (e.key === "Enter" && newListName.trim()) createListMutation.mutate(newListName.trim());
-                    if (e.key === "Escape") { setCreating(false); setNewListName(""); }
+                    if (e.key === "Enter") handleCreateList();
+                    if (e.key === "Escape") { setCreating(false); setNewListName(""); setCoverImage(null); }
                   }}
                 />
-                <button
-                  onClick={() => newListName.trim() && createListMutation.mutate(newListName.trim())}
-                  disabled={!newListName.trim() || createListMutation.isPending}
-                  className="px-3 h-9 rounded-lg bg-[#b388eb]/20 text-[#b388eb] text-sm font-medium hover:bg-[#b388eb]/30 transition-colors disabled:opacity-40 flex-shrink-0"
-                >
-                  {createListMutation.isPending ? "…" : "Create"}
-                </button>
+                <ReviewImageUpload
+                  value={coverImage}
+                  onChange={setCoverImage}
+                  label="Cover image (optional)"
+                  hint="Add a photo to personalise your list"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setCreating(false); setNewListName(""); setCoverImage(null); }}
+                    className="flex-1 h-9 rounded-lg text-sm text-[#666] hover:text-[#999] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateList}
+                    disabled={!newListName.trim() || createListMutation.isPending}
+                    className="flex-1 h-9 rounded-lg bg-[#b388eb]/20 text-[#b388eb] text-sm font-medium hover:bg-[#b388eb]/30 transition-colors disabled:opacity-40"
+                  >
+                    {createListMutation.isPending ? "…" : "Create"}
+                  </button>
+                </div>
               </div>
             ) : (
               <button

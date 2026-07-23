@@ -1540,9 +1540,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
       const id = parseInt(req.params.id);
       if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
-      const schema = z.object({ name: z.string().min(1).max(80) });
-      const { name } = schema.parse(req.body);
-      const list = await storage.createPlaceList({ userId: id, name });
+      const schema = z.object({ name: z.string().min(1).max(80), coverImageUrl: z.string().nullable().optional() });
+      const { name, coverImageUrl } = schema.parse(req.body);
+      const list = await storage.createPlaceList({ userId: id, name, coverImageUrl });
       return res.status(201).json(list);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
