@@ -1365,7 +1365,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const u = await storage.getUser(firstThread.userId);
           firstReviewerUsername = u?.username ?? null;
         }
-        return { albumId, albumName: albumThreads[0].albumName, artistName: albumThreads[0].artistName, reviewCount: albumThreads.length, avgRating, firstReviewerUsername };
+        const albumArt = albumThreads.find(t => (t as any).albumArt)?.albumArt ?? null;
+        return { albumId, albumName: albumThreads[0].albumName, albumArt, artistName: albumThreads[0].artistName, reviewCount: albumThreads.length, avgRating, firstReviewerUsername };
       })
     );
     result.sort((a, b) => b.reviewCount - a.reviewCount);
@@ -1388,13 +1389,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const u = await storage.getUser(firstThread.userId);
       firstReviewerUsername = u?.username ?? null;
     }
+    const albumArt = albumThreads.find(t => (t as any).albumArt)?.albumArt ?? null;
     return res.json({
       albumId,
       albumName: albumThreads[0].albumName,
+      albumArt,
       artistName: albumThreads[0].artistName,
       reviewCount: albumThreads.length,
       avgRating,
       firstReviewerUsername,
+      reviews: albumThreads,
     });
   });
 

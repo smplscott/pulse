@@ -151,6 +151,7 @@ function ShowsFeed() {
 interface AlbumFeedItem {
   albumId: string;
   albumName: string | null;
+  albumArt: string | null;
   artistName: string | null;
   reviewCount: number;
   avgRating: number | null;
@@ -163,8 +164,11 @@ function AlbumCard({ album }: { album: AlbumFeedItem }) {
     <Link href={`/albums/${album.albumId}`}>
       <div className="bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors">
         <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#b388eb]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Disc3 className="h-4 w-4 text-[#b388eb]" />
+          <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 mt-0.5 bg-[#b388eb]/20">
+            {album.albumArt
+              ? <img src={album.albumArt} alt={album.albumName ?? "Album"} className="w-full h-full object-cover" />
+              : <div className="w-full h-full flex items-center justify-center"><Disc3 className="h-4 w-4 text-[#b388eb]" /></div>
+            }
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white leading-snug mb-0.5 truncate">{album.albumName ?? "Unknown Album"}</p>

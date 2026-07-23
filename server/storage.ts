@@ -573,6 +573,7 @@ export class MemStorage implements IStorage {
       showId: insertThread.showId ?? null,
       albumId: insertThread.albumId ?? null,
       albumName: insertThread.albumName ?? null,
+      albumArt: (insertThread as any).albumArt ?? null,
       artistName: insertThread.artistName ?? null,
       starRating: insertThread.starRating ?? null,
       status: insertThread.status ?? "active",

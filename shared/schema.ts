@@ -171,6 +171,7 @@ export const threads = pgTable("threads", {
   showId: integer("show_id"),
   albumId: text("album_id"),
   albumName: text("album_name"),
+  albumArt: text("album_art"),
   artistName: text("artist_name"),
   starRating: integer("star_rating"), // 1-5, for live_show_review only
   reviewImageUrl: text("review_image_url"), // base64 data URL, required for live_show_review
@@ -194,6 +195,7 @@ export const insertThreadSchema = createInsertSchema(threads).pick({
   showId: true,
   albumId: true,
   albumName: true,
+  albumArt: true,
   artistName: true,
   starRating: true,
   reviewImageUrl: true,

@@ -16,10 +16,12 @@ import { formatRelativeTime } from "@/lib/utils";
 interface AlbumStats {
   albumId: string;
   albumName: string | null;
+  albumArt: string | null;
   artistName: string | null;
   reviewCount: number;
   avgRating: number | null;
   firstReviewerUsername: string | null;
+  reviews: Thread[];
 }
 
 function StarDisplay({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
@@ -127,14 +129,8 @@ export default function AlbumDetail() {
     enabled: !!albumId,
   });
 
-  const { data: reviews, isLoading: reviewsLoading } = useQuery<Thread[]>({
-    queryKey: ["/api/threads", { albumId, type: "album_review" }],
-    queryFn: async () => {
-      const res = await fetch(`/api/threads?albumId=${albumId}&type=album_review`);
-      return res.json();
-    },
-    enabled: !!albumId,
-  });
+  const reviews = album?.reviews ?? [];
+  const reviewsLoading = albumLoading;
 
   if (albumLoading) {
     return (
@@ -181,8 +177,11 @@ export default function AlbumDetail() {
 
         <div className="bg-[#181818] rounded-xl p-4 mb-4">
           <div className="flex items-start gap-3">
-            <div className="w-14 h-14 rounded-xl bg-[#1a0d2e] border border-[#b388eb]/30 flex items-center justify-center flex-shrink-0">
-              <Disc3 className="h-6 w-6 text-[#b388eb]" />
+            <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-[#1a0d2e] border border-[#b388eb]/30">
+              {album.albumArt
+                ? <img src={album.albumArt} alt={album.albumName ?? "Album"} className="w-full h-full object-cover" />
+                : <div className="w-full h-full flex items-center justify-center"><Disc3 className="h-6 w-6 text-[#b388eb]" /></div>
+              }
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold text-white leading-tight mb-0.5">
