@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
-import { Song, Artist, Thread } from "@shared/schema";
+import { Song, Thread } from "@shared/schema";
 import FollowArtistButton from "@/components/FollowArtistButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, Music2, MessageCircle, Bookmark, Smile, ExternalLink, CreditCard, Play } from "lucide-react";
@@ -31,11 +31,6 @@ export default function SongDetail() {
   const { data: song, isLoading } = useQuery<Song>({
     queryKey: [`/api/songs/${songId}`],
     enabled: !isNaN(songId),
-  });
-
-  const { data: artist } = useQuery<Artist>({
-    queryKey: [`/api/artists/name/${song?.artist}`],
-    enabled: !!song?.artist,
   });
 
   const { data: threads } = useQuery<Thread[]>({

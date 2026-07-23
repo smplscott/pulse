@@ -1,6 +1,6 @@
 import { UserPlus, UserCheck } from "lucide-react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
 import type { Artist } from "@shared/schema";
 
@@ -9,10 +9,13 @@ interface Props {
   className?: string;
 }
 
+const FOLLOWED_KEY = ["/api/users/me/followed-artists"];
+
 export default function FollowArtistButton({ artistName, className = "" }: Props) {
   const { user } = useAuth();
+  const qc = useQueryClient();
 
-  const { data: artist } = useQuery<Artist>({
+  const { data: artist } = useQuery<Artist | null>({
     queryKey: ["/api/artists/name", artistName],
     queryFn: () =>
       fetch(`/api/artists/name/${encodeURIComponent(artistName)}`).then((r) => {
@@ -25,7 +28,7 @@ export default function FollowArtistButton({ artistName, className = "" }: Props
   });
 
   const { data: followed } = useQuery<Artist[]>({
-    queryKey: ["/api/users/me/followed-artists"],
+    queryKey: FOLLOWED_KEY,
     enabled: !!user,
   });
 
@@ -33,12 +36,38 @@ export default function FollowArtistButton({ artistName, className = "" }: Props
 
   const followMutation = useMutation({
     mutationFn: () => apiRequest("POST", `/api/users/me/followed-artists/${artist!.id}`, {}),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/users/me/followed-artists"] }),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: FOLLOWED_KEY });
+      const prev = qc.getQueryData<Artist[]>(FOLLOWED_KEY);
+      qc.setQueryData<Artist[]>(FOLLOWED_KEY, (old) =>
+        artist && old ? [...old, artist] : (old ?? [])
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      qc.setQueryData(FOLLOWED_KEY, ctx?.prev);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: FOLLOWED_KEY });
+    },
   });
 
   const unfollowMutation = useMutation({
     mutationFn: () => apiRequest("DELETE", `/api/users/me/followed-artists/${artist!.id}`, {}),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/users/me/followed-artists"] }),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: FOLLOWED_KEY });
+      const prev = qc.getQueryData<Artist[]>(FOLLOWED_KEY);
+      qc.setQueryData<Artist[]>(FOLLOWED_KEY, (old) =>
+        old ? old.filter((a) => a.id !== artist!.id) : []
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      qc.setQueryData(FOLLOWED_KEY, ctx?.prev);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: FOLLOWED_KEY });
+    },
   });
 
   if (!user || !artist) return null;
