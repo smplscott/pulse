@@ -1077,6 +1077,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/places/:id/reviews/:reviewId", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const placeId = parseInt(req.params.id);
+    const reviewId = parseInt(req.params.reviewId);
+    if (isNaN(placeId) || isNaN(reviewId)) return res.status(400).json({ message: "Invalid ID" });
+    const reviews = await storage.getPlaceReviews(placeId);
+    const review = reviews.find(r => r.id === reviewId);
+    if (!review) return res.status(404).json({ message: "Review not found" });
+    if (review.userId !== userId) return res.status(403).json({ message: "Not your review" });
+    await storage.deletePlaceReview(reviewId);
+    return res.status(204).end();
+  });
+
   app.get("/api/places/:id/comments", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid place ID" });
@@ -1348,6 +1362,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       return res.status(500).json({ message: "Failed to create review" });
     }
+  });
+
+  app.delete("/api/shows/:id/reviews/:reviewId", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const showId = parseInt(req.params.id);
+    const reviewId = parseInt(req.params.reviewId);
+    if (isNaN(showId) || isNaN(reviewId)) return res.status(400).json({ message: "Invalid ID" });
+    const review = await storage.getUserShowReview(userId, showId);
+    if (!review || review.id !== reviewId) return res.status(404).json({ message: "Review not found" });
+    await storage.deleteShowReview(reviewId);
+    return res.status(204).end();
   });
 
   app.get("/api/shows/:id/comments", async (req: Request, res: Response) => {

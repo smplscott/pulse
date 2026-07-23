@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
   ChevronLeft, Ticket, MapPin, Calendar, Star,
-  ThumbsUp, MessageCircle, Send, CheckCircle, LogIn,
+  ThumbsUp, MessageCircle, Send, CheckCircle, LogIn, Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Show, ShowReview, ShowComment } from "@shared/schema";
@@ -167,6 +167,28 @@ export default function ShowDetail() {
         title: "Review posted",
         description: "You earned the \"I Was There\" badge!",
       });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: async (reviewId: number) => {
+      const res = await apiRequest("DELETE", `/api/shows/${showId}/reviews/${reviewId}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to delete review");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/shows", showId, "reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shows", showId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shows"] });
+      if (user?.username) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
+      }
+      toast({ title: "Review deleted" });
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -363,9 +385,25 @@ export default function ShowDetail() {
                     )}
                   </div>
                 ) : (
-                  <div className="bg-[#181818] rounded-xl p-3 mb-4 flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-[#c2f970] flex-shrink-0" />
-                    <p className="text-xs text-[#B3B3B3]">You've reviewed this show</p>
+                  <div className="bg-[#181818] rounded-xl p-4 mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-[#c2f970] flex-shrink-0" />
+                        <span className="text-xs text-[#B3B3B3]">Your review</span>
+                      </div>
+                      <button
+                        onClick={() => deleteReviewMutation.mutate(userReview.id)}
+                        disabled={deleteReviewMutation.isPending}
+                        className="text-[#555] hover:text-red-400 transition-colors disabled:opacity-40"
+                        title="Delete review"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <StarRating value={userReview.rating} readonly size="sm" />
+                    {userReview.content && (
+                      <p className="text-sm text-[#B3B3B3] mt-2 leading-relaxed">{userReview.content}</p>
+                    )}
                   </div>
                 )}
 

@@ -146,6 +146,7 @@ export interface IStorage {
   updatePlace(id: number, updates: Partial<Place>): Promise<Place | undefined>;
   getPlaceReviews(placeId: number): Promise<PlaceReview[]>;
   createPlaceReview(review: InsertPlaceReview): Promise<PlaceReview>;
+  deletePlaceReview(id: number): Promise<void>;
   getPlaceComments(placeId: number): Promise<PlaceComment[]>;
   createPlaceComment(comment: InsertPlaceComment): Promise<PlaceComment>;
 
@@ -166,6 +167,7 @@ export interface IStorage {
   getShowReviews(showId: number): Promise<ShowReview[]>;
   getUserShowReview(userId: number, showId: number): Promise<ShowReview | undefined>;
   createShowReview(review: InsertShowReview): Promise<ShowReview>;
+  deleteShowReview(id: number): Promise<void>;
   getShowComments(showId: number): Promise<ShowComment[]>;
   createShowComment(comment: InsertShowComment): Promise<ShowComment>;
   upvoteShowComment(id: number): Promise<ShowComment | undefined>;
@@ -1565,6 +1567,22 @@ export class MemStorage implements IStorage {
     return review;
   }
 
+  async deletePlaceReview(id: number): Promise<void> {
+    const review = this.placeReviewsMap.get(id);
+    this.placeReviewsMap.delete(id);
+    if (review) {
+      const allReviews = Array.from(this.placeReviewsMap.values())
+        .filter(r => r.placeId === review.placeId);
+      const place = this.placesMap.get(review.placeId);
+      if (place) {
+        const avg = allReviews.length
+          ? Math.round(allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length)
+          : 0;
+        this.placesMap.set(place.id, { ...place, rating: avg, reviewsCount: allReviews.length });
+      }
+    }
+  }
+
   async getPlaceComments(placeId: number): Promise<PlaceComment[]> {
     return Array.from(this.placeCommentsMap.values())
       .filter(c => c.placeId === placeId)
@@ -1648,6 +1666,10 @@ export class MemStorage implements IStorage {
     };
     this.showReviewsMap.set(id, review);
     return review;
+  }
+
+  async deleteShowReview(id: number): Promise<void> {
+    this.showReviewsMap.delete(id);
   }
 
   async getShowComments(showId: number): Promise<ShowComment[]> {

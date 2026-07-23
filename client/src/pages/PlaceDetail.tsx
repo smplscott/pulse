@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, MapPin, Star, ExternalLink, PenLine } from "lucide-react";
+import { ChevronLeft, MapPin, Star, ExternalLink, PenLine, Trash2 } from "lucide-react";
 import SaveToListButton from "@/components/SaveToListButton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -109,6 +109,23 @@ export default function PlaceDetail() {
     },
     onError: (err: any) => {
       toast({ title: "Failed to post review", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: async (reviewId: number) =>
+      apiRequest("DELETE", `/api/places/${placeId}/reviews/${reviewId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}/reviews`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      if (user?.username) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
+      }
+      toast({ title: "Review deleted" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to delete review", description: err.message, variant: "destructive" });
     },
   });
 
@@ -228,7 +245,19 @@ export default function PlaceDetail() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs font-medium text-[#c2f970] truncate">{review.username}</span>
-                          <span className="text-[10px] text-[#555] flex-shrink-0">{timeAgo(review.createdAt)}</span>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-[10px] text-[#555]">{timeAgo(review.createdAt)}</span>
+                            {user && review.username === user.username && (
+                              <button
+                                onClick={() => deleteReviewMutation.mutate(review.id)}
+                                disabled={deleteReviewMutation.isPending}
+                                className="text-[#555] hover:text-red-400 transition-colors disabled:opacity-40"
+                                title="Delete review"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <StarDisplay rating={review.rating} />
                       </div>
