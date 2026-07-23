@@ -7,6 +7,7 @@ import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { Thread } from "@shared/schema";
+import FollowArtistButton from "@/components/FollowArtistButton";
 
 interface SpotifyAlbumDetail {
   spotifyId: string;
@@ -53,7 +54,7 @@ export default function AlbumPage() {
         {albumLoading ? (
           <AlbumHeroSkeleton />
         ) : album ? (
-          <AlbumHero album={album} onArtistClick={() => navigate(`/artist/${album.artistSpotifyId}`)} />
+          <AlbumHero album={album} onArtistClick={() => navigate("/artists")} />
         ) : (
           <div className="py-16 text-center text-[#666]">Album not found.</div>
         )}
@@ -116,12 +117,15 @@ function AlbumHero({ album, onArtistClick }: { album: SpotifyAlbumDetail; onArti
       <div className="flex-1 min-w-0 pb-1">
         <p className="text-xs text-[#666] uppercase tracking-wider mb-1 capitalize">{album.albumType}</p>
         <h1 className="text-xl font-bold text-white leading-tight">{album.name}</h1>
-        <button
-          onClick={onArtistClick}
-          className="text-sm text-[#B3B3B3] hover:text-[#c2f970] transition-colors mt-1"
-        >
-          {album.artistName}
-        </button>
+        <div className="flex items-center gap-1.5 mt-1">
+          <button
+            onClick={onArtistClick}
+            className="text-sm text-[#B3B3B3] hover:text-[#c2f970] transition-colors"
+          >
+            {album.artistName}
+          </button>
+          <FollowArtistButton artistName={album.artistName} />
+        </div>
         <div className="flex items-center gap-3 mt-1.5 text-xs text-[#555]">
           {album.releaseYear && <span>{album.releaseYear}</span>}
           {album.totalTracks > 0 && <span>{album.totalTracks} tracks</span>}

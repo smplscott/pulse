@@ -23,7 +23,6 @@ import PlaceDetail from "@/pages/PlaceDetail";
 // import SetDetail from "@/pages/SetDetail"; // Sets hidden from nav — re-enable when ready
 import CommunityAchievements from "@/pages/CommunityAchievements";
 import Messages from "@/pages/Messages";
-import ArtistDetail from "@/pages/ArtistDetail";
 import SongDetail from "@/pages/SongDetail";
 import ThreadDetail from "@/pages/ThreadDetail";
 import VenueDetail from "@/pages/VenueDetail";
@@ -78,7 +77,7 @@ function Router() {
       <Route path="/places" component={() => <ProtectedRoute component={Places} />} />
       <Route path="/places/:id" component={() => <ProtectedRoute component={PlaceDetail} />} />
       {/* <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} /> */}
-      <Route path="/artist/:id" component={() => <ProtectedRoute component={ArtistDetail} />} />
+      <Route path="/artist/:id" component={() => <Redirect to="/artists" />} />
       <Route path="/album/:spotifyId" component={() => <ProtectedRoute component={AlbumPage} />} />
       <Route path="/song/:id" component={() => <ProtectedRoute component={SongDetail} />} />
       <Route path="/thread/:id" component={() => <ProtectedRoute component={ThreadDetail} />} />

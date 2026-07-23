@@ -190,7 +190,7 @@ export default function Artists() {
                 const isFollowing = followedIds.has(artist.id);
                 return (
                   <div key={artist.id} className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg hover:bg-[#282828] transition-colors">
-                    <Link href={`/artist/${artist.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-[#282828]">
                         {artist.profilePicture ? (
                           <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover" />
@@ -210,7 +210,7 @@ export default function Artists() {
                           {(artist.genres as string[] || []).slice(0, 2).join(", ") || "Artist"}
                         </p>
                       </div>
-                    </Link>
+                    </div>
                     <button
                       onClick={() => isFollowing ? unfollowMutation.mutate(artist.id) : followMutation.mutate(artist.id)}
                       className={cn(

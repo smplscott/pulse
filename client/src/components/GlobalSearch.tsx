@@ -156,7 +156,7 @@ export default function GlobalSearch() {
                 {filteredArtists.map(a => (
                   <ResultRow
                     key={a.spotifyId}
-                    onClick={() => goTo(`/artist/${a.spotifyId}`)}
+                    onClick={() => goTo("/artists")}
                     avatar={a.imageUrl ? <img src={a.imageUrl} alt={a.name} className="w-full h-full object-cover" /> : <User className="h-5 w-5 text-[#666]" />}
                     avatarClass="rounded-full"
                     title={a.name}

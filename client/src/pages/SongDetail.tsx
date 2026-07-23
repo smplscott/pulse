@@ -4,6 +4,7 @@ import { useParams, Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Song, Artist, Thread } from "@shared/schema";
+import FollowArtistButton from "@/components/FollowArtistButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, Music2, MessageCircle, Bookmark, Smile, ExternalLink, CreditCard, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -108,13 +109,10 @@ export default function SongDetail() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold truncate">{song.title}</h1>
-            {artist ? (
-              <Link href={`/artist/${artist.id}`}>
-                <p className="text-sm text-[#b388eb] hover:underline truncate">{song.artist}</p>
-              </Link>
-            ) : (
+            <div className="flex items-center gap-1.5 mt-0.5">
               <p className="text-sm text-[#B3B3B3] truncate">{song.artist}</p>
-            )}
+              <FollowArtistButton artistName={song.artist} />
+            </div>
             <p className="text-xs text-[#B3B3B3] truncate mt-0.5">
               {song.albumName ? song.albumName : "Single"}
             </p>
