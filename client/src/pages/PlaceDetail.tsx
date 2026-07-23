@@ -98,6 +98,9 @@ export default function PlaceDetail() {
       queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}/reviews`] });
       queryClient.invalidateQueries({ queryKey: [`/api/places/${placeId}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      if (user?.username) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
+      }
       setReviewOpen(false);
       setReviewRating(0);
       setReviewBody("");
