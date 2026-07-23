@@ -134,7 +134,7 @@ export default function Threads() {
                     <Badge className={`${
                       thread.type === "music" ? "green-gradient" : 
                       thread.type === "community" ? "pink-gradient" : 
-                      "bg-[#5271ff]"
+                      "bg-[#282828]"
                     } text-white`}>
                       {thread.type.charAt(0).toUpperCase() + thread.type.slice(1)}
                     </Badge>
@@ -195,7 +195,7 @@ export default function Threads() {
                     <Badge className={`${
                       thread.type === "music" ? "green-gradient" : 
                       thread.type === "community" ? "pink-gradient" : 
-                      "bg-[#5271ff]"
+                      "bg-[#282828]"
                     } text-white`}>
                       {thread.type.charAt(0).toUpperCase() + thread.type.slice(1)}
                     </Badge>

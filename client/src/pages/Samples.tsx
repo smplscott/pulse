@@ -219,7 +219,7 @@ export default function Samples() {
               placeholder="Share your knowledge about this sample..."
               className="flex-1 bg-[#1a1a1a] border-[#333] text-white placeholder-gray-400 rounded-full"
             />
-            <Button size="icon" className="bg-[#5271ff] hover:bg-[#4a63e8] rounded-full">
+            <Button size="icon" className="green-gradient rounded-full">
               <Send className="h-4 w-4" />
             </Button>
           </div>

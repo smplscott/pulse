@@ -49,15 +49,15 @@ function ShowCard({
       className="w-full text-left bg-[#181818] rounded-xl p-4 hover:bg-[#1e1e1e] transition-colors"
     >
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-lg bg-[#0e1a3d] border border-[#5271ff]/20 flex items-center justify-center flex-shrink-0">
-          <Ticket className="h-5 w-5 text-[#5271ff]" />
+        <div className="w-12 h-12 rounded-lg bg-[#1a0d2e] border border-[#b388eb]/20 flex items-center justify-center flex-shrink-0">
+          <Ticket className="h-5 w-5 text-[#b388eb]" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className="font-semibold text-white truncate">{show.artistName}</p>
             <div className="flex gap-1 flex-shrink-0">
               {!isLocal && (
-                <span className="text-[10px] bg-[#1a1a3a] text-[#5271ff] px-2 py-0.5 rounded-full">
+                <span className="text-[10px] bg-[#1a0d2e] text-[#b388eb] px-2 py-0.5 rounded-full">
                   Setlist.fm
                 </span>
               )}

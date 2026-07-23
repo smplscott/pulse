@@ -121,7 +121,7 @@ export default function Artists() {
           <h1 className="text-2xl font-bold">Artists</h1>
           <button
             onClick={() => setShowAdd(true)}
-            className="w-9 h-9 rounded-full bg-[#5271ff] flex items-center justify-center hover:bg-[#4a63e8] transition"
+            className="w-9 h-9 rounded-full green-gradient flex items-center justify-center hover:opacity-90 transition"
           >
             <Plus className="h-5 w-5 text-white" />
           </button>
@@ -133,7 +133,7 @@ export default function Artists() {
             onClick={() => setTab("following")}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition",
-              tab === "following" ? "bg-[#5271ff] text-white" : "text-[#B3B3B3] hover:text-white"
+              tab === "following" ? "pink-gradient text-white" : "text-[#B3B3B3] hover:text-white"
             )}
           >
             <UserCheck className="h-3.5 w-3.5" />
@@ -143,7 +143,7 @@ export default function Artists() {
             onClick={() => setTab("discover")}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition",
-              tab === "discover" ? "bg-[#5271ff] text-white" : "text-[#B3B3B3] hover:text-white"
+              tab === "discover" ? "pink-gradient text-white" : "text-[#B3B3B3] hover:text-white"
             )}
           >
             <Compass className="h-3.5 w-3.5" />
@@ -172,7 +172,7 @@ export default function Artists() {
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition",
                 selectedGenre === g
-                  ? "bg-[#5271ff] text-white"
+                  ? "pink-gradient text-white"
                   : "bg-[#1a1a1a] border border-[#333] text-[#B3B3B3] hover:text-white"
               )}
             >
@@ -203,7 +203,7 @@ export default function Artists() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <h3 className="font-semibold text-white truncate">{artist.name}</h3>
-                          {artist.verified && <CheckCircle className="h-3.5 w-3.5 text-[#5271ff] flex-shrink-0" />}
+                          {artist.verified && <CheckCircle className="h-3.5 w-3.5 text-[#b388eb] flex-shrink-0" />}
                         </div>
                         <p className="text-xs text-[#B3B3B3] truncate">
                           {artist.firstDiscoveredIn ? `${COUNTRY_EMOJIS[artist.firstDiscoveredIn] || "🌍"} ${artist.firstDiscoveredIn} · ` : ""}
@@ -217,7 +217,7 @@ export default function Artists() {
                         "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition",
                         isFollowing
                           ? "bg-[#2a2a2a] border border-[#444] text-[#B3B3B3] hover:border-red-500 hover:text-red-400"
-                          : "bg-[#5271ff] text-white hover:bg-[#4a63e8]"
+                          : "green-gradient text-black hover:opacity-90"
                       )}
                     >
                       {isFollowing ? "Following" : <span className="flex items-center gap-1"><UserPlus className="h-3 w-3" />Follow</span>}
@@ -236,7 +236,7 @@ export default function Artists() {
                     : "No artists yet"}
                 </p>
                 {tab === "following" && !searchQuery && (
-                  <button onClick={() => setTab("discover")} className="mt-3 text-[#5271ff] text-sm hover:underline">
+                  <button onClick={() => setTab("discover")} className="mt-3 text-[#b388eb] text-sm hover:underline">
                     Browse all artists
                   </button>
                 )}

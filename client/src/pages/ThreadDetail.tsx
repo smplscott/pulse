@@ -231,7 +231,7 @@ export default function ThreadDetail() {
              isSongThread ? "Song Thread" :
              isSongRequest ? "What's This Song" : "Thread"}
           </h1>
-          <button className="text-[#5271ff]">
+          <button className="text-[#b388eb]">
             <MoreHorizontal className="h-5 w-5" />
           </button>
         </div>

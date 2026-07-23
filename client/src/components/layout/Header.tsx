@@ -42,7 +42,7 @@ export default function Header() {
             <button className="text-[#B3B3B3] hover:text-white relative">
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 flex items-center justify-center bg-[#5271ff] text-white text-[9px] font-bold rounded-full px-0.5 leading-none">
+                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 flex items-center justify-center bg-[#c2f970] text-black text-[9px] font-bold rounded-full px-0.5 leading-none">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}

@@ -75,7 +75,7 @@ export default function SongDetail() {
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-[#B3B3B3] mb-4">Song not found</p>
-          <Link href="/songs"><button className="text-[#5271ff] hover:underline">← Back to Songs</button></Link>
+          <Link href="/songs"><button className="text-[#b388eb] hover:underline">← Back to Songs</button></Link>
         </div>
       </div>
     );
@@ -110,7 +110,7 @@ export default function SongDetail() {
             <h1 className="text-xl font-bold truncate">{song.title}</h1>
             {artist ? (
               <Link href={`/artist/${artist.id}`}>
-                <p className="text-sm text-[#5271ff] hover:underline truncate">{song.artist}</p>
+                <p className="text-sm text-[#b388eb] hover:underline truncate">{song.artist}</p>
               </Link>
             ) : (
               <p className="text-sm text-[#B3B3B3] truncate">{song.artist}</p>
@@ -122,7 +122,7 @@ export default function SongDetail() {
               {song.genre && (
                 <span className="text-xs bg-[#282828] text-[#B3B3B3] px-2 py-0.5 rounded-full">{song.genre}</span>
               )}
-              <span className="text-xs bg-[#5271ff]/20 text-[#5271ff] px-2 py-0.5 rounded-full font-medium">Song</span>
+              <span className="text-xs bg-[#b388eb]/20 text-[#b388eb] px-2 py-0.5 rounded-full font-medium">Song</span>
             </div>
           </div>
         </div>
@@ -195,7 +195,7 @@ export default function SongDetail() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold">Discussion</h2>
             <Link href="/threads">
-              <button className="text-xs text-[#5271ff] hover:underline">See all</button>
+              <button className="text-xs text-[#b388eb] hover:underline">See all</button>
             </Link>
           </div>
           {songThreads && songThreads.length > 0 ? (
@@ -217,7 +217,7 @@ export default function SongDetail() {
               <MessageCircle className="h-8 w-8 text-[#333] mx-auto mb-2" />
               <p className="text-sm text-[#666]">No discussions yet for this song.</p>
               <Link href="/create-thread">
-                <button className="mt-2 text-xs text-[#5271ff] hover:underline">Start a thread</button>
+                <button className="mt-2 text-xs text-[#b388eb] hover:underline">Start a thread</button>
               </Link>
             </div>
           )}

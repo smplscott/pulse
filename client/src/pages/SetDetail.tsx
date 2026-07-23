@@ -196,7 +196,7 @@ export default function SetDetail() {
               <h1 className="text-xl font-bold">{set.title}</h1>
               <Badge className="bg-[#4ade80] text-black text-xs font-semibold px-2 py-0.5 hover:bg-[#4ade80]">SET</Badge>
               {set.verified && (
-                <Badge className="bg-[#5271ff] text-white text-xs font-semibold px-2 py-0.5">VERIFIED</Badge>
+                <Badge className="bg-[#b388eb] text-white text-xs font-semibold px-2 py-0.5">VERIFIED</Badge>
               )}
             </div>
             <p className="text-sm text-[#B3B3B3]">
@@ -223,7 +223,7 @@ export default function SetDetail() {
             <h2 className="text-lg font-semibold">Track IDs</h2>
             <button
               onClick={() => setShowSubmitForm(prev => !prev)}
-              className="flex items-center gap-1 text-sm text-[#5271ff] hover:text-white transition"
+              className="flex items-center gap-1 text-sm text-[#b388eb] hover:text-white transition"
             >
               <Plus className="h-4 w-4" />
               Submit a track
@@ -249,7 +249,7 @@ export default function SetDetail() {
                 <Button
                   onClick={() => submitMutation.mutate()}
                   disabled={!newTitle.trim() || !newArtist.trim() || submitMutation.isPending}
-                  className="flex-1 bg-[#5271ff] hover:bg-[#4a63e8] text-white"
+                  className="flex-1 green-gradient text-black"
                 >
                   {submitMutation.isPending ? "Submitting..." : "Submit"}
                 </Button>
@@ -294,7 +294,7 @@ export default function SetDetail() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Discussion</h2>
             <Link href="/threads">
-              <button className="text-xs text-[#5271ff] hover:underline">See all</button>
+              <button className="text-xs text-[#b388eb] hover:underline">See all</button>
             </Link>
           </div>
           {setThreads && setThreads.length > 0 ? (
@@ -316,7 +316,7 @@ export default function SetDetail() {
               <MessageCircle className="h-8 w-8 text-[#333] mx-auto mb-2" />
               <p className="text-sm text-[#666]">No discussions yet for this set.</p>
               <Link href="/create-thread">
-                <button className="mt-2 text-xs text-[#5271ff] hover:underline">Start a thread</button>
+                <button className="mt-2 text-xs text-[#b388eb] hover:underline">Start a thread</button>
               </Link>
             </div>
           )}

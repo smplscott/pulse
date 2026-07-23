@@ -540,8 +540,8 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                     label: "Album Review",
                     desc: "Deep-dive on an album or project",
                     Icon: Disc3,
-                    color: "text-blue-400",
-                    bg: "bg-blue-500/10 border-blue-500/30 hover:border-blue-500/60",
+                    color: "text-[#b388eb]",
+                    bg: "bg-[#b388eb]/10 border-[#b388eb]/30 hover:border-[#b388eb]/60",
                   },
                 ].map(t => (
                   <button
@@ -639,7 +639,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                     setShowManualForm(true);
                     setManualShow(m => ({ ...m, artistName: artistDisplayName }));
                   }}
-                  className="flex items-center gap-2 text-sm text-[#5271ff] font-medium hover:text-[#7090ff] transition-colors"
+                  className="flex items-center gap-2 text-sm text-[#b388eb] font-medium hover:text-[#c9a0f0] transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                   Can't find it? Add manually
@@ -679,7 +679,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                       selectShow({ artistName: artistDisplayName, ...manualShow });
                     }}
                     disabled={!manualShow.venueName || !manualShow.city || !manualShow.country || !manualShow.eventDate}
-                    className="w-full py-2 rounded-lg bg-[#5271ff] text-white text-sm font-semibold disabled:opacity-40 hover:bg-[#4060ee] transition-colors"
+                    className="w-full py-2 rounded-lg green-gradient text-black text-sm font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
                   >
                     Use this show
                   </button>
@@ -756,7 +756,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 {selectedType && (
                   <span className={cn("text-xs px-2.5 py-1 rounded-full font-medium", {
                     "bg-orange-500/15 text-orange-400": selectedType === "live_show_review",
-                    "bg-blue-500/15 text-blue-400": selectedType === "album_review",
+                    "bg-[#b388eb]/15 text-[#b388eb]": selectedType === "album_review",
                     "bg-purple-500/15 text-purple-400": selectedType === "topic",
                   })}>
                     {selectedType === "live_show_review" ? "Live Show Review"
@@ -828,7 +828,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                   threadMutation.mutate(vals);
                 })}
                 disabled={threadMutation.isPending}
-                className="w-full py-3 rounded-full bg-[#5271ff] text-white font-bold text-sm disabled:opacity-40 hover:bg-[#4060ee] transition-colors"
+                className="w-full py-3 rounded-full green-gradient text-black font-bold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
               >
                 {threadMutation.isPending ? "Posting…" : "Post Thread"}
               </button>

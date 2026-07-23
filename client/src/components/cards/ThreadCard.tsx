@@ -16,9 +16,9 @@ const THREAD_TYPE_LABELS: Record<string, string> = {
 
 const THREAD_TYPE_COLORS: Record<string, string> = {
   new_music: "bg-[#c2f970]/20 text-[#c2f970]",
-  listening_now: "bg-blue-500/20 text-blue-400",
+  listening_now: "bg-[#b388eb]/20 text-[#b388eb]",
   live_show_review: "bg-orange-500/20 text-orange-400",
-  album_review: "bg-blue-500/20 text-blue-400",
+  album_review: "bg-[#b388eb]/20 text-[#b388eb]",
   topic: "bg-purple-500/20 text-purple-400",
 };
 

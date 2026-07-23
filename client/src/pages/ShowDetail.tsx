@@ -245,8 +245,8 @@ export default function ShowDetail() {
 
         <div className="bg-[#181818] rounded-xl p-4 mb-4">
           <div className="flex items-start gap-3">
-            <div className="w-14 h-14 rounded-xl bg-[#0e1a3d] border border-[#5271ff]/30 flex items-center justify-center flex-shrink-0">
-              <Ticket className="h-6 w-6 text-[#5271ff]" />
+            <div className="w-14 h-14 rounded-xl bg-[#1a0d2e] border border-[#b388eb]/30 flex items-center justify-center flex-shrink-0">
+              <Ticket className="h-6 w-6 text-[#b388eb]" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 flex-wrap">
@@ -315,9 +315,9 @@ export default function ShowDetail() {
 
                 {!user ? (
                   <div className="bg-[#181818] rounded-xl p-4 mb-4 flex items-center gap-3">
-                    <LogIn className="h-4 w-4 text-[#5271ff] flex-shrink-0" />
+                    <LogIn className="h-4 w-4 text-[#b388eb] flex-shrink-0" />
                     <p className="text-sm text-[#B3B3B3]">
-                      <Link href="/login" className="text-[#5271ff] hover:underline font-medium">Log in</Link>{" "}
+                      <Link href="/login" className="text-[#b388eb] hover:underline font-medium">Log in</Link>{" "}
                       to leave a review
                     </p>
                   </div>
@@ -339,7 +339,7 @@ export default function ShowDetail() {
                       <button
                         onClick={() => reviewMutation.mutate()}
                         disabled={!rating || reviewText.trim().length < 10 || reviewMutation.isPending}
-                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#5271ff] text-white text-xs font-semibold disabled:opacity-40 hover:bg-[#4060ee] transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full green-gradient text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
                       >
                         <Send className="h-3 w-3" />
                         {reviewMutation.isPending ? "Posting..." : "Post Review"}
@@ -393,9 +393,9 @@ export default function ShowDetail() {
           <div>
             {!user ? (
               <div className="bg-[#181818] rounded-xl p-4 mb-4 flex items-center gap-3">
-                <LogIn className="h-4 w-4 text-[#5271ff] flex-shrink-0" />
+                <LogIn className="h-4 w-4 text-[#b388eb] flex-shrink-0" />
                 <p className="text-sm text-[#B3B3B3]">
-                  <Link href="/login" className="text-[#5271ff] hover:underline font-medium">Log in</Link>{" "}
+                  <Link href="/login" className="text-[#b388eb] hover:underline font-medium">Log in</Link>{" "}
                   to join the discussion
                 </p>
               </div>

@@ -61,7 +61,7 @@ export default function Library() {
               
               <Link href="/library?section=recent">
                 <div className="bg-[#181818] rounded-lg p-4 flex items-center space-x-3 cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5271ff] to-[#f88379] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#b388eb] to-[#ff6fd8] flex items-center justify-center">
                     <Clock className="h-5 w-5 text-white" />
                   </div>
                   <div>

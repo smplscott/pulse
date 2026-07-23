@@ -513,7 +513,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
                   setShowManualForm(true);
                   setManualShow(m => ({ ...m, artistName: artistDisplayName }));
                 }}
-                className="flex items-center gap-2 text-sm text-[#5271ff] font-medium hover:text-[#7090ff] transition-colors"
+                className="flex items-center gap-2 text-sm text-[#b388eb] font-medium hover:text-[#c9a0f0] transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Can't find it? Add manually
@@ -553,7 +553,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
                     selectShow({ artistName: artistDisplayName, ...manualShow });
                   }}
                   disabled={!manualShow.venueName || !manualShow.city || !manualShow.country || !manualShow.eventDate}
-                  className="w-full py-1.5 rounded-lg bg-[#5271ff] text-white text-xs font-semibold disabled:opacity-40 hover:bg-[#4060ee] transition-colors"
+                  className="w-full py-1.5 rounded-lg green-gradient text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
                 >
                   Use this show
                 </button>
@@ -634,7 +634,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
                 </span>
               )}
               {selectedType === "album_review" && (
-                <span className="text-xs font-medium px-2 py-1 rounded-full border bg-blue-500/10 border-blue-500/30 text-blue-400 flex items-center gap-1">
+                <span className="text-xs font-medium px-2 py-1 rounded-full border bg-[#b388eb]/10 border-[#b388eb]/30 text-[#b388eb] flex items-center gap-1">
                   <Disc3 className="h-3 w-3" /> Album Review
                 </span>
               )}

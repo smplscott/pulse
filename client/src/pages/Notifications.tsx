@@ -54,7 +54,7 @@ export default function Notifications() {
             </Link>
             <h1 className="text-xl font-bold">Notifications</h1>
             {unreadCount > 0 && (
-              <span className="text-xs bg-[#5271ff] text-white rounded-full px-2 py-0.5 font-semibold">
+              <span className="text-xs bg-[#c2f970] text-black rounded-full px-2 py-0.5 font-semibold">
                 {unreadCount}
               </span>
             )}
@@ -63,7 +63,7 @@ export default function Notifications() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-[#5271ff] hover:text-[#5271ff] hover:bg-[#5271ff]/10 text-xs"
+              className="text-[#b388eb] hover:text-[#b388eb] hover:bg-[#b388eb]/10 text-xs"
               onClick={() => markAllRead.mutate()}
               disabled={markAllRead.isPending}
             >
@@ -92,14 +92,14 @@ export default function Notifications() {
                 <div
                   onClick={() => !n.read && markRead.mutate(n.id)}
                   className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition ${
-                    n.read ? "bg-[#181818] hover:bg-[#1e1e1e]" : "bg-[#1a1e2e] hover:bg-[#1e2236] border border-[#5271ff]/20"
+                    n.read ? "bg-[#181818] hover:bg-[#1e1e1e]" : "bg-[#180e24] hover:bg-[#1e1230] border border-[#b388eb]/20"
                   }`}
                 >
                   <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    n.type === "comment" ? "bg-[#5271ff]/20" : "bg-emerald-500/20"
+                    n.type === "comment" ? "bg-[#b388eb]/20" : "bg-emerald-500/20"
                   }`}>
                     {n.type === "comment"
-                      ? <MessageCircle className="h-4 w-4 text-[#5271ff]" />
+                      ? <MessageCircle className="h-4 w-4 text-[#b388eb]" />
                       : <Bookmark className="h-4 w-4 text-emerald-400" />
                     }
                   </div>
@@ -112,7 +112,7 @@ export default function Notifications() {
                     <p className="text-xs text-[#666] mt-0.5">{timeAgo(n.createdAt)}</p>
                   </div>
                   {!n.read && (
-                    <div className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full bg-[#5271ff]" />
+                    <div className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full bg-[#c2f970]" />
                   )}
                 </div>
               </Link>

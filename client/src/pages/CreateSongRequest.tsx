@@ -121,7 +121,7 @@ export default function CreateSongRequest() {
           </div>
         </Link>
         
-        <div className="bg-gradient-to-r from-[#5271ff]/20 to-[#3E3E3E]/20 rounded-lg p-4 mb-6">
+        <div className="bg-gradient-to-r from-[#b388eb]/20 to-[#3E3E3E]/20 rounded-lg p-4 mb-6">
           <h1 className="text-xl font-bold mb-2">Create Song Identification Request</h1>
           <p className="text-sm text-[#B3B3B3]">
             Need help identifying a song? Provide as many details as possible and our community 

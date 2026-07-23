@@ -34,7 +34,7 @@ type PublicUser = {
 type ShowReviewWithShow = ShowReview & { show: Show };
 
 const TASTE_COLORS: Record<string, string> = {
-  "Electronic": "bg-[#5271ff]/20 text-[#5271ff]",
+  "Electronic": "bg-[#b388eb]/20 text-[#b388eb]",
   "Rock": "bg-rose-500/20 text-rose-400",
   "Pop": "bg-pink-500/20 text-pink-400",
   "R&B": "bg-purple-500/20 text-purple-400",
@@ -59,7 +59,7 @@ function tasteColor(genre: string): string {
 
 function IWasThereTag() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#5271ff]/15 text-[#5271ff] border border-[#5271ff]/30 uppercase tracking-wide">
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#c2f970]/15 text-[#c2f970] border border-[#c2f970]/30 uppercase tracking-wide">
       <Mic className="h-2.5 w-2.5" />
       I was there
     </span>
@@ -122,7 +122,7 @@ function EditProfileDialog({ user, onUpdated }: { user: PublicUser; onUpdated: (
           <div className="flex gap-2 pt-1">
             <Button variant="outline" className="flex-1 border-[#333] text-[#B3B3B3] hover:bg-[#222]" onClick={() => setOpen(false)}>Cancel</Button>
             <Button
-              className="flex-1 bg-[#5271ff] hover:bg-[#3f5be0] text-white"
+              className="flex-1 green-gradient text-black"
               onClick={() => mutation.mutate({ displayName: displayName || undefined, bio: bio || undefined, city: city || null })}
               disabled={mutation.isPending}
             >
@@ -247,8 +247,8 @@ export default function Profile() {
     }`;
 
   const subTabClass = (active: boolean) =>
-    `px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
-      active ? "pink-gradient text-white" : "text-[#888] hover:text-white"
+    `py-2 text-xs font-medium rounded-lg text-center transition-all w-full ${
+      active ? "pink-gradient text-white" : "text-[#888] hover:text-white bg-[#1a1a1a]"
     }`;
 
   return (
@@ -270,7 +270,8 @@ export default function Profile() {
           <div className="px-4 pt-5">
             {/* Avatar + name row */}
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-20 h-20 rounded-full bg-[#282828] overflow-hidden flex-shrink-0 border-2 border-[#5271ff]">
+              <div className="p-[2px] rounded-full bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] flex-shrink-0">
+              <div className="w-20 h-20 rounded-full bg-[#282828] overflow-hidden">
                 {profileUser.profilePicture ? (
                   <img src={profileUser.profilePicture} alt={profileUser.username} className="w-full h-full object-cover" />
                 ) : (
@@ -280,6 +281,7 @@ export default function Profile() {
                     </span>
                   </div>
                 )}
+              </div>
               </div>
               <div className="flex-1 min-w-0 pt-1">
                 <div className="flex items-center gap-2">
@@ -347,7 +349,7 @@ export default function Profile() {
             {/* ── THREADS SECTION ── */}
             {activeSection === "threads" && (
               <div>
-                <div className="flex gap-2 mb-4">
+                <div className="grid grid-cols-2 gap-1 mb-4">
                   <button className={subTabClass(threadTab === "started")} onClick={() => setThreadTab("started")}>
                     <span className="flex items-center gap-1.5">
                       <Plus className="h-3 w-3" />
@@ -381,7 +383,7 @@ export default function Profile() {
                         <p className="text-sm text-[#B3B3B3]">No threads started yet</p>
                         {isOwnProfile && (
                           <Link href="/create-thread">
-                            <button className="mt-3 text-xs text-[#5271ff] hover:underline">Create your first thread</button>
+                            <button className="mt-3 text-xs text-[#b388eb] hover:underline">Create your first thread</button>
                           </Link>
                         )}
                       </div>
@@ -401,7 +403,7 @@ export default function Profile() {
                         <p className="text-sm text-[#B3B3B3]">No thread activity yet</p>
                         {isOwnProfile && (
                           <Link href="/threads">
-                            <button className="mt-3 text-xs text-[#5271ff] hover:underline">Browse threads</button>
+                            <button className="mt-3 text-xs text-[#b388eb] hover:underline">Browse threads</button>
                           </Link>
                         )}
                       </div>
@@ -414,7 +416,7 @@ export default function Profile() {
             {/* ── PLACES SECTION ── */}
             {activeSection === "places" && (
               <div>
-                <div className="flex gap-2 mb-4">
+                <div className="grid grid-cols-2 gap-1 mb-4">
                   <button className={subTabClass(placesTab === "been")} onClick={() => setPlacesTab("been")}>
                     <span className="flex items-center gap-1.5">
                       <MapPin className="h-3 w-3" />
@@ -464,7 +466,7 @@ export default function Profile() {
                         <p className="text-sm text-[#B3B3B3]">No places added yet</p>
                         {isOwnProfile && (
                           <Link href="/places">
-                            <button className="mt-3 text-xs text-[#5271ff] hover:underline">Add a place</button>
+                            <button className="mt-3 text-xs text-[#b388eb] hover:underline">Add a place</button>
                           </Link>
                         )}
                       </div>
@@ -533,7 +535,7 @@ export default function Profile() {
             {/* ── SHOWS SECTION ── */}
             {activeSection === "shows" && (
               <div>
-                <div className="flex gap-2 mb-4">
+                <div className="grid grid-cols-2 gap-1 mb-4">
                   <button className={subTabClass(showsTab === "attended")} onClick={() => setShowsTab("attended")}>
                     <span className="flex items-center gap-1.5">
                       <Mic className="h-3 w-3" />
@@ -577,7 +579,7 @@ export default function Profile() {
                         <p className="text-sm text-[#B3B3B3]">No shows reviewed yet</p>
                         {isOwnProfile && (
                           <Link href="/shows">
-                            <button className="mt-3 text-xs text-[#5271ff] hover:underline">Browse shows</button>
+                            <button className="mt-3 text-xs text-[#b388eb] hover:underline">Browse shows</button>
                           </Link>
                         )}
                       </div>

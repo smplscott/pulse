@@ -364,7 +364,7 @@ function ThreadTypeBadge({ type }: { type: string }) {
     topic: "Topic", new_music: "New Music", listening_now: "Listening Now",
   };
   const colors: Record<string, string> = {
-    live_show_review: "bg-blue-900/40 text-blue-300",
+    live_show_review: "bg-[#b388eb]/20 text-[#b388eb]",
     album_review: "bg-purple-900/40 text-purple-300",
     topic: "bg-[#1A1A1A] text-[#888]",
     new_music: "bg-green-900/40 text-green-300",

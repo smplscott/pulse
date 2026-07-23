@@ -85,7 +85,7 @@ export default function Sets() {
             <h1 className="text-2xl font-bold">Sets</h1>
             <button
               onClick={() => setShowCreate(true)}
-              className="w-9 h-9 rounded-full bg-[#5271ff] flex items-center justify-center hover:bg-[#4a63e8] transition"
+              className="w-9 h-9 rounded-full green-gradient flex items-center justify-center hover:opacity-90 transition"
             >
               <Plus className="h-5 w-5 text-white" />
             </button>
@@ -112,7 +112,7 @@ export default function Sets() {
                 className={cn(
                   "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition",
                   selectedGenre === g
-                    ? "bg-[#5271ff] text-white"
+                    ? "pink-gradient text-white"
                     : "bg-[#1a1a1a] border border-[#333] text-[#B3B3B3] hover:text-white"
                 )}
               >
@@ -158,7 +158,7 @@ export default function Sets() {
                                 {set.city && ` · ${set.city}${set.country ? `, ${set.country}` : ""}`}
                               </p>
                             </div>
-                            <Badge variant="secondary" className="bg-[#5271ff]/20 text-[#5271ff] text-xs px-2 py-0.5 flex-shrink-0">
+                            <Badge variant="secondary" className="bg-[#b388eb]/20 text-[#b388eb] text-xs px-2 py-0.5 flex-shrink-0">
                               SET
                             </Badge>
                           </div>
@@ -277,7 +277,7 @@ export default function Sets() {
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                className="w-full bg-[#5271ff] hover:bg-[#4a63e8] text-white"
+                className="w-full green-gradient text-black"
               >
                 {createMutation.isPending ? "Creating..." : "Create Set"}
               </Button>

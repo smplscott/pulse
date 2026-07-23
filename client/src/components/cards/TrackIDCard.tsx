@@ -35,7 +35,7 @@ export default function TrackIDCard({ set, className }: TrackIDCardProps) {
           <div className="flex justify-between items-center mt-1">
             <p className="text-xs text-[#B3B3B3]">by {set.curator}</p>
             <button
-              className="flex items-center text-xs text-[#5271ff]"
+              className="flex items-center text-xs text-[#b388eb]"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

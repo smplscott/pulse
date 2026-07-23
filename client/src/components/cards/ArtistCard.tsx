@@ -44,7 +44,7 @@ export default function ArtistCard({ artist, className }: ArtistCardProps) {
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center text-sm">
-              <Music2Icon className="h-3 w-3 mr-1 text-[#5271ff]" />
+              <Music2Icon className="h-3 w-3 mr-1 text-[#b388eb]" />
               <span>{Math.floor(Math.random() * 50) + 10} tracks</span>
             </div>
             {/* Grey icon CTAs matching row objects */}
