@@ -16,8 +16,15 @@ import ThreadCard from "@/components/cards/ThreadCard";
 import { useAuth } from "@/context/AuthContext";
 import { Thread, Place, Show, ShowReview, UserTravelPlan, UserShowWishlistItem } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+
+interface SpotifyArtist {
+  spotifyId: string;
+  name: string;
+  imageUrl: string | null;
+  genres: string[];
+}
 
 type PublicUser = {
   id: number;
@@ -153,6 +160,9 @@ export default function Profile() {
   const [tpCountry, setTpCountry] = useState("");
   const [tpDate, setTpDate] = useState("");
   const [wlArtist, setWlArtist] = useState("");
+  const [wlArtistQuery, setWlArtistQuery] = useState("");
+  const [wlShowDropdown, setWlShowDropdown] = useState(false);
+  const wlSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: profileUser, isLoading: isLoadingUser } = useQuery<PublicUser>({
     queryKey: [`/api/users/username/${resolvedUsername}`],
@@ -192,6 +202,32 @@ export default function Profile() {
   });
 
   const genres = (profileUser?.favoriteGenres as string[] | undefined) ?? [];
+
+  const { data: wlSpotifyData, isFetching: wlSpotifySearching } = useQuery<{
+    results: SpotifyArtist[]; error?: string;
+  }>({
+    queryKey: ["/api/spotify/artists/search", wlArtistQuery],
+    queryFn: async () => {
+      const res = await fetch(`/api/spotify/artists/search?q=${encodeURIComponent(wlArtistQuery)}`);
+      return res.json();
+    },
+    enabled: wlArtistQuery.length >= 2,
+  });
+
+  const wlArtistResults = wlSpotifyData?.results ?? [];
+
+  function handleWlArtistInput(val: string) {
+    setWlArtist(val);
+    setWlShowDropdown(true);
+    if (wlSearchTimeout.current) clearTimeout(wlSearchTimeout.current);
+    wlSearchTimeout.current = setTimeout(() => setWlArtistQuery(val.trim()), 400);
+  }
+
+  function selectWlArtist(artist: SpotifyArtist) {
+    setWlArtist(artist.name);
+    setWlArtistQuery("");
+    setWlShowDropdown(false);
+  }
 
   const handleProfileUpdated = async () => {
     await queryClient.invalidateQueries({ queryKey: [`/api/users/username/${resolvedUsername}`] });
@@ -593,17 +629,64 @@ export default function Profile() {
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
                         <p className="text-xs text-[#888] font-medium mb-3">Artists you want to see live</p>
                         <div className="flex gap-2">
-                          <Input
-                            placeholder="Artist name"
-                            value={wlArtist}
-                            onChange={e => setWlArtist(e.target.value)}
-                            onKeyDown={e => { if (e.key === "Enter" && wlArtist.trim()) addWishlist.mutate(); }}
-                            className="bg-[#111] border-[#333] text-white text-sm h-9 flex-1"
-                          />
+                          <div className="relative flex-1">
+                            <Input
+                              placeholder="Search artist name…"
+                              value={wlArtist}
+                              onChange={e => handleWlArtistInput(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === "Enter" && wlArtist.trim()) {
+                                  setWlShowDropdown(false);
+                                  addWishlist.mutate();
+                                }
+                                if (e.key === "Escape") setWlShowDropdown(false);
+                              }}
+                              onFocus={() => wlArtist.trim().length >= 2 && setWlShowDropdown(true)}
+                              className="bg-[#111] border-[#333] text-white text-sm h-9"
+                            />
+                            {wlShowDropdown && wlArtist.trim().length >= 2 && (
+                              <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-[#222] border border-[#333] rounded-lg overflow-hidden shadow-xl">
+                                {wlSpotifySearching && (
+                                  <div className="flex justify-center py-3">
+                                    <div className="w-4 h-4 border-2 border-[#c2f970] border-t-transparent rounded-full animate-spin" />
+                                  </div>
+                                )}
+                                {!wlSpotifySearching && wlArtistResults.length > 0 && (
+                                  <div className="max-h-52 overflow-y-auto">
+                                    {wlArtistResults.map(a => (
+                                      <button
+                                        key={a.spotifyId}
+                                        type="button"
+                                        onClick={() => selectWlArtist(a)}
+                                        className="w-full text-left flex items-center gap-3 px-3 py-2 hover:bg-[#2e2e2e] transition-colors"
+                                      >
+                                        {a.imageUrl ? (
+                                          <img src={a.imageUrl} alt={a.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                                        ) : (
+                                          <div className="w-8 h-8 rounded-full bg-[#333] flex items-center justify-center flex-shrink-0">
+                                            <Music2 className="h-3.5 w-3.5 text-[#888]" />
+                                          </div>
+                                        )}
+                                        <div className="min-w-0 flex-1">
+                                          <p className="text-sm font-medium text-white truncate">{a.name}</p>
+                                          {a.genres.length > 0 && (
+                                            <p className="text-xs text-[#666] truncate">{a.genres.slice(0, 2).join(", ")}</p>
+                                          )}
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                                {!wlSpotifySearching && wlArtistResults.length === 0 && wlArtistQuery.length >= 2 && (
+                                  <p className="text-xs text-[#666] px-3 py-2">No results — add as typed</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
                           <Button
                             size="sm"
                             className="green-gradient text-black font-semibold h-9 px-4 flex-shrink-0"
-                            onClick={() => addWishlist.mutate()}
+                            onClick={() => { setWlShowDropdown(false); addWishlist.mutate(); }}
                             disabled={!wlArtist.trim() || addWishlist.isPending}
                           >
                             Add
