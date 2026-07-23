@@ -35,7 +35,7 @@ export default function FollowArtistButton({ artistName, className = "" }: Props
 
   const isFollowing = !!artist && (followed ?? []).some((a) => a.id === artist.id);
 
-  const followMutation = useMutation({
+  const followById = useMutation({
     mutationFn: () => apiRequest("POST", `/api/users/me/followed-artists/${artist!.id}`, {}),
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: FOLLOWED_KEY });
@@ -50,6 +50,15 @@ export default function FollowArtistButton({ artistName, className = "" }: Props
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: FOLLOWED_KEY });
+    },
+  });
+
+  const followByName = useMutation({
+    mutationFn: () =>
+      apiRequest("POST", "/api/users/me/followed-artists/by-name", { artistName }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: FOLLOWED_KEY });
+      qc.invalidateQueries({ queryKey: ["/api/artists/name", artistName] });
     },
   });
 
@@ -71,24 +80,29 @@ export default function FollowArtistButton({ artistName, className = "" }: Props
     },
   });
 
-  if (!user || !artist) return null;
+  if (!user) return null;
 
-  const isPending = followMutation.isPending || unfollowMutation.isPending;
+  const isPending =
+    followById.isPending || followByName.isPending || unfollowMutation.isPending;
+
+  function handleClick(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isPending) return;
+    if (isFollowing) {
+      unfollowMutation.mutate();
+    } else if (artist) {
+      followById.mutate();
+    } else {
+      followByName.mutate();
+    }
+  }
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (isPending) return;
-            if (isFollowing) {
-              unfollowMutation.mutate();
-            } else {
-              followMutation.mutate();
-            }
-          }}
+          onClick={handleClick}
           className={`inline-flex items-center justify-center w-6 h-6 rounded-full transition-colors shrink-0 ${
             isFollowing
               ? "text-[#c2f970] hover:text-[#aad855]"

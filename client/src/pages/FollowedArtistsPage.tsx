@@ -1,20 +1,44 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, Music2, UserCheck } from "lucide-react";
+import { ChevronLeft, Music2, UserCheck, UserMinus } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { apiRequest } from "@/lib/queryClient";
 import type { Artist } from "@shared/schema";
-import FollowArtistButton from "@/components/FollowArtistButton";
+import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
+
+const FOLLOWED_KEY = ["/api/users/me/followed-artists"];
 
 export default function FollowedArtistsPage() {
   const { user } = useAuth();
+  const qc = useQueryClient();
 
   const { data: artists, isLoading } = useQuery<Artist[]>({
-    queryKey: [`/api/users/${user?.id}/followed-artists`],
-    enabled: !!user?.id,
+    queryKey: FOLLOWED_KEY,
+    enabled: !!user,
+  });
+
+  const unfollowMutation = useMutation({
+    mutationFn: (artistId: number) =>
+      apiRequest("DELETE", `/api/users/me/followed-artists/${artistId}`, {}),
+    onMutate: async (artistId: number) => {
+      await qc.cancelQueries({ queryKey: FOLLOWED_KEY });
+      const prev = qc.getQueryData<Artist[]>(FOLLOWED_KEY);
+      qc.setQueryData<Artist[]>(FOLLOWED_KEY, (old) =>
+        old ? old.filter((a) => a.id !== artistId) : []
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      qc.setQueryData(FOLLOWED_KEY, ctx?.prev);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: FOLLOWED_KEY });
+    },
   });
 
   return (
@@ -60,13 +84,29 @@ export default function FollowedArtistsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{artist.name}</p>
-                  {artist.genres && artist.genres.length > 0 && (
+                  {artist.genres && (artist.genres as string[]).length > 0 && (
                     <p className="text-xs text-[#666] truncate mt-0.5">
                       {(artist.genres as string[]).slice(0, 2).join(", ")}
                     </p>
                   )}
                 </div>
-                <FollowArtistButton artistName={artist.name} className="flex-shrink-0" />
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <SaveArtistWishlistButton artistName={artist.name} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => unfollowMutation.mutate(artist.id)}
+                        disabled={unfollowMutation.isPending}
+                        className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[#555] hover:text-red-400 transition-colors disabled:opacity-50"
+                      >
+                        <UserMinus className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      Unfollow
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
             ))}
           </div>

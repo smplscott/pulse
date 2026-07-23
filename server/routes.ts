@@ -903,6 +903,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(artists);
   });
 
+  app.post("/api/users/me/followed-artists/by-name", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const { artistName } = req.body;
+    if (!artistName || typeof artistName !== "string") {
+      return res.status(400).json({ message: "artistName is required" });
+    }
+    let artist = await storage.getArtistByName(artistName.trim());
+    if (!artist) {
+      artist = await storage.createArtist({ name: artistName.trim() });
+    }
+    await storage.followArtist(userId, artist.id);
+    return res.json({ success: true, artist });
+  });
+
   app.post("/api/users/me/followed-artists/:artistId", async (req: Request, res: Response) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
