@@ -302,7 +302,7 @@ function ArtistsFeed() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {threads.map(thread => (
         <ThreadCard key={thread.id} thread={thread} />
       ))}
