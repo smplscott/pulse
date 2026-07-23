@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   MessageSquare, Music2, MapPin, Edit, Mic,
   Plus, Plane, Star, Trash2, ChevronRight,
-  CalendarDays, Bookmark,
+  CalendarDays, Bookmark, MoreHorizontal, UserCheck, List,
 } from "lucide-react";
 import ThreadCard from "@/components/cards/ThreadCard";
 import { useAuth } from "@/context/AuthContext";
@@ -140,6 +140,39 @@ function EditProfileDialog({ user, onUpdated }: { user: PublicUser; onUpdated: (
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ProfileOverflowMenu() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="text-[#B3B3B3] hover:text-white flex-shrink-0 p-0.5"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full mt-1 z-50 bg-[#222] border border-[#333] rounded-xl overflow-hidden shadow-xl min-w-[180px]">
+            <Link href="/profile/artist-follows">
+              <button onClick={() => setOpen(false)} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-[#2e2e2e] transition-colors text-left">
+                <UserCheck className="h-4 w-4 text-[#c2f970]" />
+                Artists I Follow
+              </button>
+            </Link>
+            <Link href="/profile/saved-places">
+              <button onClick={() => setOpen(false)} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-[#2e2e2e] transition-colors text-left">
+                <List className="h-4 w-4 text-[#b388eb]" />
+                My Place Lists
+              </button>
+            </Link>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -336,6 +369,7 @@ export default function Profile() {
                   {isOwnProfile && profileUser && (
                     <EditProfileDialog user={profileUser} onUpdated={handleProfileUpdated} />
                   )}
+                  {isOwnProfile && <ProfileOverflowMenu />}
                 </div>
                 <p className="text-sm text-[#B3B3B3]">@{profileUser.username}</p>
                 {profileUser.city && (

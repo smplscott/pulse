@@ -563,6 +563,38 @@ export const insertUserShowWishlistSchema = createInsertSchema(userShowWishlist)
 export type UserShowWishlistItem = typeof userShowWishlist.$inferSelect;
 export type InsertUserShowWishlistItem = z.infer<typeof insertUserShowWishlistSchema>;
 
+// Place lists — user-curated collections of saved places
+export const placeLists = pgTable("place_lists", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPlaceListSchema = createInsertSchema(placeLists).pick({
+  userId: true,
+  name: true,
+});
+
+export const placeListItems = pgTable("place_list_items", {
+  id: serial("id").primaryKey(),
+  listId: integer("list_id").notNull(),
+  placeId: integer("place_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  listPlaceUnique: unique("place_list_items_list_place_unique").on(t.listId, t.placeId),
+}));
+
+export const insertPlaceListItemSchema = createInsertSchema(placeListItems).pick({
+  listId: true,
+  placeId: true,
+});
+
+export type PlaceList = typeof placeLists.$inferSelect;
+export type InsertPlaceList = z.infer<typeof insertPlaceListSchema>;
+export type PlaceListItem = typeof placeListItems.$inferSelect;
+export type InsertPlaceListItem = z.infer<typeof insertPlaceListItemSchema>;
+
 // ─── Zod response schemas ────────────────────────────────────────────────────
 // These schemas describe the exact runtime shape returned by GET endpoints
 // for the four core entities. Use them to validate API responses and catch

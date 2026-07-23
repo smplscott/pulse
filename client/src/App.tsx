@@ -34,6 +34,8 @@ import Notifications from "@/pages/Notifications";
 import AlbumPage from "@/pages/AlbumPage";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import FollowedArtistsPage from "@/pages/FollowedArtistsPage";
+import SavedPlacesPage from "@/pages/SavedPlacesPage";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ component: Component }: { component: ComponentType }) {
@@ -66,6 +68,8 @@ function Router() {
       <Route path="/venues" component={() => <Redirect to="/places" />} />
       <Route path="/library" component={() => <ProtectedRoute component={Library} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
+      <Route path="/profile/artist-follows" component={() => <ProtectedRoute component={FollowedArtistsPage} />} />
+      <Route path="/profile/saved-places" component={() => <ProtectedRoute component={SavedPlacesPage} />} />
       <Route path="/profile/:username" component={Profile} />
       <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
       <Route path="/achievements" component={() => <ProtectedRoute component={CommunityAchievements} />} />

@@ -1,0 +1,2 @@
+- [Place lists pattern](place-lists.md) — placeLists/placeListItems use MemStorage; SaveToListButton is a standalone dialog component that queries lists on open.
+- [Wouter route ordering](wouter-route-ordering.md) — /profile/artist-follows and /profile/saved-places must be registered BEFORE /profile/:username in App.tsx to avoid param capture.

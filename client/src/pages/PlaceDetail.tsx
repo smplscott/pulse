@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ChevronLeft, MapPin, Star, ExternalLink, PenLine } from "lucide-react";
+import SaveToListButton from "@/components/SaveToListButton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -177,7 +178,7 @@ export default function PlaceDetail() {
 
               <p className="text-sm text-[#B3B3B3] leading-relaxed">{place.description}</p>
 
-              <div className="flex items-center gap-3 mt-4">
+              <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={() => setReviewOpen(true)}
                   className="flex-1 bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold py-2.5 rounded-full text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
@@ -185,6 +186,7 @@ export default function PlaceDetail() {
                   <PenLine className="h-4 w-4" />
                   Review
                 </button>
+                <SaveToListButton placeId={placeId} placeName={place.name} />
                 {place.mapsLink && (
                   <a
                     href={place.mapsLink}

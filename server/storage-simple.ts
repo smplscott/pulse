@@ -21,6 +21,8 @@ import type {
   ShowComment, InsertShowComment,
   UserTravelPlan, InsertUserTravelPlan,
   UserShowWishlistItem, InsertUserShowWishlistItem,
+  PlaceList, InsertPlaceList,
+  PlaceListItem, InsertPlaceListItem,
 } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
@@ -147,6 +149,15 @@ export interface IStorage {
   getPlaceComments(placeId: number): Promise<PlaceComment[]>;
   createPlaceComment(comment: InsertPlaceComment): Promise<PlaceComment>;
 
+  // Place list operations
+  getPlaceLists(userId: number): Promise<PlaceList[]>;
+  createPlaceList(list: InsertPlaceList): Promise<PlaceList>;
+  deletePlaceList(id: number): Promise<void>;
+  getPlaceListItems(listId: number): Promise<(PlaceListItem & { place: Place })[]>;
+  addToPlaceList(item: InsertPlaceListItem): Promise<PlaceListItem>;
+  removeFromPlaceList(listId: number, placeId: number): Promise<void>;
+  isPlaceInAnyList(userId: number, placeId: number): Promise<{ saved: boolean; lists: PlaceList[] }>;
+
   // Show operations
   getShow(id: number): Promise<Show | undefined>;
   getShowBySetlistfmId(setlistfmId: string): Promise<Show | undefined>;
@@ -183,6 +194,8 @@ export class MemStorage implements IStorage {
   private showCommentsMap: Map<number, ShowComment> = new Map();
   private userTravelPlansMap: Map<number, UserTravelPlan> = new Map();
   private userShowWishlistMap: Map<number, UserShowWishlistItem> = new Map();
+  private placeListsMap: Map<number, PlaceList> = new Map();
+  private placeListItemsMap: Map<number, PlaceListItem> = new Map();
 
   private userCurrentId = 1;
   private artistCurrentId = 1;
@@ -204,6 +217,8 @@ export class MemStorage implements IStorage {
   private showCommentCurrentId = 1;
   private userTravelPlanCurrentId = 1;
   private userShowWishlistCurrentId = 1;
+  private placeListCurrentId = 1;
+  private placeListItemCurrentId = 1;
 
   constructor() {
     void this.seedData();
@@ -1736,6 +1751,73 @@ export class MemStorage implements IStorage {
         this.userShowWishlistMap.delete(id);
       }
     }
+  }
+
+  async getPlaceLists(userId: number): Promise<PlaceList[]> {
+    return Array.from(this.placeListsMap.values())
+      .filter(l => l.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async createPlaceList(list: InsertPlaceList): Promise<PlaceList> {
+    const id = this.placeListCurrentId++;
+    const entry: PlaceList = {
+      id,
+      userId: list.userId,
+      name: list.name,
+      createdAt: new Date(),
+    };
+    this.placeListsMap.set(id, entry);
+    return entry;
+  }
+
+  async deletePlaceList(id: number): Promise<void> {
+    this.placeListsMap.delete(id);
+    for (const [itemId, item] of this.placeListItemsMap.entries()) {
+      if (item.listId === id) this.placeListItemsMap.delete(itemId);
+    }
+  }
+
+  async getPlaceListItems(listId: number): Promise<(PlaceListItem & { place: Place })[]> {
+    const items = Array.from(this.placeListItemsMap.values()).filter(i => i.listId === listId);
+    const result: (PlaceListItem & { place: Place })[] = [];
+    for (const item of items) {
+      const place = this.placesMap.get(item.placeId);
+      if (place) result.push({ ...item, place });
+    }
+    return result.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async addToPlaceList(item: InsertPlaceListItem): Promise<PlaceListItem> {
+    for (const existing of this.placeListItemsMap.values()) {
+      if (existing.listId === item.listId && existing.placeId === item.placeId) return existing;
+    }
+    const id = this.placeListItemCurrentId++;
+    const entry: PlaceListItem = {
+      id,
+      listId: item.listId,
+      placeId: item.placeId,
+      createdAt: new Date(),
+    };
+    this.placeListItemsMap.set(id, entry);
+    return entry;
+  }
+
+  async removeFromPlaceList(listId: number, placeId: number): Promise<void> {
+    for (const [id, item] of this.placeListItemsMap.entries()) {
+      if (item.listId === listId && item.placeId === placeId) {
+        this.placeListItemsMap.delete(id);
+        return;
+      }
+    }
+  }
+
+  async isPlaceInAnyList(userId: number, placeId: number): Promise<{ saved: boolean; lists: PlaceList[] }> {
+    const userLists = await this.getPlaceLists(userId);
+    const savedLists = userLists.filter(list =>
+      Array.from(this.placeListItemsMap.values()).some(item => item.listId === list.id && item.placeId === placeId)
+    );
+    return { saved: savedLists.length > 0, lists: savedLists };
   }
 }
 

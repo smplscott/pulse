@@ -85,22 +85,22 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
           </Avatar>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1", typeColor)}>
+            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0", typeColor)}>
                 {TypeIcon && <TypeIcon className="h-3 w-3" />}
                 {typeLabel}
               </span>
               {linkedLabel && (
-                <span className="text-xs text-[#B3B3B3] flex items-center gap-1 truncate">
+                <span className="text-xs text-[#B3B3B3] flex items-center gap-1 min-w-0">
                   {linkedIcon}
-                  <span className="truncate">{linkedLabel}</span>
-                  {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && (artist?.name || thread.artistName) && (
-                    <>
-                      <FollowArtistButton artistName={artist?.name || thread.artistName!} />
-                      <SaveArtistWishlistButton artistName={artist?.name || thread.artistName!} />
-                    </>
-                  )}
+                  <span className="truncate max-w-[120px]">{linkedLabel}</span>
                 </span>
+              )}
+              {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && (artist?.name || thread.artistName) && (
+                <>
+                  <FollowArtistButton artistName={artist?.name || thread.artistName!} />
+                  <SaveArtistWishlistButton artistName={artist?.name || thread.artistName!} />
+                </>
               )}
             </div>
 
