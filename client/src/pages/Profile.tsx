@@ -171,22 +171,22 @@ export default function Profile() {
   });
 
   const { data: userPlaces, isLoading: isLoadingPlaces } = useQuery<Place[]>({
-    queryKey: ["/api/users", userId, "places"],
+    queryKey: [`/api/users/${userId}/places`],
     enabled: activeSection === "places" && !!userId,
   });
 
   const { data: travelPlans, isLoading: isLoadingPlans } = useQuery<UserTravelPlan[]>({
-    queryKey: ["/api/users", userId, "travel-plans"],
+    queryKey: [`/api/users/${userId}/travel-plans`],
     enabled: activeSection === "places" && !!userId,
   });
 
   const { data: showReviews, isLoading: isLoadingShowReviews } = useQuery<ShowReviewWithShow[]>({
-    queryKey: ["/api/users", userId, "show-reviews"],
+    queryKey: [`/api/users/${userId}/show-reviews`],
     enabled: activeSection === "shows" && !!userId,
   });
 
   const { data: showWishlist, isLoading: isLoadingWishlist } = useQuery<UserShowWishlistItem[]>({
-    queryKey: ["/api/users", userId, "show-wishlist"],
+    queryKey: [`/api/users/${userId}/show-wishlist`],
     enabled: activeSection === "shows" && !!userId,
   });
 
@@ -200,7 +200,7 @@ export default function Profile() {
   const addTravelPlan = useMutation({
     mutationFn: () => apiRequest("POST", `/api/users/${userId}/travel-plans`, { city: tpCity, country: tpCountry, targetDate: tpDate }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users", userId, "travel-plans"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
       setTpCity(""); setTpCountry(""); setTpDate("");
     },
     onError: () => toast({ title: "Failed to add plan", variant: "destructive" }),
@@ -208,14 +208,14 @@ export default function Profile() {
 
   const deleteTravelPlan = useMutation({
     mutationFn: (planId: number) => apiRequest("DELETE", `/api/users/${userId}/travel-plans/${planId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/users", userId, "travel-plans"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] }),
     onError: () => toast({ title: "Failed to remove plan", variant: "destructive" }),
   });
 
   const addWishlist = useMutation({
     mutationFn: () => apiRequest("POST", `/api/users/${userId}/show-wishlist`, { artistName: wlArtist }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users", userId, "show-wishlist"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/show-wishlist`] });
       setWlArtist("");
     },
     onError: () => toast({ title: "Failed to add to wishlist", variant: "destructive" }),
@@ -223,7 +223,7 @@ export default function Profile() {
 
   const removeWishlist = useMutation({
     mutationFn: (itemId: number) => apiRequest("DELETE", `/api/users/${userId}/show-wishlist/${itemId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/users", userId, "show-wishlist"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/show-wishlist`] }),
     onError: () => toast({ title: "Failed to remove from wishlist", variant: "destructive" }),
   });
 
