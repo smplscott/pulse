@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 interface Props {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
+  required?: boolean;
 }
 
 const MAX_BYTES = 5 * 1024 * 1024;

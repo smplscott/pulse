@@ -126,7 +126,7 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
                 <img
                   src={thread.reviewImageUrl}
                   alt="Review artwork"
-                  className="w-full max-h-40 rounded-lg object-cover border border-[#282828]"
+                  className="w-16 h-16 rounded-lg object-cover border border-[#282828]"
                 />
               </div>
             )}

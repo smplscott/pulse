@@ -833,13 +833,12 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                     toast({ title: "Rating required", description: "Please give a star rating.", variant: "destructive" });
                     return;
                   }
-                  if (selectedType === "live_show_review" && !reviewImage) {
-                    toast({ title: "Photo required", description: "Add a photo to verify you were there.", variant: "destructive" });
-                    return;
-                  }
                   threadMutation.mutate(vals);
                 })}
-                disabled={threadMutation.isPending}
+                disabled={
+                  threadMutation.isPending ||
+                  (selectedType === "live_show_review" && !reviewImage)
+                }
                 className="w-full py-3 rounded-full green-gradient text-black font-bold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
               >
                 {threadMutation.isPending ? "Posting…" : "Post Thread"}

@@ -356,6 +356,11 @@ export default function ShowDetail() {
                         {reviewMutation.isPending ? "Posting..." : "Post Review"}
                       </button>
                     </div>
+                    {!reviewImage && (
+                      <p className="text-xs text-[#555] mt-2 text-right">
+                        Add a photo to enable posting
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="bg-[#181818] rounded-xl p-3 mb-4 flex items-center gap-2">
