@@ -222,7 +222,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-type PlaceWithStats = Place & { firstReviewerUsername: string | null };
+type PlaceWithStats = Place & {
+  firstReviewerUsername: string | null;
+  reviewCount: number;
+  avgRating: number | null;
+};
 
 function PlaceCard({ place }: { place: PlaceWithStats }) {
   return (
@@ -241,10 +245,10 @@ function PlaceCard({ place }: { place: PlaceWithStats }) {
             </div>
             <p className="text-xs text-[#B3B3B3] mb-1.5">{place.city}, {place.country}</p>
             <div className="flex items-center gap-2">
-              {(place.rating ?? 0) > 0 && (
+              {place.avgRating !== null && place.avgRating > 0 && (
                 <div className="flex items-center gap-1">
-                  <StarRow rating={place.rating ?? 0} />
-                  <span className="text-[10px] text-[#B3B3B3]">{(place.rating ?? 0).toFixed(1)} ({place.reviewsCount ?? 0})</span>
+                  <StarRow rating={place.avgRating} />
+                  <span className="text-[10px] text-[#B3B3B3]">{place.avgRating.toFixed(1)} ({place.reviewCount})</span>
                 </div>
               )}
               <FirstReviewerChip username={place.firstReviewerUsername} />

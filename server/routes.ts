@@ -1035,10 +1035,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       firstReviewerUsername = u?.username ?? null;
     }
     const reviewsWithRating = reviews.filter(r => r.rating != null);
-    const averageRating = reviewsWithRating.length > 0
+    const avgRating = reviewsWithRating.length > 0
       ? Math.round((reviewsWithRating.reduce((s, r) => s + (r.rating ?? 0), 0) / reviewsWithRating.length) * 10) / 10
       : null;
-    return { ...place, firstReviewerUsername, reviewCount: reviews.length, averageRating };
+    return { ...place, firstReviewerUsername, reviewCount: reviews.length, avgRating };
   }
 
   app.get("/api/places", async (_req: Request, res: Response) => {
