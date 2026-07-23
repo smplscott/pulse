@@ -365,6 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const schema = z.object({
       profilePicture: z.string().url().nullable().optional(),
       spotifyId: z.string().nullable().optional(),
+      lastEnrichedAt: z.coerce.date().nullable().optional(),
     });
     try {
       const updates = schema.parse(req.body);

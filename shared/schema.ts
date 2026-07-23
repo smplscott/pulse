@@ -113,6 +113,8 @@ export const artists = pgTable("artists", {
   ranking: integer("ranking").default(0),
   genres: jsonb("genres").$type<string[]>().default(sql`'[]'::jsonb`),
   profilePicture: text("profile_picture"),
+  spotifyId: text("spotify_id"),
+  lastEnrichedAt: timestamp("last_enriched_at"),
   verified: boolean("verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -621,6 +623,8 @@ export const artistResponseSchema = z.object({
   ranking: z.number().nullable(),
   genres: z.array(z.string()).default([]),
   profilePicture: z.string().nullable(),
+  spotifyId: z.string().nullable(),
+  lastEnrichedAt: z.coerce.date().nullable(),
   verified: z.boolean().nullable(),
   createdAt: z.coerce.date().nullable(),
 });

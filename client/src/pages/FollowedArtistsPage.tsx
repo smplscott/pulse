@@ -24,14 +24,21 @@ export default function FollowedArtistsPage() {
     enabled: !!user,
   });
 
+  const STALE_DAYS = 7;
+
   useEffect(() => {
     if (!artists) return;
-    const missing = artists.filter(
-      (a) => !a.profilePicture && !enrichedIds.current.has(a.id)
-    );
-    if (missing.length === 0) return;
+    const now = Date.now();
+    const staleMs = STALE_DAYS * 24 * 60 * 60 * 1000;
+    const needsEnrich = artists.filter((a) => {
+      if (enrichedIds.current.has(a.id)) return false;
+      if (!a.profilePicture) return true;
+      const enrichedAt = a.lastEnrichedAt ? new Date(a.lastEnrichedAt).getTime() : 0;
+      return now - enrichedAt > staleMs;
+    });
+    if (needsEnrich.length === 0) return;
 
-    missing.forEach((artist) => {
+    needsEnrich.forEach((artist) => {
       enrichedIds.current.add(artist.id);
       fetch(`/api/spotify/artists/search?q=${encodeURIComponent(artist.name)}`)
         .then((r) => r.json())
@@ -45,6 +52,7 @@ export default function FollowedArtistsPage() {
           return apiRequest("PATCH", `/api/artists/${artist.id}`, {
             profilePicture: match.imageUrl,
             spotifyId: match.spotifyId.startsWith("local-") ? undefined : match.spotifyId,
+            lastEnrichedAt: new Date().toISOString(),
           });
         })
         .then((updated) => {

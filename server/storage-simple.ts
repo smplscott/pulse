@@ -571,6 +571,8 @@ export class MemStorage implements IStorage {
       ranking: 1,
       genres: ["Rock", "Psychedelic Rock", "Classic Rock"],
       profilePicture: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      spotifyId: "22WZ7M66p7UkEBnCXHBf0F",
+      lastEnrichedAt: null,
       verified: true,
       createdAt: new Date()
     };
@@ -586,6 +588,8 @@ export class MemStorage implements IStorage {
       ranking: 2,
       genres: ["Pop", "R&B", "Synth-pop"],
       profilePicture: "https://images.unsplash.com/photo-1571974599782-87624638275c?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      spotifyId: "1Xyo4u8uXC1ZmMpatF05PJ",
+      lastEnrichedAt: null,
       verified: true,
       createdAt: new Date()
     };
@@ -601,6 +605,8 @@ export class MemStorage implements IStorage {
       ranking: 3,
       genres: ["Electronic", "House", "Techno"],
       profilePicture: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300",
+      spotifyId: "73A3bLnfnz5LoQCtml5zrN",
+      lastEnrichedAt: null,
       verified: true,
       createdAt: new Date()
     };
@@ -1225,6 +1231,8 @@ export class MemStorage implements IStorage {
       ranking: 0,
       genres: insertArtist.genres || [],
       profilePicture: insertArtist.profilePicture || null,
+      spotifyId: null,
+      lastEnrichedAt: null,
       verified: insertArtist.verified || false,
     };
     this.artists.set(id, artist);
