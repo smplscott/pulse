@@ -156,7 +156,7 @@ function ProfileOverflowMenu() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 z-50 bg-[#222] border border-[#333] rounded-xl overflow-hidden shadow-xl min-w-[180px]">
+          <div className="absolute right-0 top-full mt-1 z-50 bg-[#222] border border-[#333] rounded-xl overflow-hidden shadow-xl min-w-[180px]">
             <Link href="/profile/artist-follows">
               <button onClick={() => setOpen(false)} className="w-full flex items-center gap-2.5 px-4 py-3 text-sm hover:bg-[#2e2e2e] transition-colors text-left">
                 <UserCheck className="h-4 w-4 text-[#c2f970]" />
