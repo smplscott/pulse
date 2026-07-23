@@ -1,5 +1,6 @@
 import { Bookmark } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRef, useCallback, useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -29,6 +30,10 @@ export default function SaveArtistWishlistButton({ artistName, spotifyImageUrl, 
   const { user } = useAuth();
   const qc = useQueryClient();
 
+  const prefetchedImageUrl = useRef<string | null>(spotifyImageUrl ?? null);
+  const prefetchStarted = useRef(false);
+  const [isResolving, setIsResolving] = useState(false);
+
   const wishlistKey = user ? [`/api/users/${user.id}/show-wishlist`] : null;
 
   const { data: wishlist } = useQuery<UserShowWishlistItem[]>({
@@ -41,22 +46,32 @@ export default function SaveArtistWishlistButton({ artistName, spotifyImageUrl, 
   );
   const isSaved = !!savedItem;
 
-  const addMutation = useMutation({
-    mutationFn: async () => {
-      const imageUrl = spotifyImageUrl ?? (await fetchArtistImageUrl(artistName));
-      return apiRequest("POST", `/api/users/${user!.id}/show-wishlist`, {
+  const prefetchImage = useCallback(() => {
+    if (spotifyImageUrl) {
+      prefetchedImageUrl.current = spotifyImageUrl;
+      return;
+    }
+    if (prefetchStarted.current) return;
+    prefetchStarted.current = true;
+    fetchArtistImageUrl(artistName).then((url) => {
+      if (url) prefetchedImageUrl.current = url;
+    });
+  }, [artistName, spotifyImageUrl]);
+
+  const addMutation = useMutation<unknown, Error, string | null>({
+    mutationFn: (imageUrl) =>
+      apiRequest("POST", `/api/users/${user!.id}/show-wishlist`, {
         artistName,
         ...(imageUrl ? { spotifyImageUrl: imageUrl } : {}),
-      });
-    },
-    onMutate: async () => {
+      }),
+    onMutate: async (imageUrl) => {
       await qc.cancelQueries({ queryKey: wishlistKey! });
       const prev = qc.getQueryData<UserShowWishlistItem[]>(wishlistKey!);
       const optimistic: UserShowWishlistItem = {
         id: -1,
         userId: user!.id,
         artistName,
-        spotifyImageUrl: spotifyImageUrl ?? null,
+        spotifyImageUrl: imageUrl,
         createdAt: new Date(),
       };
       qc.setQueryData<UserShowWishlistItem[]>(wishlistKey!, (old) => [
@@ -66,7 +81,7 @@ export default function SaveArtistWishlistButton({ artistName, spotifyImageUrl, 
       return { prev };
     },
     onError: (_err, _vars, ctx) => {
-      qc.setQueryData(wishlistKey!, ctx?.prev);
+      qc.setQueryData(wishlistKey!, (ctx as { prev: UserShowWishlistItem[] } | undefined)?.prev);
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: wishlistKey! });
@@ -94,20 +109,29 @@ export default function SaveArtistWishlistButton({ artistName, spotifyImageUrl, 
 
   if (!user) return null;
 
-  const isPending = addMutation.isPending || removeMutation.isPending;
+  const isPending = isResolving || addMutation.isPending || removeMutation.isPending;
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
-          onClick={(e) => {
+          onMouseEnter={prefetchImage}
+          onFocus={prefetchImage}
+          onClick={async (e) => {
             e.preventDefault();
             e.stopPropagation();
             if (isPending) return;
             if (isSaved) {
               removeMutation.mutate();
             } else {
-              addMutation.mutate();
+              let imageUrl = prefetchedImageUrl.current;
+              if (!imageUrl) {
+                setIsResolving(true);
+                imageUrl = await fetchArtistImageUrl(artistName);
+                if (imageUrl) prefetchedImageUrl.current = imageUrl;
+                setIsResolving(false);
+              }
+              addMutation.mutate(imageUrl);
             }
           }}
           className={`inline-flex items-center justify-center w-6 h-6 rounded-full transition-colors shrink-0 ${
