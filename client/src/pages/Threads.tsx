@@ -122,7 +122,7 @@ export default function Threads() {
               ))}
             </div>
           ) : featuredThreads && featuredThreads.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {featuredThreads.map((thread) => (
                 <div 
                   key={thread.id}
@@ -183,7 +183,7 @@ export default function Threads() {
         <div>
           <h2 className="text-white font-bold text-xl mb-4">Discussion Threads</h2>
           {!isLoadingThreads && remainingThreads && remainingThreads.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {remainingThreads.map((thread) => (
                 <div 
                   key={thread.id}
