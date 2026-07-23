@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { Thread } from "@shared/schema";
 import FollowArtistButton from "@/components/FollowArtistButton";
+import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
 
 interface SpotifyAlbumDetail {
   spotifyId: string;
@@ -125,6 +126,7 @@ function AlbumHero({ album, onArtistClick }: { album: SpotifyAlbumDetail; onArti
             {album.artistName}
           </button>
           <FollowArtistButton artistName={album.artistName} />
+          <SaveArtistWishlistButton artistName={album.artistName} />
         </div>
         <div className="flex items-center gap-3 mt-1.5 text-xs text-[#555]">
           {album.releaseYear && <span>{album.releaseYear}</span>}

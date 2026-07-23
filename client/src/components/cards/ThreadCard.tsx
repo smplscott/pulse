@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import FollowArtistButton from "@/components/FollowArtistButton";
+import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
 
 const THREAD_TYPE_LABELS: Record<string, string> = {
   new_music: "New Music",
@@ -94,7 +95,10 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
                   {linkedIcon}
                   <span className="truncate">{linkedLabel}</span>
                   {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && (artist?.name || thread.artistName) && (
-                    <FollowArtistButton artistName={artist?.name || thread.artistName!} />
+                    <>
+                      <FollowArtistButton artistName={artist?.name || thread.artistName!} />
+                      <SaveArtistWishlistButton artistName={artist?.name || thread.artistName!} />
+                    </>
                   )}
                 </span>
               )}
