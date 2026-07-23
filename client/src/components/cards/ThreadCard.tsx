@@ -70,8 +70,15 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
     ? <Music2Icon className="h-3 w-3 flex-shrink-0" />
     : <MicVocalIcon className="h-3 w-3 flex-shrink-0" />;
 
+  const threadHref =
+    thread.threadType === "live_show_review" && thread.showId
+      ? `/shows/${thread.showId}`
+      : thread.threadType === "album_review" && thread.albumId
+      ? `/album/${thread.albumId}`
+      : `/thread/${thread.id}`;
+
   return (
-    <Link href={`/thread/${thread.id}`}>
+    <Link href={threadHref}>
       <div className={cn("bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors", className)}>
         <div className="flex items-start gap-3">
           <Avatar className="w-9 h-9 rounded-full flex-shrink-0 mt-0.5">
