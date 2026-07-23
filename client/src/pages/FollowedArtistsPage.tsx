@@ -130,7 +130,7 @@ export default function FollowedArtistsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <SaveArtistWishlistButton artistName={artist.name} />
+                  <SaveArtistWishlistButton artistName={artist.name} spotifyImageUrl={artist.profilePicture ?? undefined} />
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button

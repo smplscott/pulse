@@ -1,6 +1,6 @@
 import { Bookmark } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -33,6 +33,12 @@ export default function SaveArtistWishlistButton({ artistName, spotifyImageUrl, 
   const prefetchedImageUrl = useRef<string | null>(spotifyImageUrl ?? null);
   const prefetchStarted = useRef(false);
   const [isResolving, setIsResolving] = useState(false);
+
+  useEffect(() => {
+    if (spotifyImageUrl) {
+      prefetchedImageUrl.current = spotifyImageUrl;
+    }
+  }, [spotifyImageUrl]);
 
   const wishlistKey = user ? [`/api/users/${user.id}/show-wishlist`] : null;
 
