@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import ReviewImageUpload from "@/components/ReviewImageUpload";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -138,6 +139,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   const [selectedShow, setSelectedShow] = useState<SetlistShow | null>(null);
   const [selectedAlbum, setSelectedAlbum] = useState<SpotifyAlbum | null>(null);
   const [starRating, setStarRating] = useState(0);
+  const [reviewImage, setReviewImage] = useState<string | null>(null);
   const [showManualForm, setShowManualForm] = useState(false);
   const [manualShow, setManualShow] = useState({
     artistName: "", venueName: "", city: "", country: "", eventDate: "",
@@ -172,7 +174,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       setArtistInput(""); setArtistQuery("");
       setSelectedArtist(null); setFreeformArtist(null);
       setSelectedType(null); setSelectedShow(null); setSelectedAlbum(null);
-      setStarRating(0); setShowManualForm(false);
+      setStarRating(0); setReviewImage(null); setShowManualForm(false);
       setManualShow({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
       setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0);
       threadForm.reset(); placeForm.reset();
@@ -272,6 +274,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
         albumId: selectedType === "album_review" ? (selectedAlbum?.spotifyId || null) : null,
         albumName: selectedType === "album_review" ? (selectedAlbum?.name || null) : null,
         artistName: artistDisplayName || null,
+        reviewImageUrl: selectedType === "live_show_review" ? (reviewImage || null) : null,
       });
       if (!res.ok) {
         const err = await res.json();
@@ -818,11 +821,20 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 )}
               </div>
 
+              {/* Review image — only for live show reviews */}
+              {selectedType === "live_show_review" && (
+                <ReviewImageUpload value={reviewImage} onChange={setReviewImage} />
+              )}
+
               <button
                 onClick={threadForm.handleSubmit(vals => {
                   if (!user) return;
                   if ((selectedType === "live_show_review" || selectedType === "album_review") && !starRating) {
                     toast({ title: "Rating required", description: "Please give a star rating.", variant: "destructive" });
+                    return;
+                  }
+                  if (selectedType === "live_show_review" && !reviewImage) {
+                    toast({ title: "Photo required", description: "Add a photo to verify you were there.", variant: "destructive" });
                     return;
                   }
                   threadMutation.mutate(vals);

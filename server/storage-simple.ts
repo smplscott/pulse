@@ -1201,6 +1201,7 @@ export class MemStorage implements IStorage {
       albumName: insertThread.albumName || null,
       artistName: insertThread.artistName || null,
       starRating: insertThread.starRating || null,
+      reviewImageUrl: insertThread.reviewImageUrl ?? null,
       status: insertThread.status || "active",
       upvotes: 0,
       savesCount: 0,
@@ -1642,6 +1643,7 @@ export class MemStorage implements IStorage {
       userId: insertReview.userId,
       rating: insertReview.rating,
       content: insertReview.content,
+      imageUrl: insertReview.imageUrl ?? null,
       createdAt: new Date(),
     };
     this.showReviewsMap.set(id, review);

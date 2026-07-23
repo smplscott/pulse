@@ -173,6 +173,7 @@ export const threads = pgTable("threads", {
   albumName: text("album_name"),
   artistName: text("artist_name"),
   starRating: integer("star_rating"), // 1-5, for live_show_review only
+  reviewImageUrl: text("review_image_url"), // base64 data URL, required for live_show_review
   status: text("status").default("active"),
   upvotes: integer("upvotes").default(0),
   savesCount: integer("saves_count").default(0),
@@ -195,6 +196,7 @@ export const insertThreadSchema = createInsertSchema(threads).pick({
   albumName: true,
   artistName: true,
   starRating: true,
+  reviewImageUrl: true,
   status: true,
 });
 
@@ -487,6 +489,7 @@ export const showReviews = pgTable("show_reviews", {
   userId: integer("user_id").notNull(),
   rating: integer("rating").notNull(),
   content: text("content").notNull(),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow(),
 }, (t) => ({
   userShowUnique: unique("show_reviews_user_show_unique").on(t.userId, t.showId),
@@ -497,6 +500,7 @@ export const insertShowReviewSchema = createInsertSchema(showReviews).pick({
   userId: true,
   rating: true,
   content: true,
+  imageUrl: true,
 });
 
 // Show comments — open discussion on each show

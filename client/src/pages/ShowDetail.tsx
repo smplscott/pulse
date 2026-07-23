@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { Show, ShowReview, ShowComment } from "@shared/schema";
 import FollowArtistButton from "@/components/FollowArtistButton";
 import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
+import ReviewImageUpload from "@/components/ReviewImageUpload";
 
 interface ShowWithStats extends Show {
   avgRating: number | null;
@@ -106,6 +107,7 @@ export default function ShowDetail() {
   const [activeTab, setActiveTab] = useState<"reviews" | "discussion">("reviews");
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [reviewImage, setReviewImage] = useState<string | null>(null);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -143,6 +145,7 @@ export default function ShowDetail() {
       const res = await apiRequest("POST", `/api/shows/${showId}/reviews`, {
         rating,
         content: reviewText,
+        imageUrl: reviewImage,
       });
       if (!res.ok) {
         const err = await res.json();
@@ -159,6 +162,7 @@ export default function ShowDetail() {
       }
       setRating(0);
       setReviewText("");
+      setReviewImage(null);
       toast({
         title: "Review posted",
         description: "You earned the \"I Was There\" badge!",
@@ -340,11 +344,12 @@ export default function ShowDetail() {
                       className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] resize-none min-h-[80px] text-sm mb-3"
                       maxLength={1000}
                     />
+                    <ReviewImageUpload value={reviewImage} onChange={setReviewImage} />
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-[#555]">{reviewText.length}/1000</span>
                       <button
                         onClick={() => reviewMutation.mutate()}
-                        disabled={!rating || reviewText.trim().length < 10 || reviewMutation.isPending}
+                        disabled={!rating || reviewText.trim().length < 10 || !reviewImage || reviewMutation.isPending}
                         className="flex items-center gap-1.5 px-4 py-1.5 rounded-full green-gradient text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
                       >
                         <Send className="h-3 w-3" />
@@ -383,7 +388,16 @@ export default function ShowDetail() {
                                 })}
                               </span>
                             </div>
-                            <p className="text-sm text-[#B3B3B3] leading-relaxed">{review.content}</p>
+                            <div className="flex items-start gap-3">
+                              {review.imageUrl && (
+                                <img
+                                  src={review.imageUrl}
+                                  alt="Review artwork"
+                                  className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-[#282828]"
+                                />
+                              )}
+                              <p className="text-sm text-[#B3B3B3] leading-relaxed">{review.content}</p>
+                            </div>
                           </div>
                         </div>
                       </div>

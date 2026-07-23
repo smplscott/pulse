@@ -121,6 +121,16 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
               </div>
             )}
 
+            {thread.threadType === "live_show_review" && thread.reviewImageUrl && (
+              <div className="mb-2">
+                <img
+                  src={thread.reviewImageUrl}
+                  alt="Review artwork"
+                  className="w-full max-h-40 rounded-lg object-cover border border-[#282828]"
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <MessageCircleIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />

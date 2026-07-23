@@ -553,6 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         albumId: z.string().optional().nullable(),
         albumName: z.string().optional().nullable(),
         artistName: z.string().optional().nullable(),
+        reviewImageUrl: z.string().optional().nullable(),
       });
       const threadData = schema.parse({ ...req.body, userId });
       const thread = await storage.createThread(threadData);
@@ -1310,6 +1311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schema = insertShowReviewSchema.extend({
         rating: z.number().int().min(1).max(5),
         content: z.string().min(10, "Review must be at least 10 characters").max(1000),
+        imageUrl: z.string().optional().nullable(),
       });
       const reviewData = schema.parse({ ...req.body, showId, userId });
       const review = await storage.createShowReview(reviewData);
