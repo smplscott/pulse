@@ -27,6 +27,7 @@ type PublicUser = {
   city?: string | null;
   profilePicture?: string | null;
   favoriteGenres?: string[];
+  threadsCount?: number;
   showReviewCount?: number;
   placesCount?: number;
 };
@@ -191,7 +192,6 @@ export default function Profile() {
   });
 
   const genres = (profileUser?.favoriteGenres as string[] | undefined) ?? [];
-  const activeThreadsCount = (startedThreads?.length ?? 0) + (engagedThreads?.length ?? 0);
 
   const handleProfileUpdated = async () => {
     await queryClient.invalidateQueries({ queryKey: [`/api/users/username/${resolvedUsername}`] });
@@ -323,7 +323,7 @@ export default function Profile() {
             {/* Stat tiles — clickable section switchers */}
             <div className="grid grid-cols-3 gap-2 mb-5">
               <button className={tileClass("threads")} onClick={() => setActiveSection("threads")}>
-                <p className="text-lg font-bold">{activeThreadsCount || "—"}</p>
+                <p className="text-lg font-bold">{profileUser.threadsCount ?? "—"}</p>
                 <p className="text-xs text-[#B3B3B3]">Active threads</p>
               </button>
               <button className={tileClass("places")} onClick={() => setActiveSection("places")}>

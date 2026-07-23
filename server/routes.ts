@@ -144,11 +144,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const user = await storage.getUserByUsername(req.params.username);
     if (!user) return res.status(404).json({ message: "User not found" });
     const { password, email, ...publicProfile } = user;
-    const [showReviewCount, placesCount] = await Promise.all([
+    const [threadsCount, showReviewCount, placesCount] = await Promise.all([
+      storage.getThreadsCountByUser(user.id),
       storage.getShowReviewCountByUser(user.id),
       storage.getPlacesCountByUser(user.id),
     ]);
-    return res.json({ ...publicProfile, showReviewCount, placesCount });
+    return res.json({ ...publicProfile, threadsCount, showReviewCount, placesCount });
   });
 
   app.get("/api/users/:id", async (req: Request, res: Response) => {

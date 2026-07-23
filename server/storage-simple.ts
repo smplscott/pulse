@@ -119,6 +119,7 @@ export interface IStorage {
   markAllNotificationsRead(userId: number): Promise<void>;
 
   // User IRL stat helpers
+  getThreadsCountByUser(userId: number): Promise<number>;
   getShowReviewCountByUser(userId: number): Promise<number>;
   getPlacesCountByUser(userId: number): Promise<number>;
   getPlacesByUser(userId: number): Promise<Place[]>;
@@ -958,6 +959,17 @@ export class MemStorage implements IStorage {
     const updated = { ...user, ...updates };
     this.users.set(id, updated);
     return updated;
+  }
+
+  async getThreadsCountByUser(userId: number): Promise<number> {
+    const authoredIds = new Set(
+      Array.from(this.threads.values()).filter(t => t.userId === userId).map(t => t.id)
+    );
+    const commentedIds = new Set(
+      Array.from(this.comments.values()).filter(c => c.userId === userId).map(c => c.threadId)
+    );
+    const allIds = new Set([...authoredIds, ...commentedIds]);
+    return allIds.size;
   }
 
   async getShowReviewCountByUser(userId: number): Promise<number> {

@@ -215,6 +215,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
       await queryClient.invalidateQueries({ queryKey: ["/api/threads"] });
       if (user) {
         await queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/threads/engaged`] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
       }
       toast({ title: "Thread created!", description: "Your thread has been posted." });
       handleClose();

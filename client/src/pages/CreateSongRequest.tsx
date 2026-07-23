@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
@@ -29,6 +30,7 @@ type FormData = z.infer<typeof formSchema>;
 export default function CreateSongRequest() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // Mock user ID - in a real app this would come from auth context
   const userId = 1;
@@ -54,6 +56,9 @@ export default function CreateSongRequest() {
     mutationFn: (data: FormData) => apiRequest("POST", "/api/threads", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/threads"] });
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: [`/api/users/username/${user.username}`] });
+      }
       toast({
         title: "Song Request Created",
         description: "Your request has been posted successfully"
