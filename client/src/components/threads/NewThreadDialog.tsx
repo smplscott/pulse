@@ -309,7 +309,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
 
   const typeCards = [
     { id: "live_show_review" as const, label: "Live Show Review", description: "Review a live performance or concert", icon: Ticket, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/30 hover:border-orange-500/60" },
-    { id: "album_review" as const, label: "Album Review", description: "Deep-dive on an album or project", icon: Disc3, color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/30 hover:border-blue-500/60" },
+    { id: "album_review" as const, label: "Album Review", description: "Deep-dive on an album or project", icon: Disc3, color: "text-[#b388eb]", bg: "bg-[#b388eb]/10 border-[#b388eb]/30 hover:border-[#b388eb]/60" },
     { id: "topic" as const, label: "Topic / General", description: "Open discussion — no linked release needed", icon: MessageSquare, color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/30 hover:border-purple-500/60" },
   ];
 
