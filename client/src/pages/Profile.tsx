@@ -283,8 +283,10 @@ export default function Profile() {
     }`;
 
   const subTabClass = (active: boolean) =>
-    `py-2 text-xs font-medium rounded-lg text-center transition-all w-full ${
-      active ? "pink-gradient text-white" : "text-[#888] hover:text-white bg-[#1a1a1a]"
+    `flex-1 py-2.5 text-xs font-medium text-center transition-all border-b-2 -mb-px ${
+      active
+        ? "text-[#c9a0f0] border-[#b388eb]"
+        : "text-[#555] hover:text-[#888] border-transparent"
     }`;
 
   return (
@@ -385,15 +387,15 @@ export default function Profile() {
             {/* ── THREADS SECTION ── */}
             {activeSection === "threads" && (
               <div>
-                <div className="grid grid-cols-2 gap-1 mb-4">
+                <div className="flex border-b border-[#2a2a2a] mb-4">
                   <button className={subTabClass(threadTab === "started")} onClick={() => setThreadTab("started")}>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <Plus className="h-3 w-3" />
                       Started
                     </span>
                   </button>
                   <button className={subTabClass(threadTab === "joined")} onClick={() => setThreadTab("joined")}>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <MessageSquare className="h-3 w-3" />
                       Joined
                     </span>
@@ -452,15 +454,15 @@ export default function Profile() {
             {/* ── PLACES SECTION ── */}
             {activeSection === "places" && (
               <div>
-                <div className="grid grid-cols-2 gap-1 mb-4">
+                <div className="flex border-b border-[#2a2a2a] mb-4">
                   <button className={subTabClass(placesTab === "been")} onClick={() => setPlacesTab("been")}>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <MapPin className="h-3 w-3" />
                       Where I've Been
                     </span>
                   </button>
                   <button className={subTabClass(placesTab === "going")} onClick={() => setPlacesTab("going")}>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <Plane className="h-3 w-3" />
                       Where I'm Going
                     </span>
@@ -571,15 +573,15 @@ export default function Profile() {
             {/* ── SHOWS SECTION ── */}
             {activeSection === "shows" && (
               <div>
-                <div className="grid grid-cols-2 gap-1 mb-4">
+                <div className="flex border-b border-[#2a2a2a] mb-4">
                   <button className={subTabClass(showsTab === "attended")} onClick={() => setShowsTab("attended")}>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <Mic className="h-3 w-3" />
                       Attended
                     </span>
                   </button>
                   <button className={subTabClass(showsTab === "wishlist")} onClick={() => setShowsTab("wishlist")}>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <Bookmark className="h-3 w-3" />
                       Future Wishlist
                     </span>
