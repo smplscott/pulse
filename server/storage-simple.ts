@@ -1718,6 +1718,7 @@ export class MemStorage implements IStorage {
       id,
       userId: item.userId,
       artistName: item.artistName,
+      spotifyImageUrl: item.spotifyImageUrl ?? null,
       createdAt: new Date(),
     };
     this.userShowWishlistMap.set(id, entry);

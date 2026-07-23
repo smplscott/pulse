@@ -549,12 +549,15 @@ export const userShowWishlist = pgTable("user_show_wishlist", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   artistName: text("artist_name").notNull(),
+  spotifyImageUrl: text("spotify_image_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserShowWishlistSchema = createInsertSchema(userShowWishlist).pick({
   userId: true,
   artistName: true,
+}).extend({
+  spotifyImageUrl: z.string().url().nullish(),
 });
 
 export type UserShowWishlistItem = typeof userShowWishlist.$inferSelect;

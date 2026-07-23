@@ -1444,9 +1444,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
       const id = parseInt(req.params.id);
       if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
-      const schema = z.object({ artistName: z.string().min(1, "Artist name required").max(100) });
-      const { artistName } = schema.parse(req.body);
-      const item = await storage.addToShowWishlist({ userId: id, artistName });
+      const schema = z.object({
+        artistName: z.string().min(1, "Artist name required").max(100),
+        spotifyImageUrl: z.string().url().nullish(),
+      });
+      const { artistName, spotifyImageUrl } = schema.parse(req.body);
+      const item = await storage.addToShowWishlist({ userId: id, artistName, spotifyImageUrl });
       return res.status(201).json(item);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });

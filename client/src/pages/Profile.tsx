@@ -161,6 +161,7 @@ export default function Profile() {
   const [tpDate, setTpDate] = useState("");
   const [wlArtist, setWlArtist] = useState("");
   const [wlArtistQuery, setWlArtistQuery] = useState("");
+  const [wlSpotifyImageUrl, setWlSpotifyImageUrl] = useState<string | null>(null);
   const [wlShowDropdown, setWlShowDropdown] = useState(false);
   const wlSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -218,6 +219,7 @@ export default function Profile() {
 
   function handleWlArtistInput(val: string) {
     setWlArtist(val);
+    setWlSpotifyImageUrl(null);
     setWlShowDropdown(true);
     if (wlSearchTimeout.current) clearTimeout(wlSearchTimeout.current);
     wlSearchTimeout.current = setTimeout(() => setWlArtistQuery(val.trim()), 400);
@@ -225,6 +227,7 @@ export default function Profile() {
 
   function selectWlArtist(artist: SpotifyArtist) {
     setWlArtist(artist.name);
+    setWlSpotifyImageUrl(artist.imageUrl ?? null);
     setWlArtistQuery("");
     setWlShowDropdown(false);
   }
@@ -249,10 +252,14 @@ export default function Profile() {
   });
 
   const addWishlist = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/users/${userId}/show-wishlist`, { artistName: wlArtist }),
+    mutationFn: () => apiRequest("POST", `/api/users/${userId}/show-wishlist`, {
+      artistName: wlArtist,
+      ...(wlSpotifyImageUrl ? { spotifyImageUrl: wlSpotifyImageUrl } : {}),
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/show-wishlist`] });
       setWlArtist("");
+      setWlSpotifyImageUrl(null);
     },
     onError: () => toast({ title: "Failed to add to wishlist", variant: "destructive" }),
   });
@@ -702,7 +709,17 @@ export default function Profile() {
                       <div className="space-y-2">
                         {showWishlist.map(w => (
                           <div key={w.id} className="bg-[#181818] rounded-lg px-4 py-3 flex items-center gap-3">
-                            <Star className="h-4 w-4 text-[#555] flex-shrink-0" />
+                            {w.spotifyImageUrl ? (
+                              <img
+                                src={w.spotifyImageUrl}
+                                alt={w.artistName}
+                                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-9 h-9 rounded-full bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
+                                <Star className="h-4 w-4 text-[#555]" />
+                              </div>
+                            )}
                             <p className="flex-1 text-sm font-semibold">{w.artistName}</p>
                             {isOwnProfile && (
                               <button
