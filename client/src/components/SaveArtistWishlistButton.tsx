@@ -7,10 +7,25 @@ import type { UserShowWishlistItem } from "@shared/schema";
 
 interface Props {
   artistName: string;
+  spotifyImageUrl?: string;
   className?: string;
 }
 
-export default function SaveArtistWishlistButton({ artistName, className = "" }: Props) {
+async function fetchArtistImageUrl(artistName: string): Promise<string | null> {
+  try {
+    const res = await fetch(`/api/spotify/artists/search?q=${encodeURIComponent(artistName)}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { results: Array<{ name: string; imageUrl: string | null }> };
+    const match = data.results.find(
+      (r) => r.name.toLowerCase() === artistName.toLowerCase()
+    ) ?? data.results[0];
+    return match?.imageUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export default function SaveArtistWishlistButton({ artistName, spotifyImageUrl, className = "" }: Props) {
   const { user } = useAuth();
   const qc = useQueryClient();
 
@@ -27,8 +42,13 @@ export default function SaveArtistWishlistButton({ artistName, className = "" }:
   const isSaved = !!savedItem;
 
   const addMutation = useMutation({
-    mutationFn: () =>
-      apiRequest("POST", `/api/users/${user!.id}/show-wishlist`, { artistName }),
+    mutationFn: async () => {
+      const imageUrl = spotifyImageUrl ?? (await fetchArtistImageUrl(artistName));
+      return apiRequest("POST", `/api/users/${user!.id}/show-wishlist`, {
+        artistName,
+        ...(imageUrl ? { spotifyImageUrl: imageUrl } : {}),
+      });
+    },
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: wishlistKey! });
       const prev = qc.getQueryData<UserShowWishlistItem[]>(wishlistKey!);
@@ -36,6 +56,7 @@ export default function SaveArtistWishlistButton({ artistName, className = "" }:
         id: -1,
         userId: user!.id,
         artistName,
+        spotifyImageUrl: spotifyImageUrl ?? null,
         createdAt: new Date(),
       };
       qc.setQueryData<UserShowWishlistItem[]>(wishlistKey!, (old) => [

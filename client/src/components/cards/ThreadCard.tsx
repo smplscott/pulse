@@ -99,7 +99,10 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
               {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && (artist?.name || thread.artistName) && (
                 <>
                   <FollowArtistButton artistName={artist?.name || thread.artistName!} />
-                  <SaveArtistWishlistButton artistName={artist?.name || thread.artistName!} />
+                  <SaveArtistWishlistButton
+                    artistName={artist?.name || thread.artistName!}
+                    spotifyImageUrl={artist?.profilePicture ?? undefined}
+                  />
                 </>
               )}
             </div>
