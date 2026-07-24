@@ -43,11 +43,11 @@ function PlaceCard({ place }: { place: Place }) {
           <div className="cursor-pointer">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h3 className="font-semibold text-sm truncate hover:text-[#c2f970] transition-colors">{place.name}</h3>
+                <h3 className="font-semibold text-sm truncate hover:text-[#c3f872] transition-colors">{place.name}</h3>
                 <p className="text-xs text-[#B3B3B3] mt-0.5">{place.city}, {place.country}</p>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
+                <Star className="h-3 w-3 text-[#c3f872] fill-[#c3f872]" />
                 <span className="text-xs text-[#B3B3B3]">{place.rating ?? 0}.0</span>
               </div>
             </div>

@@ -122,7 +122,7 @@ export default function VenueDetail() {
                 ))}
               </div>
               <div className="flex items-center">
-                <Star className="h-4 w-4 text-[#c2f970] mr-1" />
+                <Star className="h-4 w-4 text-[#c3f872] fill-[#c3f872] mr-1" />
                 <span className="text-sm">{((venue.rating ?? 0) / 10).toFixed(1)}</span>
               </div>
             </div>

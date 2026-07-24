@@ -50,7 +50,7 @@ export default function Badges() {
       levels: [
         { level: 1, name: "Curious Listener", requirement: 25, icon: <Headphones className="h-4 w-4" />, color: "from-slate-400 to-slate-600" },
         { level: 2, name: "Track Hunter", requirement: 100, icon: <Target className="h-4 w-4" />, color: "from-[#10B981] to-[#34D399]" },
-        { level: 3, name: "Music Explorer", requirement: 250, icon: <Star className="h-4 w-4" />, color: "from-[#22C55E] to-[#84CC16]" },
+        { level: 3, name: "Music Explorer", requirement: 250, icon: <Star className="h-4 w-4 text-[#c3f872]" />, color: "from-[#22C55E] to-[#84CC16]" },
         { level: 4, name: "Sonic Archaeologist", requirement: 500, icon: <Award className="h-4 w-4" />, color: "from-[#84CC16] to-[#EAB308]" },
         { level: 5, name: "Audio Mystic", requirement: 1000, icon: <Crown className="h-4 w-4" />, color: "from-[#EAB308] to-[#F59E0B]" }
       ]
@@ -82,7 +82,7 @@ export default function Badges() {
       levels: [
         { level: 1, name: "Music Sleuth", requirement: 5, icon: <Target className="h-4 w-4" />, color: "from-slate-400 to-slate-600" },
         { level: 2, name: "Audio Detective", requirement: 25, icon: <Music className="h-4 w-4" />, color: "from-[#10B981] to-[#34D399]" },
-        { level: 3, name: "Sonic Sherlock", requirement: 75, icon: <Star className="h-4 w-4" />, color: "from-[#22C55E] to-[#84CC16]" },
+        { level: 3, name: "Sonic Sherlock", requirement: 75, icon: <Star className="h-4 w-4 text-[#c3f872]" />, color: "from-[#22C55E] to-[#84CC16]" },
         { level: 4, name: "Track Oracle", requirement: 200, icon: <Award className="h-4 w-4" />, color: "from-[#84CC16] to-[#EAB308]" },
         { level: 5, name: "Music Sage", requirement: 500, icon: <Crown className="h-4 w-4" />, color: "from-[#EAB308] to-[#F59E0B]" }
       ]
@@ -98,7 +98,7 @@ export default function Badges() {
       levels: [
         { level: 1, name: "Mix Maker", requirement: 3, icon: <Disc className="h-4 w-4" />, color: "from-slate-400 to-slate-600" },
         { level: 2, name: "Vibe Architect", requirement: 10, icon: <Music className="h-4 w-4" />, color: "from-[#10B981] to-[#34D399]" },
-        { level: 3, name: "Sonic Curator", requirement: 25, icon: <Star className="h-4 w-4" />, color: "from-[#22C55E] to-[#84CC16]" },
+        { level: 3, name: "Sonic Curator", requirement: 25, icon: <Star className="h-4 w-4 text-[#c3f872]" />, color: "from-[#22C55E] to-[#84CC16]" },
         { level: 4, name: "Playlist Virtuoso", requirement: 75, icon: <Award className="h-4 w-4" />, color: "from-[#84CC16] to-[#EAB308]" },
         { level: 5, name: "Mix Master", requirement: 200, icon: <Crown className="h-4 w-4" />, color: "from-[#EAB308] to-[#F59E0B]" }
       ]
@@ -137,7 +137,7 @@ export default function Badges() {
       id: "genre-specialist",
       name: "Techno Specialist",
       description: "90% of your activity is in Techno discussions",
-      icon: <Star className="h-6 w-6" />,
+      icon: <Star className="h-6 w-6 text-[#c3f872]" />,
       unlocked: true,
       unlockedDate: "Feb 2025",
       color: "from-[#EC4899] to-[#BE185D]"

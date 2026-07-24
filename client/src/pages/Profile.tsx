@@ -78,7 +78,7 @@ function StarRow({ rating }: { rating: number }) {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} className={`h-3 w-3 ${i <= rating ? "fill-[#c2f970] text-[#c2f970]" : "text-[#444]"}`} />
+        <Star key={i} className={`h-3 w-3 ${i <= rating ? "fill-[#c3f872] text-[#c3f872]" : "text-[#444]"}`} />
       ))}
     </div>
   );
@@ -751,7 +751,7 @@ export default function Profile() {
                               />
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
-                                <Star className="h-4 w-4 text-[#555]" />
+                                <Star className="h-4 w-4 text-[#c3f872]" />
                               </div>
                             )}
                             <p className="flex-1 text-sm font-semibold">{w.artistName}</p>
@@ -769,7 +769,7 @@ export default function Profile() {
                       </div>
                     ) : (
                       <div className="bg-[#181818] rounded-lg p-8 text-center">
-                        <Star className="h-10 w-10 text-[#3E3E3E] mx-auto mb-3" />
+                        <Star className="h-10 w-10 text-[#c3f872] mx-auto mb-3" />
                         <p className="text-sm text-[#B3B3B3]">
                           {isOwnProfile ? "Add artists you want to see live" : "No wishlist yet"}
                         </p>

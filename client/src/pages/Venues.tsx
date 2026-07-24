@@ -102,7 +102,7 @@ export default function Venues() {
   const placeOptions = [
     { id: "search", label: "Search", icon: <SearchIcon className="h-4 w-4 mr-2" /> },
     { id: "maps", label: "Maps", icon: <MapPin className="h-4 w-4 mr-2" /> },
-    { id: "review", label: "Review a Live Performance", icon: <Star className="h-4 w-4 mr-2" /> },
+    { id: "review", label: "Review a Live Performance", icon: <Star className="h-4 w-4 mr-2 text-[#c3f872]" /> },
   ];
   
   // Venue type categories

@@ -365,7 +365,7 @@ export default function ShowDetail() {
                   : "text-[#555] hover:text-[#B3B3B3]"
               )}
             >
-              {tab === "reviews" ? <Star className="h-3.5 w-3.5" /> : <MessageCircle className="h-3.5 w-3.5" />}
+              {tab === "reviews" ? <Star className="h-3.5 w-3.5 text-[#c3f872]" /> : <MessageCircle className="h-3.5 w-3.5" />}
               {tab}
               {tab === "reviews" && reviews.length > 0 && (
                 <span className="text-xs text-[#555] ml-0.5">({reviews.length})</span>
@@ -510,7 +510,7 @@ export default function ShowDetail() {
 
                 {reviews.length === 0 ? (
                   <div className="bg-[#181818] rounded-xl p-8 text-center">
-                    <Star className="h-8 w-8 text-[#333] mx-auto mb-2" />
+                    <Star className="h-8 w-8 text-[#c3f872] mx-auto mb-2" />
                     <p className="text-sm text-[#666]">No reviews yet. Be the first!</p>
                   </div>
                 ) : (

@@ -210,7 +210,7 @@ export default function PlaceDetail() {
                       {CATEGORY_LABELS[place.category] ?? place.category}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-[#B3B3B3]">
-                      <Star className="h-3 w-3 text-[#c2f970] fill-[#c2f970]" />
+                      <Star className="h-3 w-3 text-[#c3f872] fill-[#c3f872]" />
                       {avgRating > 0 ? avgRating.toFixed(1) : "–"}
                       {reviewCount > 0 && <span className="text-[10px]">({reviewCount})</span>}
                     </span>
@@ -270,7 +270,7 @@ export default function PlaceDetail() {
           {/* Reviews section */}
           <div className="px-4">
             <div className="flex items-center gap-2 mb-4">
-              <Star className="h-4 w-4 text-[#B3B3B3]" />
+              <Star className="h-4 w-4 text-[#c3f872]" />
               <h2 className="font-semibold text-sm">Reviews</h2>
               {reviewCount > 0 && (
                 <span className="text-xs text-[#B3B3B3]">({reviewCount})</span>
@@ -328,7 +328,7 @@ export default function PlaceDetail() {
               </div>
             ) : (
               <div className="text-center py-10 text-[#B3B3B3] text-sm">
-                <Star className="h-8 w-8 text-[#333] mx-auto mb-3" />
+                <Star className="h-8 w-8 text-[#c3f872] mx-auto mb-3" />
                 <p>No reviews yet.</p>
                 <p className="text-xs text-[#555] mt-1">Be the first to review this place.</p>
               </div>

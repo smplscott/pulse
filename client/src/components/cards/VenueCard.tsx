@@ -49,7 +49,7 @@ export default function VenueCard({ venue, className }: VenueCardProps) {
               ))}
             </div>
             <div className="flex items-center">
-              <StarIcon className="h-3 w-3 text-[#ff6fd8] mr-1" />
+              <StarIcon className="h-3 w-3 text-[#c3f872] fill-[#c3f872] mr-1" />
               <span className="text-sm">{((venue.rating ?? 0) / 10).toFixed(1)}</span>
             </div>
           </div>
