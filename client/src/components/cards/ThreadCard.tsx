@@ -125,7 +125,7 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
-                    className={cn("h-3 w-3", i < (thread.starRating || 0) ? "text-yellow-400 fill-yellow-400" : "text-[#3E3E3E]")}
+                    className={cn("h-3 w-3", i < (thread.starRating || 0) ? "text-[#c3f872] fill-[#c3f872]" : "text-[#3E3E3E]")}
                   />
                 ))}
               </div>

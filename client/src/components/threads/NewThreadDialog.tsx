@@ -83,7 +83,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
           onClick={() => onChange(n)}
         >
           <Star className={cn("h-7 w-7 transition-colors",
-            (hovered || value) >= n ? "text-yellow-400 fill-yellow-400" : "text-[#3E3E3E]"
+            (hovered || value) >= n ? "text-[#c3f872] fill-[#c3f872]" : "text-[#3E3E3E]"
           )} />
         </button>
       ))}

@@ -29,7 +29,7 @@ function StarDisplay({ rating, size = "sm" }: { rating: number; size?: "sm" | "m
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map(n => (
-        <Star key={n} className={cn(sz, n <= Math.round(rating) ? "fill-yellow-400 text-yellow-400" : "text-[#333]")} />
+        <Star key={n} className={cn(sz, n <= Math.round(rating) ? "fill-[#c3f872] text-[#c3f872]" : "text-[#333]")} />
       ))}
     </div>
   );
@@ -57,7 +57,7 @@ function RatingDistribution({ reviews }: { reviews: Thread[] }) {
             <span className="text-xs text-[#555] w-3">{n}</span>
             <div className="flex-1 h-1.5 bg-[#282828] rounded-full overflow-hidden">
               <div
-                className="h-full bg-yellow-400 rounded-full"
+                className="h-full bg-[#c3f872] rounded-full"
                 style={{ width: withRatings.length ? `${(count / withRatings.length) * 100}%` : "0%" }}
               />
             </div>
@@ -199,7 +199,7 @@ export default function AlbumDetail() {
               {album.avgRating !== null && (
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <StarDisplay rating={album.avgRating} />
-                  <span className="text-xs text-yellow-400">{album.avgRating.toFixed(1)}</span>
+                  <span className="text-xs text-[#c3f872]">{album.avgRating.toFixed(1)}</span>
                   <span className="text-xs text-[#555]">({album.reviewCount} review{album.reviewCount !== 1 ? "s" : ""})</span>
                 </div>
               )}

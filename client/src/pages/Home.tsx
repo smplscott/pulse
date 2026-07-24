@@ -59,7 +59,7 @@ function StarRow({ rating, size = "sm" }: { rating: number; size?: "sm" }) {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map(n => (
-        <Star key={n} className={cn("h-2.5 w-2.5", n <= Math.round(rating) ? "fill-yellow-400 text-yellow-400" : "text-[#3E3E3E]")} />
+        <Star key={n} className={cn("h-2.5 w-2.5", n <= Math.round(rating) ? "fill-[#c3f872] text-[#c3f872]" : "text-[#3E3E3E]")} />
       ))}
     </div>
   );

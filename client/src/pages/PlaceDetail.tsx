@@ -44,7 +44,7 @@ function StarDisplay({ rating, size = "sm" }: { rating: number; size?: "sm" | "m
       {[1, 2, 3, 4, 5].map(n => (
         <Star
           key={n}
-          className={cn(sz, n <= rating ? "text-yellow-400 fill-yellow-400" : "text-[#3E3E3E] fill-[#3E3E3E]")}
+          className={cn(sz, n <= rating ? "text-[#c3f872] fill-[#c3f872]" : "text-[#3E3E3E] fill-[#3E3E3E]")}
         />
       ))}
     </div>
@@ -64,7 +64,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
           onClick={() => onChange(n)}
         >
           <Star className={cn("h-8 w-8 transition-colors",
-            (hovered || value) >= n ? "text-yellow-400 fill-yellow-400" : "text-[#3E3E3E]"
+            (hovered || value) >= n ? "text-[#c3f872] fill-[#c3f872]" : "text-[#3E3E3E]"
           )} />
         </button>
       ))}
