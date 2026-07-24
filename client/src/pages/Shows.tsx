@@ -82,8 +82,8 @@ function ShowCard({
           {local && (local.avgRating !== null || local.reviewCount > 0 || local.commentCount > 0) && (
             <div className="flex items-center gap-3 mt-2">
               {local.avgRating !== null && (
-                <span className="flex items-center gap-1 text-xs text-[#f5c518]">
-                  <Star className="h-3 w-3 fill-[#f5c518]" />
+                <span className="flex items-center gap-1 text-xs text-[#c3f872]">
+                  <Star className="h-3 w-3 fill-[#c3f872]" />
                   {local.avgRating.toFixed(1)}
                   <span className="text-[#555]">({local.reviewCount})</span>
                 </span>

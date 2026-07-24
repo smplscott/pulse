@@ -58,7 +58,7 @@ function StarRating({
         >
           <Star
             className={cn(sz, "transition-colors", (hovered || value) >= n
-              ? "fill-[#f5c518] text-[#f5c518]"
+              ? "fill-[#c3f872] text-[#c3f872]"
               : "text-[#333]"
             )}
           />
@@ -88,7 +88,7 @@ function AverageRating({ reviews }: { reviews: ShowReview[] }) {
             <span className="text-xs text-[#555] w-3">{n}</span>
             <div className="flex-1 h-1.5 bg-[#282828] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#f5c518] rounded-full transition-all"
+                className="h-full bg-[#c3f872] rounded-full transition-all"
                 style={{ width: reviews.length ? `${(count / reviews.length) * 100}%` : "0%" }}
               />
             </div>
@@ -336,7 +336,7 @@ export default function ShowDetail() {
               {show.avgRating !== null && (
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <StarRating value={Math.round(show.avgRating)} readonly size="sm" />
-                  <span className="text-xs text-[#f5c518]">{show.avgRating.toFixed(1)}</span>
+                  <span className="text-xs text-[#c3f872]">{show.avgRating.toFixed(1)}</span>
                   <span className="text-xs text-[#555]">({show.reviewCount} review{show.reviewCount !== 1 ? "s" : ""})</span>
                 </div>
               )}
