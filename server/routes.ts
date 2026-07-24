@@ -1212,10 +1212,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=artist&limit=8`;
       const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      if (!response.ok) return res.json({ results: localResults });
+      if (!response.ok) {
+        console.warn("[spotify search] artist search failed:", response.status, await response.text());
+        return res.json({ results: localResults });
+      }
       const data = await response.json() as { artists: { items: Array<{ id: string; name: string; images: Array<{ url: string }>; genres: string[] }> } };
       const spotifyResults = data.artists.items.map(a => ({
-        spotifyId: a.id, name: a.name, imageUrl: a.images[0]?.url || null, genres: a.genres.slice(0, 3),
+        spotifyId: a.id, name: a.name, imageUrl: a.images[0]?.url || null, genres: (a.genres || []).slice(0, 3),
       }));
       // Merge: Spotify first, then any local artists not already represented
       const spotifyNames = new Set(spotifyResults.map(a => a.name.toLowerCase()));
@@ -1229,7 +1232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const token = await getSpotifyToken();
     if (!token) return res.json({ error: "SPOTIFY credentials not configured", results: [] });
     try {
-      const url = `https://api.spotify.com/v1/artists/${spotifyId}/albums?include_groups=album,single&market=US&limit=20`;
+      const url = `https://api.spotify.com/v1/artists/${spotifyId}/albums?include_groups=album,single&market=US&limit=10`;
       const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       if (!response.ok) return res.json({ error: "Spotify API error", results: [] });
       const data = await response.json() as { items: Array<{ id: string; name: string; images: Array<{ url: string }>; release_date: string; album_type: string }> };

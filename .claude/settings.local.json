@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5000/)",
+      "Bash(env)",
+      "Bash(bash -lc 'env | grep -i spotify | sed \"s/=.*/=<redacted>/\"')",
+      "Bash(echo \"exit:$?\")",
+      "Bash(mkdir -p /tmp/claude-1000/-home-runner-workspace/c74570c7-26fd-4f11-9013-a42924edb635/scratchpad)",
+      "Bash(curl -s \"http://localhost:5000/api/spotify/artists/search?q=Bicep\")",
+      "Bash(netstat -ltnp)",
+      "Bash(lsof -i:5000)",
+      "Bash(curl -s \"http://localhost:5000/api/spotify/artists/73A3bLnfnz5BoQjb4gNCga\")",
+      "Bash(curl -s \"http://localhost:5000/api/spotify/artists/73A3bLnfnz5BoQjb4gNCga/albums\")",
+      "Bash(kill 3475)",
+      "Bash(curl -s -o /dev/null -w \"server_status:%{http_code}\\\\n\" http://localhost:5000/)",
+      "Bash(pkill -f \"tsx server/index.ts\")",
+      "Bash(curl -s \"http://localhost:5000/api/spotify/albums/0EdtTRCl3J22AnWrNpH1w9\")"
+    ]
+  }
+}
