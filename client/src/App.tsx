@@ -7,14 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 import Home from "@/pages/Home";
-import Discover from "@/pages/Discover";
-import Threads from "@/pages/Threads";
-import WhatsThisSong from "@/pages/WhatsThisSong";
-import Venues from "@/pages/Venues";
-import Library from "@/pages/Library";
 import Profile from "@/pages/Profile";
 import Artists from "@/pages/Artists";
-import Songs from "@/pages/Songs";
 import Shows from "@/pages/Shows";
 import ShowDetail from "@/pages/ShowDetail";
 import Places from "@/pages/Places";
@@ -22,14 +16,8 @@ import PlaceDetail from "@/pages/PlaceDetail";
 // import Sets from "@/pages/Sets";        // Sets hidden from nav — re-enable when ready
 // import SetDetail from "@/pages/SetDetail"; // Sets hidden from nav — re-enable when ready
 import CommunityAchievements from "@/pages/CommunityAchievements";
-import Messages from "@/pages/Messages";
-import SongDetail from "@/pages/SongDetail";
 import ThreadDetail from "@/pages/ThreadDetail";
-import VenueDetail from "@/pages/VenueDetail";
 import CreateThread from "@/pages/CreateThread";
-import CreateSongRequest from "@/pages/CreateSongRequest";
-import Credits from "@/pages/Credits";
-import Samples from "@/pages/Samples";
 import Notifications from "@/pages/Notifications";
 import AlbumPage from "@/pages/AlbumPage";
 import AlbumDetail from "@/pages/AlbumDetail";
@@ -63,20 +51,14 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/" component={() => <ProtectedRoute component={Home} />} />
-      <Route path="/discover" component={() => <ProtectedRoute component={Discover} />} />
-      <Route path="/threads" component={() => <ProtectedRoute component={Threads} />} />
-      <Route path="/whats-this-song" component={() => <ProtectedRoute component={WhatsThisSong} />} />
       <Route path="/venues" component={() => <Redirect to="/places" />} />
-      <Route path="/library" component={() => <ProtectedRoute component={Library} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/profile/artist-follows" component={() => <ProtectedRoute component={FollowedArtistsPage} />} />
       <Route path="/profile/saved-places" component={() => <ProtectedRoute component={SavedPlacesPage} />} />
-      <Route path="/profile/:username" component={Profile} />
+      <Route path="/profile/:username" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
       <Route path="/achievements" component={() => <ProtectedRoute component={CommunityAchievements} />} />
-      <Route path="/messages" component={() => <ProtectedRoute component={Messages} />} />
       <Route path="/artists" component={() => <ProtectedRoute component={Artists} />} />
-      <Route path="/songs" component={() => <ProtectedRoute component={Songs} />} />
       <Route path="/shows" component={Shows} />
       <Route path="/shows/:id" component={ShowDetail} />
       <Route path="/places" component={() => <ProtectedRoute component={Places} />} />
@@ -85,14 +67,10 @@ function Router() {
       <Route path="/artist/:id" component={() => <Redirect to="/artists" />} />
       <Route path="/albums/:albumId" component={() => <ProtectedRoute component={AlbumDetail} />} />
       <Route path="/album/:spotifyId" component={() => <ProtectedRoute component={AlbumPage} />} />
-      <Route path="/song/:id" component={() => <ProtectedRoute component={SongDetail} />} />
       <Route path="/thread/:id" component={() => <ProtectedRoute component={ThreadDetail} />} />
       <Route path="/venue/:id" component={() => <Redirect to="/places" />} />
       {/* <Route path="/sets/:id" component={() => <ProtectedRoute component={SetDetail} />} /> */}
-      <Route path="/credits/:id" component={() => <ProtectedRoute component={Credits} />} />
-      <Route path="/samples/:id" component={() => <ProtectedRoute component={Samples} />} />
       <Route path="/create-thread" component={() => <ProtectedRoute component={CreateThread} />} />
-      <Route path="/create-song-request" component={() => <ProtectedRoute component={CreateSongRequest} />} />
       <Route component={NotFound} />
     </Switch>
   );

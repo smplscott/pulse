@@ -88,7 +88,7 @@ export default function Artists() {
       queryClient.invalidateQueries({ queryKey: ["/api/artists"] });
       setShowAdd(false);
       form.reset();
-      toast({ title: "Artist added!", description: "The artist stub has been created." });
+      toast({ title: "Artist added!", description: "The artist profile has been created." });
     },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : "Please try again.";
@@ -251,7 +251,7 @@ export default function Artists() {
           <DialogHeader>
             <DialogTitle>Add Artist via Spotify</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-[#B3B3B3]">Paste an artist's Spotify link to create a stub profile.</p>
+          <p className="text-sm text-[#B3B3B3]">Paste an artist's Spotify link to create their profile.</p>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(v => addMutation.mutate(v))} className="space-y-4">
               <FormField

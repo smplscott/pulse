@@ -353,7 +353,9 @@ export const placeReviews = pgTable("place_reviews", {
   rating: integer("rating").notNull(), // 1–5
   body: text("body"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => ({
+  userPlaceUnique: unique("place_reviews_user_place_unique").on(t.userId, t.placeId),
+}));
 
 export const insertPlaceReviewSchema = createInsertSchema(placeReviews).pick({
   placeId: true,
@@ -385,6 +387,24 @@ export type Place = typeof places.$inferSelect;
 export type InsertPlace = z.infer<typeof insertPlaceSchema>;
 export type PlaceComment = typeof placeComments.$inferSelect;
 export type InsertPlaceComment = z.infer<typeof insertPlaceCommentSchema>;
+
+// Followed artists — users who follow an artist
+export const followedArtists = pgTable("followed_artists", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  artistId: integer("artist_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  userArtistUnique: unique("followed_artists_user_artist_unique").on(t.userId, t.artistId),
+}));
+
+export const insertFollowedArtistSchema = createInsertSchema(followedArtists).pick({
+  userId: true,
+  artistId: true,
+});
+
+export type FollowedArtist = typeof followedArtists.$inferSelect;
+export type InsertFollowedArtist = z.infer<typeof insertFollowedArtistSchema>;
 
 // Thread follows table — users who watch a thread for activity
 export const threadFollows = pgTable("thread_follows", {

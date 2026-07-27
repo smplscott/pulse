@@ -2,10 +2,10 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./storage-simple";
+import { storage } from "./storage-db";
 import { z } from "zod";
-import { insertUserSchema, insertArtistSchema, insertSongSchema, insertThreadSchema, insertCommentSchema, insertSongRecommendationSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertPlaceCommentSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema, insertUserTravelPlanSchema, insertUserShowWishlistSchema, artistResponseSchema, songResponseSchema, venueResponseSchema, musicSetResponseSchema, insertPlaceListSchema, insertPlaceListItemSchema } from "@shared/schema";
-import type { Artist, Song, Venue, MusicSet, ArtistResponse, SongResponse, VenueResponse, MusicSetResponse, Badge } from "@shared/schema";
+import { insertUserSchema, insertArtistSchema, insertThreadSchema, insertCommentSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema, insertUserTravelPlanSchema, insertUserShowWishlistSchema, artistResponseSchema, songResponseSchema, musicSetResponseSchema, insertPlaceListSchema, insertPlaceListItemSchema } from "@shared/schema";
+import type { Artist, Song, MusicSet, ArtistResponse, SongResponse, MusicSetResponse, Badge } from "@shared/schema";
 
 // ─── Runtime normalization helpers ───────────────────────────────────────────
 // These coerce jsonb fields to their expected shapes, then validate against the
@@ -64,30 +64,6 @@ function normalizeSong(s: Song): SongResponse {
   if (!result.success) {
     console.warn("[normalizeSong] shape mismatch:", result.error.flatten());
     return pre as SongResponse;
-  }
-  return result.data;
-}
-
-function normalizeVenue(v: Venue): VenueResponse {
-  const pre = {
-    ...v,
-    genres: Array.isArray(v.genres)
-      ? v.genres.filter((g): g is string => typeof g === "string")
-      : [],
-    upcomingEvents: Array.isArray(v.upcomingEvents)
-      ? v.upcomingEvents.filter(
-          (e): e is { date: string; artist: string; ticketsUrl?: string } => {
-            const obj = e as unknown as Record<string, unknown>;
-            return obj !== null && typeof obj === "object" &&
-              typeof obj.date === "string" && typeof obj.artist === "string";
-          },
-        )
-      : [],
-  };
-  const result = venueResponseSchema.safeParse(pre);
-  if (!result.success) {
-    console.warn("[normalizeVenue] shape mismatch:", result.error.flatten());
-    return pre as VenueResponse;
   }
   return result.data;
 }
@@ -295,20 +271,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/users", async (req: Request, res: Response) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(userData);
-      const { password, ...userWithoutPassword } = user;
-      return res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      return res.status(500).json({ message: "Failed to create user" });
-    }
-  });
-  
   // Artists routes
   app.get("/api/artists", async (_req: Request, res: Response) => {
     const artists = await storage.getAllArtists();
@@ -381,17 +343,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Songs routes
-  app.get("/api/songs", async (_req: Request, res: Response) => {
-    const songs = await storage.getAllSongs();
-    return res.json(songs.map(normalizeSong));
-  });
-  
-  app.get("/api/songs/artist/:artistName", async (req: Request, res: Response) => {
-    const artistName = req.params.artistName;
-    const songs = await storage.getSongsByArtist(artistName);
-    return res.json(songs.map(normalizeSong));
-  });
-
   app.get("/api/songs/:id", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -404,26 +355,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     return res.json(normalizeSong(song));
-  });
-  
-  // Venues routes
-  app.get("/api/venues", async (_req: Request, res: Response) => {
-    const venues = await storage.getAllVenues();
-    return res.json(venues.map(normalizeVenue));
-  });
-  
-  app.get("/api/venues/:id", async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ message: "Invalid venue ID" });
-    }
-    
-    const venue = await storage.getVenue(id);
-    if (!venue) {
-      return res.status(404).json({ message: "Venue not found" });
-    }
-    
-    return res.json(normalizeVenue(venue));
   });
   
   // Global search — aggregates Spotify artists, Setlist.fm shows, Spotify albums, local places
@@ -593,83 +524,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/threads/:id/upvote", async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ message: "Invalid thread ID" });
-    }
-    
-    const thread = await storage.upvoteThread(id);
-    if (!thread) {
-      return res.status(404).json({ message: "Thread not found" });
-    }
-    
-    return res.json(thread);
-  });
-
-  app.post("/api/threads/:id/save", async (req: Request, res: Response) => {
-    const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
-
-    const thread = await storage.saveThread(id);
-    if (!thread) return res.status(404).json({ message: "Thread not found" });
-
-    // Record user as a thread follower/watcher when they save
-    await storage.followThread(userId, id);
-
-    // Notify thread owner + all watchers (excluding the saver)
-    const actor = await storage.getUser(userId);
-    if (actor) {
-      const followers = await storage.getThreadFollowers(thread.id);
-      const recipientIds = new Set<number>();
-      if (thread.userId !== userId) recipientIds.add(thread.userId);
-      for (const f of followers) {
-        if (f.userId !== userId) recipientIds.add(f.userId);
-      }
-      for (const recipientId of recipientIds) {
-        await storage.createNotification({
-          userId: recipientId,
-          type: "save",
-          threadId: thread.id,
-          threadTitle: thread.title,
-          actorId: userId,
-          actorUsername: actor.username,
-        });
-      }
-    }
-
-    return res.json(thread);
-  });
-
-  app.get("/api/threads/:id/follow-status", async (req: Request, res: Response) => {
-    const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
-    const following = await storage.isFollowingThread(userId, id);
-    return res.json({ following });
-  });
-
-  app.post("/api/threads/:id/follow", async (req: Request, res: Response) => {
-    const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
-    await storage.followThread(userId, id);
-    return res.json({ success: true });
-  });
-
-  app.post("/api/threads/:id/unfollow", async (req: Request, res: Response) => {
-    const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
-    await storage.unfollowThread(userId, id);
-    return res.json({ success: true });
-  });
-  
   // Comments routes
   app.get("/api/threads/:threadId/comments", async (req: Request, res: Response) => {
     const threadId = parseInt(req.params.threadId);
@@ -740,11 +594,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(sets.map(normalizeMusicSet));
   });
   
-  app.get("/api/sets/featured", async (_req: Request, res: Response) => {
-    const sets = await storage.getFeaturedSets();
-    return res.json(sets.map(normalizeMusicSet));
-  });
-  
   app.get("/api/sets/:id", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -766,16 +615,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(threads);
   });
 
-  app.get("/api/users/:userId/sets", async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.userId);
-    if (isNaN(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-    
-    const sets = await storage.getSetsByUser(userId);
-    return res.json(sets);
-  });
-
   app.post("/api/sets", async (req: Request, res: Response) => {
     try {
       const userId = req.session.userId;
@@ -792,26 +631,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
       }
       return res.status(500).json({ message: "Failed to create set" });
-    }
-  });
-
-  // Song (stub) creation via Spotify link
-  app.post("/api/songs", async (req: Request, res: Response) => {
-    try {
-      const userId = req.session.userId;
-      if (!userId) return res.status(401).json({ message: "Not authenticated" });
-      const schema = insertSongSchema.extend({
-        title: z.string().min(1),
-        artist: z.string().min(1),
-      });
-      const songData = schema.parse(req.body);
-      const song = await storage.createSong(songData);
-      return res.status(201).json(song);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
-      }
-      return res.status(500).json({ message: "Failed to create song" });
     }
   });
 
@@ -891,33 +710,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(recommendations);
   });
   
-  app.post("/api/recommendations", async (req: Request, res: Response) => {
-    try {
-      const recommendationData = insertSongRecommendationSchema.parse(req.body);
-      const recommendation = await storage.createSongRecommendation(recommendationData);
-      return res.status(201).json(recommendation);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors });
-      }
-      return res.status(500).json({ message: "Failed to create recommendation" });
-    }
-  });
-  
-  app.post("/api/recommendations/:id/upvote", async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ message: "Invalid recommendation ID" });
-    }
-    
-    const recommendation = await storage.upvoteSongRecommendation(id);
-    if (!recommendation) {
-      return res.status(404).json({ message: "Recommendation not found" });
-    }
-    
-    return res.json(recommendation);
-  });
-
   // Follow routes — Artists
   app.get("/api/users/me/followed-artists", async (req: Request, res: Response) => {
     const userId = req.session.userId;
@@ -958,34 +750,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const artistId = parseInt(req.params.artistId);
     if (isNaN(artistId)) return res.status(400).json({ message: "Invalid artist ID" });
     await storage.unfollowArtist(userId, artistId);
-    return res.json({ success: true });
-  });
-
-  // Follow routes — Songs
-  app.get("/api/users/me/followed-songs", async (req: Request, res: Response) => {
-    const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const songs = await storage.getFollowedSongs(userId);
-    return res.json(songs);
-  });
-
-  app.post("/api/users/me/followed-songs/:songId", async (req: Request, res: Response) => {
-    const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const songId = parseInt(req.params.songId);
-    if (isNaN(songId)) return res.status(400).json({ message: "Invalid song ID" });
-    const song = await storage.getSong(songId);
-    if (!song) return res.status(404).json({ message: "Song not found" });
-    await storage.followSong(userId, songId);
-    return res.json({ success: true });
-  });
-
-  app.delete("/api/users/me/followed-songs/:songId", async (req: Request, res: Response) => {
-    const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const songId = parseInt(req.params.songId);
-    if (isNaN(songId)) return res.status(400).json({ message: "Invalid song ID" });
-    await storage.unfollowSong(userId, songId);
     return res.json({ success: true });
   });
 
@@ -1160,35 +924,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.status(204).end();
   });
 
-  app.get("/api/places/:id/comments", async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid place ID" });
-    const comments = await storage.getPlaceComments(id);
-    return res.json(comments);
-  });
-
-  app.post("/api/places/:id/comments", async (req: Request, res: Response) => {
-    try {
-      const userId = req.session.userId;
-      if (!userId) return res.status(401).json({ message: "Not authenticated" });
-      const placeId = parseInt(req.params.id);
-      if (isNaN(placeId)) return res.status(400).json({ message: "Invalid place ID" });
-      const place = await storage.getPlace(placeId);
-      if (!place) return res.status(404).json({ message: "Place not found" });
-      const schema = insertPlaceCommentSchema.extend({
-        content: z.string().min(1, "Comment cannot be empty").max(280),
-      });
-      const commentData = schema.parse({ ...req.body, placeId, userId });
-      const comment = await storage.createPlaceComment(commentData);
-      return res.status(201).json(comment);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
-      }
-      return res.status(500).json({ message: "Failed to post comment" });
-    }
-  });
-
   // Spotify proxy routes (use module-level getSpotifyToken)
   app.get("/api/spotify/artists/search", async (req: Request, res: Response) => {
     const q = ((req.query.q as string) || "").trim();
@@ -1352,7 +1087,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Album endpoints
   app.get("/api/albums", async (_req: Request, res: Response) => {
-    // Returns the same aggregated list as /api/feed/albums
     const allThreads = await storage.getAllThreads("album_review");
     const byAlbum = new Map<string, typeof allThreads>();
     for (const t of allThreads) {
@@ -1408,44 +1142,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       firstReviewerUsername,
       reviews: albumThreads,
     });
-  });
-
-  // Album review feed — aggregate album_review threads by albumId
-  app.get("/api/feed/albums", async (_req: Request, res: Response) => {
-    const allThreads = await storage.getAllThreads("album_review");
-    const byAlbum = new Map<string, typeof allThreads>();
-    for (const t of allThreads) {
-      if (!t.albumId) continue;
-      if (!byAlbum.has(t.albumId)) byAlbum.set(t.albumId, []);
-      byAlbum.get(t.albumId)!.push(t);
-    }
-    const result = await Promise.all(
-      Array.from(byAlbum.entries()).map(async ([albumId, albumThreads]) => {
-        const withRatings = albumThreads.filter(t => t.starRating);
-        const avgRating = withRatings.length > 0
-          ? withRatings.reduce((s, t) => s + (t.starRating ?? 0), 0) / withRatings.length
-          : null;
-        const chronological = [...albumThreads].sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
-        const firstThread = chronological[0];
-        let firstReviewerUsername: string | null = null;
-        if (firstThread) {
-          const u = await storage.getUser(firstThread.userId);
-          firstReviewerUsername = u?.username ?? null;
-        }
-        const latest = [...albumThreads].sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))[0];
-        return {
-          albumId,
-          albumName: albumThreads[0].albumName,
-          artistName: albumThreads[0].artistName,
-          reviewCount: albumThreads.length,
-          avgRating,
-          firstReviewerUsername,
-          latestThreadId: latest?.id ?? null,
-        };
-      })
-    );
-    result.sort((a, b) => b.reviewCount - a.reviewCount);
-    return res.json(result);
   });
 
   app.get("/api/shows", async (req: Request, res: Response) => {
@@ -1716,16 +1412,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!item) return res.status(404).json({ message: "Item not found" });
     await storage.removeFromShowWishlist(itemId);
     return res.json({ success: true });
-  });
-
-  // ─── Followed artists page ────────────────────────────────────────────────
-  app.get("/api/users/:id/followed-artists", async (req: Request, res: Response) => {
-    const sessionUserId = req.session.userId;
-    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
-    const id = parseInt(req.params.id);
-    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
-    const artists = await storage.getFollowedArtists(id);
-    return res.json(artists);
   });
 
   // ─── Place lists ──────────────────────────────────────────────────────────

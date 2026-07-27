@@ -481,7 +481,7 @@ export default function Profile() {
                         <MessageSquare className="h-10 w-10 text-[#3E3E3E] mx-auto mb-3" />
                         <p className="text-sm text-[#B3B3B3]">No thread activity yet</p>
                         {isOwnProfile && (
-                          <Link href="/threads">
+                          <Link href="/">
                             <button className="mt-3 text-xs text-[#b388eb] hover:underline">Browse threads</button>
                           </Link>
                         )}

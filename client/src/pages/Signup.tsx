@@ -3,7 +3,6 @@ import { Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { SiSpotify } from "react-icons/si";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -46,10 +45,6 @@ export default function Signup() {
     }
   };
 
-  const handleSpotify = () => {
-    toast({ title: "Coming soon", description: "Spotify sign-up will be available soon." });
-  };
-
   return (
     <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center px-6 py-10">
       <div className="w-full max-w-sm space-y-6">
@@ -60,21 +55,6 @@ export default function Signup() {
 
         <div className="bg-[#1A1A1A] rounded-2xl p-6 space-y-5 border border-[#2A2A2A]">
           <h2 className="text-white font-bold text-xl">Create account</h2>
-
-          <Button
-            type="button"
-            onClick={handleSpotify}
-            className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-semibold flex items-center justify-center gap-2 h-11 rounded-full"
-          >
-            <SiSpotify className="h-5 w-5" />
-            Sign up with Spotify
-          </Button>
-
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-[#3E3E3E]" />
-            <span className="text-[#B3B3B3] text-xs">or</span>
-            <div className="flex-1 h-px bg-[#3E3E3E]" />
-          </div>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">

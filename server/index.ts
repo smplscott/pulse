@@ -1,10 +1,12 @@
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { pool } from "./db";
 
-const MemoryStore = createMemoryStore(session);
+const PgSessionStore = connectPgSimple(session);
 
 const app = express();
 app.use(express.json());
@@ -20,7 +22,7 @@ app.use(session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  store: new MemoryStore({ checkPeriod: 86400000 }),
+  store: new PgSessionStore({ pool, createTableIfMissing: true }),
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     httpOnly: true,
