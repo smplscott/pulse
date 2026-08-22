@@ -18,6 +18,7 @@ import type {
   ShowComment, InsertShowComment,
   UserTravelPlan, InsertUserTravelPlan,
   UserShowWishlistItem, InsertUserShowWishlistItem,
+  WishlistEventMatch, InsertWishlistEventMatch,
   PlaceList, InsertPlaceList,
   PlaceListItem, InsertPlaceListItem,
 } from "@shared/schema";
@@ -104,6 +105,10 @@ export interface IStorage {
   addToShowWishlist(item: InsertUserShowWishlistItem): Promise<UserShowWishlistItem>;
   removeFromShowWishlist(id: number): Promise<void>;
   removeFromShowWishlistByArtist(userId: number, artistName: string): Promise<void>;
+
+  // Wishlist × trip matches
+  getUserWishlistMatches(userId: number): Promise<WishlistEventMatch[]>;
+  createWishlistEventMatch(match: InsertWishlistEventMatch): Promise<WishlistEventMatch>;
 
   // Place operations
   getPlace(id: number): Promise<Place | undefined>;
