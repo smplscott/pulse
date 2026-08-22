@@ -9,6 +9,8 @@ import { pool } from "./db";
 const PgSessionStore = connectPgSimple(session);
 
 const app = express();
+// Required behind Railway (and similar) HTTPS proxies so secure cookies work.
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -81,15 +83,18 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
+  // Serve API + client. Default 5000 (Replit); override with PORT locally
+  // (macOS AirPlay often occupies 5000).
+  const port = Number(process.env.PORT) || 5000;
+  const listenOpts: { port: number; host: string; reusePort?: boolean } = {
     port,
     host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  };
+  // reusePort is a Linux/Replit convenience; it can fail on macOS.
+  if (process.platform === "linux") {
+    listenOpts.reusePort = true;
+  }
+  server.listen(listenOpts, () => {
     log(`serving on port ${port}`);
   });
 })();
