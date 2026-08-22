@@ -16,7 +16,7 @@ This brief covers the structural changes needed to evolve the existing Replit pr
 ## What Stays
 
 - Visual identity: dark backgrounds, acid green PULSE wordmark, color-coded thread type badges
-- Spotify OAuth login + email/password fallback
+- Email/password login (no Spotify OAuth login)
 - Thread feed as the home screen (Popular Discussions)
 - Star ratings on thread cards in the feed
 - "Create Thread" modal pattern (keep the UX, change the options inside)
