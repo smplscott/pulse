@@ -50,8 +50,8 @@ A cutting-edge social music discovery platform that transforms digital music int
 - Password hashing via Node.js built-in `crypto` (scrypt + random salt)
 - Backend endpoints: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
 - `AuthContext` (`client/src/context/AuthContext.tsx`) — React context holding logged-in user state with `login`, `register`, `logout` helpers
-- Login page (`/login`) — email/password form + "Log in with Spotify" placeholder button + "Forgot password" placeholder
-- Signup page (`/signup`) — email, username, password, confirm-password form + Spotify placeholder
+- Login page (`/login`) — email/password form + "Forgot password" placeholder
+- Signup page (`/signup`) — email, username, password, confirm-password form
 - All app routes are now protected; unauthenticated users are redirected to `/login`
 - Header updated to show logged-in user's avatar/initials, a dropdown with Profile and Log Out, and a notifications bell
 
