@@ -426,11 +426,12 @@ export type InsertThreadFollow = z.infer<typeof insertThreadFollowSchema>;
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),       // recipient
-  type: text("type").notNull(),               // 'comment' | 'save'
-  threadId: integer("thread_id").notNull(),
+  type: text("type").notNull(),               // 'comment' | 'save' | 'wishlist_match'
+  threadId: integer("thread_id"),             // nullable for wishlist_match
   threadTitle: text("thread_title").notNull(),
   actorId: integer("actor_id").notNull(),
   actorUsername: text("actor_username").notNull(),
+  matchId: integer("match_id"),               // wishlist_event_matches.id when type=wishlist_match
   read: boolean("read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -442,6 +443,7 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
   threadTitle: true,
   actorId: true,
   actorUsername: true,
+  matchId: true,
 });
 
 // Export types
@@ -556,7 +558,12 @@ export const userTravelPlans = pgTable("user_travel_plans", {
   userId: integer("user_id").notNull(),
   city: text("city").notNull(),
   country: text("country").notNull(),
+  /** Display label (e.g. "Aug 2026") — kept for backwards compatibility */
   targetDate: text("target_date").notNull(),
+  /** ISO date YYYY-MM-DD — required for Ticketmaster scans */
+  startDate: text("start_date"),
+  /** ISO date YYYY-MM-DD — required for Ticketmaster scans */
+  endDate: text("end_date"),
   note: text("note"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -566,6 +573,8 @@ export const insertUserTravelPlanSchema = createInsertSchema(userTravelPlans).pi
   city: true,
   country: true,
   targetDate: true,
+  startDate: true,
+  endDate: true,
   note: true,
 });
 
@@ -590,6 +599,45 @@ export const insertUserShowWishlistSchema = createInsertSchema(userShowWishlist)
 
 export type UserShowWishlistItem = typeof userShowWishlist.$inferSelect;
 export type InsertUserShowWishlistItem = z.infer<typeof insertUserShowWishlistSchema>;
+
+// Wishlist × trip matches from Ticketmaster (and future providers)
+export const wishlistEventMatches = pgTable("wishlist_event_matches", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  travelPlanId: integer("travel_plan_id").notNull(),
+  wishlistItemId: integer("wishlist_item_id"),
+  artistName: text("artist_name").notNull(),
+  eventName: text("event_name").notNull(),
+  venueName: text("venue_name"),
+  city: text("city"),
+  country: text("country"),
+  eventStartAt: timestamp("event_start_at"),
+  ticketmasterEventId: text("ticketmaster_event_id").notNull(),
+  ticketUrl: text("ticket_url"),
+  imageUrl: text("image_url"),
+  firstSeenAt: timestamp("first_seen_at").defaultNow(),
+  notifiedAt: timestamp("notified_at"),
+}, (t) => ({
+  userEventUnique: unique("wishlist_matches_user_event").on(t.userId, t.ticketmasterEventId),
+}));
+
+export const insertWishlistEventMatchSchema = createInsertSchema(wishlistEventMatches).pick({
+  userId: true,
+  travelPlanId: true,
+  wishlistItemId: true,
+  artistName: true,
+  eventName: true,
+  venueName: true,
+  city: true,
+  country: true,
+  eventStartAt: true,
+  ticketmasterEventId: true,
+  ticketUrl: true,
+  imageUrl: true,
+});
+
+export type WishlistEventMatch = typeof wishlistEventMatches.$inferSelect;
+export type InsertWishlistEventMatch = z.infer<typeof insertWishlistEventMatchSchema>;
 
 // Place lists — user-curated collections of saved places
 export const placeLists = pgTable("place_lists", {
