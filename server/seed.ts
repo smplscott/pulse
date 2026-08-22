@@ -6,6 +6,7 @@ import { db, pool } from "./db";
 import {
   users, artists, sets, songs, threads, trackIds, followedArtists, threadFollows,
   notifications, places, placeComments, placeReviews, shows, showReviews, showComments,
+  userShowWishlist, userTravelPlans,
 } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
@@ -317,6 +318,28 @@ async function seed() {
       upvotes: 31, savesCount: 19, commentsCount: 77, recommendationsCount: 0, createdAt: daysAgo(1),
     },
   ]);
+
+  // Wishlist + upcoming trip for Ticketmaster matching beta
+  await db.insert(userShowWishlist).values([
+    { userId: user.id, artistName: "Bicep", spotifyImageUrl: null, createdAt: daysAgo(2) },
+    { userId: user.id, artistName: "Four Tet", spotifyImageUrl: null, createdAt: daysAgo(1) },
+  ]);
+  const inSixMonths = new Date();
+  inSixMonths.setMonth(inSixMonths.getMonth() + 6);
+  const tripStart = new Date(inSixMonths.getFullYear(), inSixMonths.getMonth(), 1);
+  const tripEnd = new Date(inSixMonths.getFullYear(), inSixMonths.getMonth() + 1, 0);
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  await db.insert(userTravelPlans).values({
+    userId: user.id,
+    city: "London",
+    country: "UK",
+    targetDate: `${months[tripStart.getMonth()]} ${tripStart.getFullYear()}`,
+    startDate: iso(tripStart),
+    endDate: iso(tripEnd),
+    note: "Seed trip for wishlist matching",
+    createdAt: daysAgo(1),
+  });
 
   console.log("Seed complete.");
   await pool.end();

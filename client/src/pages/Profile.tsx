@@ -10,13 +10,13 @@ import { Button } from "@/components/ui/button";
 import {
   MessageSquare, Music2, MapPin, Edit, Mic,
   Plus, Plane, Star, Trash2, ChevronRight,
-  CalendarDays, Bookmark, MoreHorizontal, UserCheck, List,
+  CalendarDays, Bookmark, MoreHorizontal, UserCheck, List, Ticket,
 } from "lucide-react";
 import ThreadCard from "@/components/cards/ThreadCard";
 import { useAuth } from "@/context/AuthContext";
-import { Thread, Place, Show, ShowReview, UserTravelPlan, UserShowWishlistItem } from "@shared/schema";
+import { Thread, Place, Show, ShowReview, UserTravelPlan, UserShowWishlistItem, WishlistEventMatch } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SpotifyArtist {
@@ -191,7 +191,8 @@ export default function Profile() {
 
   const [tpCity, setTpCity] = useState("");
   const [tpCountry, setTpCountry] = useState("");
-  const [tpDate, setTpDate] = useState("");
+  const [tpStart, setTpStart] = useState(""); // YYYY-MM-DD
+  const [tpEnd, setTpEnd] = useState("");
   const [wlArtist, setWlArtist] = useState("");
   const [wlArtistQuery, setWlArtistQuery] = useState("");
   const [wlSpotifyImageUrl, setWlSpotifyImageUrl] = useState<string | null>(null);
@@ -235,6 +236,21 @@ export default function Profile() {
     enabled: activeSection === "shows" && !!userId,
   });
 
+  const { data: wishlistMatches, isLoading: isLoadingMatches } = useQuery<WishlistEventMatch[]>({
+    queryKey: [`/api/users/${userId}/wishlist-matches`],
+    enabled: !!userId && isOwnProfile && (activeSection === "places" || activeSection === "shows"),
+  });
+
+  const matchesByPlan = useMemo(() => {
+    const map = new Map<number, WishlistEventMatch[]>();
+    for (const m of wishlistMatches ?? []) {
+      const list = map.get(m.travelPlanId) ?? [];
+      list.push(m);
+      map.set(m.travelPlanId, list);
+    }
+    return map;
+  }, [wishlistMatches]);
+
   const genres = profileUser?.favoriteGenres ?? [];
 
   const { data: wlSpotifyData, isFetching: wlSpotifySearching } = useQuery<{
@@ -270,10 +286,20 @@ export default function Profile() {
   };
 
   const addTravelPlan = useMutation({
-    mutationFn: () => apiRequest("POST", `/api/users/${userId}/travel-plans`, { city: tpCity, country: tpCountry, targetDate: tpDate }),
+    mutationFn: () =>
+      apiRequest("POST", `/api/users/${userId}/travel-plans`, {
+        city: tpCity.trim(),
+        country: tpCountry.trim(),
+        startDate: tpStart,
+        endDate: tpEnd || tpStart,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
-      setTpCity(""); setTpCountry(""); setTpDate("");
+      setTpCity("");
+      setTpCountry("");
+      setTpStart("");
+      setTpEnd("");
+      toast({ title: "Trip added — we'll scan Ticketmaster weekly for wishlist artists" });
     },
     onError: () => toast({ title: "Failed to add plan", variant: "destructive" }),
   });
@@ -562,17 +588,25 @@ export default function Profile() {
                           <Input placeholder="City" value={tpCity} onChange={e => setTpCity(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9" />
                           <Input placeholder="Country" value={tpCountry} onChange={e => setTpCountry(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9" />
                         </div>
-                        <div className="flex gap-2">
-                          <Input placeholder="When (e.g. Aug 2026)" value={tpDate} onChange={e => setTpDate(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9 flex-1" />
-                          <Button
-                            size="sm"
-                            className="green-gradient text-black font-semibold h-9 px-4 flex-shrink-0"
-                            onClick={() => addTravelPlan.mutate()}
-                            disabled={!tpCity.trim() || !tpCountry.trim() || !tpDate.trim() || addTravelPlan.isPending}
-                          >
-                            Add
-                          </Button>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          <div>
+                            <p className="text-[10px] text-[#666] mb-1">Start</p>
+                            <Input type="date" value={tpStart} onChange={e => setTpStart(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-[#666] mb-1">End</p>
+                            <Input type="date" value={tpEnd} onChange={e => setTpEnd(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9" />
+                          </div>
                         </div>
+                        <Button
+                          size="sm"
+                          className="green-gradient text-black font-semibold h-9 px-4 w-full"
+                          onClick={() => addTravelPlan.mutate()}
+                          disabled={!tpCity.trim() || !tpCountry.trim() || !tpStart || addTravelPlan.isPending}
+                        >
+                          Add trip
+                        </Button>
+                        <p className="text-[10px] text-[#555] mt-2">We scan Ticketmaster weekly for Future Wishlist artists in this city during your dates.</p>
                       </div>
                     )}
                     {isLoadingPlans ? (
@@ -584,7 +618,13 @@ export default function Profile() {
                             <CalendarDays className="h-4 w-4 text-[#555] flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold">{plan.city}, {plan.country}</p>
-                              <p className="text-xs text-[#888] mt-0.5">{plan.targetDate}</p>
+                              <p className="text-xs text-[#888] mt-0.5">
+                                {plan.startDate && plan.endDate
+                                  ? plan.startDate === plan.endDate
+                                    ? plan.startDate
+                                    : `${plan.startDate} → ${plan.endDate}`
+                                  : plan.targetDate}
+                              </p>
                             </div>
                             {isOwnProfile && (
                               <button
@@ -604,6 +644,83 @@ export default function Profile() {
                         <p className="text-sm text-[#B3B3B3]">
                           {isOwnProfile ? "Add cities you're heading to for shows" : "No upcoming trips added"}
                         </p>
+                      </div>
+                    )}
+
+                    {isOwnProfile && (
+                      <div className="mt-6">
+                        <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                          <Ticket className="h-4 w-4 text-[#c2f970]" />
+                          Coming up for your trips
+                        </h3>
+                        <p className="text-[11px] text-[#666] mb-3">Wishlist artists with Ticketmaster listings during your travel dates</p>
+                        {isLoadingMatches ? (
+                          [1, 2].map(i => <Skeleton key={i} className="h-16 w-full mb-2" />)
+                        ) : !wishlistMatches || wishlistMatches.length === 0 ? (
+                          <div className="bg-[#181818] rounded-lg p-6 text-center">
+                            <p className="text-sm text-[#B3B3B3]">No matches yet</p>
+                            <p className="text-xs text-[#555] mt-1">Add a wishlist artist and a trip — we scan weekly</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {(travelPlans ?? []).map(plan => {
+                              const events = matchesByPlan.get(plan.id) ?? [];
+                              if (events.length === 0) return null;
+                              return (
+                                <div key={plan.id}>
+                                  <p className="text-xs font-medium text-[#888] mb-2">
+                                    {plan.city} · {plan.targetDate}
+                                  </p>
+                                  <div className="space-y-2">
+                                    {events.map(ev => (
+                                      <a
+                                        key={ev.id}
+                                        href={ev.ticketUrl || "#"}
+                                        target={ev.ticketUrl ? "_blank" : undefined}
+                                        rel="noreferrer"
+                                        className="bg-[#181818] rounded-lg px-3 py-3 flex gap-3 hover:bg-[#1e1e1e] transition block"
+                                      >
+                                        {ev.imageUrl ? (
+                                          <img src={ev.imageUrl} alt="" className="w-12 h-12 rounded object-cover flex-shrink-0" />
+                                        ) : (
+                                          <div className="w-12 h-12 rounded bg-[#252525] flex items-center justify-center flex-shrink-0">
+                                            <Ticket className="h-5 w-5 text-[#555]" />
+                                          </div>
+                                        )}
+                                        <div className="min-w-0 flex-1">
+                                          <p className="text-sm font-semibold text-white truncate">{ev.artistName}</p>
+                                          <p className="text-xs text-[#B3B3B3] truncate">{ev.eventName}</p>
+                                          <p className="text-[11px] text-[#666] mt-0.5">
+                                            {[ev.venueName, ev.eventStartAt ? new Date(ev.eventStartAt).toLocaleDateString() : null]
+                                              .filter(Boolean)
+                                              .join(" · ")}
+                                          </p>
+                                        </div>
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {/* Orphan matches if plan deleted */}
+                            {(wishlistMatches ?? [])
+                              .filter(m => !(travelPlans ?? []).some(p => p.id === m.travelPlanId))
+                              .map(ev => (
+                                <a
+                                  key={ev.id}
+                                  href={ev.ticketUrl || "#"}
+                                  target={ev.ticketUrl ? "_blank" : undefined}
+                                  rel="noreferrer"
+                                  className="bg-[#181818] rounded-lg px-3 py-3 flex gap-3 hover:bg-[#1e1e1e] block"
+                                >
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-semibold">{ev.artistName}</p>
+                                    <p className="text-xs text-[#B3B3B3]">{ev.eventName}</p>
+                                  </div>
+                                </a>
+                              ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

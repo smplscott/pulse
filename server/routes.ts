@@ -6,8 +6,19 @@ import { storage } from "./storage-db";
 import { z } from "zod";
 import { insertUserSchema, insertArtistSchema, insertThreadSchema, insertCommentSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema, insertUserTravelPlanSchema, insertUserShowWishlistSchema, artistResponseSchema, songResponseSchema, musicSetResponseSchema, insertPlaceListSchema, insertPlaceListItemSchema } from "@shared/schema";
 import type { Artist, Song, MusicSet, ArtistResponse, SongResponse, MusicSetResponse, Badge } from "@shared/schema";
+import { scanWishlistMatches } from "./jobs/scanWishlistMatches";
 
 // ─── Runtime normalization helpers ───────────────────────────────────────────
+
+function formatTripLabel(startDate: string, endDate: string): string {
+  const fmt = (iso: string) => {
+    const [y, m] = iso.split("-").map(Number);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[(m || 1) - 1]} ${y}`;
+  };
+  if (startDate.slice(0, 7) === endDate.slice(0, 7)) return fmt(startDate);
+  return `${fmt(startDate)} – ${fmt(endDate)}`;
+}
 // These coerce jsonb fields to their expected shapes, then validate against the
 // Zod response schemas.  Element-level filtering removes entries that don't fit
 // the declared type (e.g. non-string genres, malformed streaming links).
@@ -1348,11 +1359,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schema = z.object({
         city: z.string().min(1, "City is required").max(100),
         country: z.string().min(1, "Country is required").max(100),
-        targetDate: z.string().min(1, "Date is required").max(50),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD"),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be YYYY-MM-DD"),
+        targetDate: z.string().max(50).optional(),
         note: z.string().max(200).optional(),
       });
-      const { city, country, targetDate, note } = schema.parse(req.body);
-      const plan = await storage.createUserTravelPlan({ userId: id, city, country, targetDate, note });
+      const body = schema.parse(req.body);
+      if (body.endDate < body.startDate) {
+        return res.status(400).json({ message: "endDate must be on or after startDate" });
+      }
+      const targetDate = body.targetDate?.trim() || formatTripLabel(body.startDate, body.endDate);
+      const plan = await storage.createUserTravelPlan({
+        userId: id,
+        city: body.city,
+        country: body.country,
+        targetDate,
+        startDate: body.startDate,
+        endDate: body.endDate,
+        note: body.note,
+      });
       return res.status(201).json(plan);
     } catch (error) {
       if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
@@ -1503,6 +1528,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (isNaN(placeId)) return res.status(400).json({ message: "Invalid place ID" });
     const result = await storage.isPlaceInAnyList(id, placeId);
     return res.json(result);
+  });
+
+  app.get("/api/users/:id/wishlist-matches", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    const matches = await storage.getUserWishlistMatches(id);
+    return res.json(matches);
+  });
+
+  // Weekly Ticketmaster scan — Railway cron / manual ops
+  app.post("/api/internal/jobs/scan-wishlist-matches", async (req: Request, res: Response) => {
+    const secret = process.env.CRON_SECRET;
+    const header = req.header("x-cron-secret") || req.header("authorization")?.replace(/^Bearer\s+/i, "");
+    if (!secret || header !== secret) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    try {
+      const result = await scanWishlistMatches();
+      return res.json(result);
+    } catch (err) {
+      console.error("[scan-wishlist-matches]", err);
+      return res.status(500).json({ message: "Scan failed" });
+    }
   });
 
   const httpServer = createServer(app);

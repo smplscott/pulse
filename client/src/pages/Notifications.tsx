@@ -1,11 +1,12 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Bell, MessageCircle, Bookmark, CheckCheck, ChevronLeft } from "lucide-react";
+import { Bell, MessageCircle, Bookmark, CheckCheck, ChevronLeft, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/context/AuthContext";
 import type { Notification as AppNotification } from "@shared/schema";
 
 function timeAgo(date: string | Date | null): string {
@@ -19,6 +20,7 @@ function timeAgo(date: string | Date | null): string {
 }
 
 export default function Notifications() {
+  const { user } = useAuth();
   const { data: notifications, isLoading } = useQuery<AppNotification[]>({
     queryKey: ["/api/notifications"],
   });
@@ -83,40 +85,62 @@ export default function Notifications() {
           <div className="text-center py-16">
             <Bell className="h-12 w-12 text-[#3E3E3E] mx-auto mb-4" />
             <p className="text-[#B3B3B3] text-sm">No notifications yet</p>
-            <p className="text-[#666] text-xs mt-1">Activity on your threads will appear here</p>
+            <p className="text-[#666] text-xs mt-1">Thread activity and wishlist show matches appear here</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {notifications.map(n => (
-              <Link key={n.id} href={`/thread/${n.threadId}`}>
-                <div
-                  onClick={() => !n.read && markRead.mutate(n.id)}
-                  className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition ${
-                    n.read ? "bg-[#181818] hover:bg-[#1e1e1e]" : "bg-[#180e24] hover:bg-[#1e1230] border border-[#b388eb]/20"
-                  }`}
-                >
-                  <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    n.type === "comment" ? "bg-[#b388eb]/20" : "bg-emerald-500/20"
-                  }`}>
-                    {n.type === "comment"
-                      ? <MessageCircle className="h-4 w-4 text-[#b388eb]" />
-                      : <Bookmark className="h-4 w-4 text-emerald-400" />
-                    }
+            {notifications.map(n => {
+              const isMatch = n.type === "wishlist_match";
+              const href = isMatch
+                ? `/profile/${user?.username || ""}`
+                : `/thread/${n.threadId}`;
+              return (
+                <Link key={n.id} href={href}>
+                  <div
+                    onClick={() => !n.read && markRead.mutate(n.id)}
+                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition ${
+                      n.read ? "bg-[#181818] hover:bg-[#1e1e1e]" : "bg-[#180e24] hover:bg-[#1e1230] border border-[#b388eb]/20"
+                    }`}
+                  >
+                    <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      n.type === "comment"
+                        ? "bg-[#b388eb]/20"
+                        : isMatch
+                          ? "bg-[#c2f970]/15"
+                          : "bg-emerald-500/20"
+                    }`}>
+                      {n.type === "comment" ? (
+                        <MessageCircle className="h-4 w-4 text-[#b388eb]" />
+                      ) : isMatch ? (
+                        <Ticket className="h-4 w-4 text-[#c2f970]" />
+                      ) : (
+                        <Bookmark className="h-4 w-4 text-emerald-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white leading-snug">
+                        {isMatch ? (
+                          <>
+                            <span className="font-semibold">Wishlist match</span>
+                            <span className="text-[#B3B3B3]"> — {n.threadTitle}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-semibold">{n.actorUsername}</span>
+                            {n.type === "comment" ? " commented on " : " saved "}
+                            <span className="text-[#B3B3B3] italic">"{n.threadTitle}"</span>
+                          </>
+                        )}
+                      </p>
+                      <p className="text-xs text-[#666] mt-0.5">{timeAgo(n.createdAt)}</p>
+                    </div>
+                    {!n.read && (
+                      <div className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full bg-[#c2f970]" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white leading-snug">
-                      <span className="font-semibold">{n.actorUsername}</span>
-                      {n.type === "comment" ? " commented on " : " saved "}
-                      <span className="text-[#B3B3B3] italic">"{n.threadTitle}"</span>
-                    </p>
-                    <p className="text-xs text-[#666] mt-0.5">{timeAgo(n.createdAt)}</p>
-                  </div>
-                  {!n.read && (
-                    <div className="flex-shrink-0 mt-1.5 w-2 h-2 rounded-full bg-[#c2f970]" />
-                  )}
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </main>
