@@ -4,7 +4,7 @@ import {
   users, artists, threads, comments, sets, songs, songRecommendations,
   trackIds, trackIdVotes, followedArtists, threadFollows, notifications,
   places, placeReviews, placeComments, placeLists, placeListItems,
-  shows, showReviews, showComments, userTravelPlans, userShowWishlist,
+  shows, showReviews, showComments, userTravelPlans, userShowWishlist, wishlistEventMatches,
 } from "@shared/schema";
 import type {
   User, InsertUser,
@@ -26,6 +26,7 @@ import type {
   ShowComment, InsertShowComment,
   UserTravelPlan, InsertUserTravelPlan,
   UserShowWishlistItem, InsertUserShowWishlistItem,
+  WishlistEventMatch, InsertWishlistEventMatch,
   PlaceList, InsertPlaceList,
   PlaceListItem, InsertPlaceListItem,
 } from "@shared/schema";
@@ -391,6 +392,17 @@ export class DbStorage implements IStorage {
   }
 
   async addToShowWishlist(item: InsertUserShowWishlistItem): Promise<UserShowWishlistItem> {
+    const existing = await db
+      .select()
+      .from(userShowWishlist)
+      .where(
+        and(
+          eq(userShowWishlist.userId, item.userId),
+          sql`lower(${userShowWishlist.artistName}) = ${item.artistName.toLowerCase()}`,
+        ),
+      )
+      .limit(1);
+    if (existing[0]) return existing[0];
     const [row] = await db.insert(userShowWishlist).values(item).returning();
     return row;
   }
@@ -403,6 +415,19 @@ export class DbStorage implements IStorage {
     await db
       .delete(userShowWishlist)
       .where(and(eq(userShowWishlist.userId, userId), sql`lower(${userShowWishlist.artistName}) = ${artistName.toLowerCase()}`));
+  }
+
+  async getUserWishlistMatches(userId: number): Promise<WishlistEventMatch[]> {
+    return db
+      .select()
+      .from(wishlistEventMatches)
+      .where(eq(wishlistEventMatches.userId, userId))
+      .orderBy(asc(wishlistEventMatches.eventStartAt));
+  }
+
+  async createWishlistEventMatch(match: InsertWishlistEventMatch): Promise<WishlistEventMatch> {
+    const [row] = await db.insert(wishlistEventMatches).values(match).returning();
+    return row;
   }
 
   // ─── Place operations ───────────────────────────────────────────────────
