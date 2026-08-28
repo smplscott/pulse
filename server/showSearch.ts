@@ -1,5 +1,5 @@
 /**
- * Unified show search: Ticketmaster (primary) → Setlist.fm (fallback when empty).
+ * Unified show search: Ticketmaster (upcoming) + Setlist.fm (past), merged.
  */
 
 import { searchEventsByArtist } from "./ticketmaster";
@@ -22,8 +22,12 @@ type SetlistFmSetlist = {
   eventDate: string;
 };
 
+const SETLIST_HEADERS = {
+  Accept: "application/json",
+  "User-Agent": "pulse/1.0 (https://github.com/smplscott/pulse)",
+} as const;
+
 function normalizeSetlistDate(eventDate: string): string {
-  // Setlist.fm uses dd-MM-yyyy; Pulse stores yyyy-MM-dd
   if (!eventDate) return "";
   const parts = eventDate.split("-");
   if (parts.length === 3 && parts[0].length === 2) {
@@ -32,10 +36,71 @@ function normalizeSetlistDate(eventDate: string): string {
   return eventDate;
 }
 
+function dedupeKey(r: ShowSearchResult): string {
+  return [
+    r.setlistfmId,
+    r.artistName.trim().toLowerCase(),
+    r.venueName.trim().toLowerCase(),
+    r.eventDate,
+  ].join("|");
+}
+
+function parseEventDate(iso: string): number {
+  if (!iso) return 0;
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? 0 : t;
+}
+
+/** Upcoming first (soonest), then past (most recent). */
+function sortShowResults(results: ShowSearchResult[]): ShowSearchResult[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayMs = today.getTime();
+
+  return [...results].sort((a, b) => {
+    const aMs = parseEventDate(a.eventDate);
+    const bMs = parseEventDate(b.eventDate);
+    const aFuture = aMs >= todayMs;
+    const bFuture = bMs >= todayMs;
+
+    if (aFuture && bFuture) return aMs - bMs;
+    if (aFuture) return -1;
+    if (bFuture) return 1;
+    return bMs - aMs;
+  });
+}
+
+function mergeResults(
+  tmResults: ShowSearchResult[],
+  setlistResults: ShowSearchResult[],
+  limit: number,
+): ShowSearchResult[] {
+  const seen = new Set<string>();
+  const merged: ShowSearchResult[] = [];
+
+  // Ticketmaster first — upcoming ticketed events
+  for (const r of tmResults) {
+    const key = dedupeKey(r);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(r);
+  }
+
+  // Setlist.fm fills past coverage (and any gaps TM missed)
+  for (const r of setlistResults) {
+    const key = dedupeKey(r);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(r);
+  }
+
+  return sortShowResults(merged).slice(0, limit);
+}
+
 async function searchSetlistFm(artist: string, apiKey: string): Promise<ShowSearchResult[]> {
   const url = `https://api.setlist.fm/rest/1.0/search/setlists?artistName=${encodeURIComponent(artist)}&p=1`;
   const response = await fetch(url, {
-    headers: { "x-api-key": apiKey, Accept: "application/json" },
+    headers: { "x-api-key": apiKey, ...SETLIST_HEADERS },
   });
   if (!response.ok) {
     console.warn("[showSearch] Setlist.fm API error", response.status);
@@ -53,7 +118,10 @@ async function searchSetlistFm(artist: string, apiKey: string): Promise<ShowSear
   }));
 }
 
-/** Search shows for an artist. TM first; Setlist.fm when TM is empty and key is set. */
+/**
+ * Search shows for an artist using both APIs when configured.
+ * Ticketmaster covers upcoming events; Setlist.fm adds past concert history.
+ */
 export async function searchShowsByArtist(artist: string, limit = 20): Promise<{
   results: ShowSearchResult[];
   sources: ("ticketmaster" | "setlistfm")[];
@@ -61,29 +129,25 @@ export async function searchShowsByArtist(artist: string, limit = 20): Promise<{
   const trimmed = artist.trim();
   if (!trimmed) return { results: [], sources: [] };
 
-  const tmResults = await searchEventsByArtist({ keyword: trimmed, size: limit });
-  if (tmResults.length > 0) {
-    return {
-      results: tmResults.slice(0, limit),
-      sources: ["ticketmaster"],
-    };
-  }
-
   const setlistKey = process.env.SETLISTFM_API_KEY;
-  if (!setlistKey) {
-    return { results: [], sources: [] };
-  }
+  const hasTm = !!process.env.TICKETMASTER_API_KEY;
 
-  try {
-    const setlistResults = await searchSetlistFm(trimmed, setlistKey);
-    return {
-      results: setlistResults.slice(0, limit),
-      sources: ["setlistfm"],
-    };
-  } catch (err) {
-    console.warn("[showSearch] Setlist.fm search failed:", err);
-    return { results: [], sources: [] };
-  }
+  const [tmResults, setlistResults] = await Promise.all([
+    hasTm ? searchEventsByArtist({ keyword: trimmed, size: limit }) : Promise.resolve([]),
+    setlistKey ? searchSetlistFm(trimmed, setlistKey).catch((err) => {
+      console.warn("[showSearch] Setlist.fm search failed:", err);
+      return [];
+    }) : Promise.resolve([]),
+  ]);
+
+  const sources: ("ticketmaster" | "setlistfm")[] = [];
+  if (tmResults.length > 0) sources.push("ticketmaster");
+  if (setlistResults.length > 0) sources.push("setlistfm");
+
+  return {
+    results: mergeResults(tmResults, setlistResults, limit),
+    sources,
+  };
 }
 
 /** Global search helper — returns show hits only (no source metadata). */

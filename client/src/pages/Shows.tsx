@@ -158,11 +158,13 @@ export default function Shows() {
 
   const noApiKey = searchData?.error?.includes("not configured") || searchData?.error?.includes("No show search");
   const setlistResults = searchData?.results ?? [];
-  const searchSourceLabel = searchData?.sources?.includes("ticketmaster")
-    ? "Ticketmaster"
-    : searchData?.sources?.includes("setlistfm")
-      ? "Setlist.fm"
-      : "Live search";
+  const searchSourceLabel = (() => {
+    const s = searchData?.sources ?? [];
+    if (s.includes("ticketmaster") && s.includes("setlistfm")) return "Ticketmaster + Setlist.fm";
+    if (s.includes("ticketmaster")) return "Ticketmaster";
+    if (s.includes("setlistfm")) return "Setlist.fm";
+    return "Live search";
+  })();
   const isSearching = searchQuery.length >= 2;
 
   const allCities = Array.from(new Set((shows ?? []).map(s => s.city))).sort();
