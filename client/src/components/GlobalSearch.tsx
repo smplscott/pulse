@@ -8,7 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 
 interface SpotifyArtist { spotifyId: string; name: string; imageUrl: string | null; genres: string[]; }
-interface SetlistShow { setlistfmId: string; artistName: string; venueName: string; city: string; country: string; eventDate: string; }
+interface SetlistShow { setlistfmId: string; artistName: string; venueName: string; city: string; country: string; eventDate: string; source?: "ticketmaster" | "setlistfm"; }
 interface SpotifyAlbum { spotifyId: string; name: string; imageUrl: string | null; releaseYear: string; artistName: string; artistSpotifyId: string; }
 interface LocalPlace { id: number; name: string; city: string; country: string; category: string; }
 interface SearchResults { artists: SpotifyArtist[]; shows: SetlistShow[]; albums: SpotifyAlbum[]; places: LocalPlace[]; }

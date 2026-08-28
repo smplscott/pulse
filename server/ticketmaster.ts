@@ -133,6 +133,86 @@ export interface SearchEventsParams {
   endDate: string;
 }
 
+export interface SearchEventsByArtistParams {
+  keyword: string;
+  /** ISO date YYYY-MM-DD — defaults to 10 years ago */
+  startDate?: string;
+  /** ISO date YYYY-MM-DD — defaults to 18 months from now */
+  endDate?: string;
+  size?: number;
+}
+
+function formatIsoDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function tmEventToShowResult(event: TicketmasterEvent, artistFallback: string) {
+  const artistName =
+    event.attractionNames.find((n) => n.toLowerCase().includes(artistFallback.toLowerCase()))
+    ?? event.attractionNames[0]
+    ?? artistFallback;
+  const eventDate = event.startDateTime
+    ? formatIsoDate(event.startDateTime)
+    : "";
+  return {
+    setlistfmId: `tm:${event.id}`,
+    artistName,
+    venueName: event.venueName ?? "Unknown Venue",
+    city: event.city ?? "",
+    country: event.country ?? "",
+    eventDate,
+    source: "ticketmaster" as const,
+    url: event.url,
+  };
+}
+
+/**
+ * Search Ticketmaster events by artist/keyword without requiring a city.
+ * Covers upcoming ticketed shows; past coverage is limited vs Setlist.fm.
+ */
+export async function searchEventsByArtist(
+  params: SearchEventsByArtistParams,
+  apiKey = process.env.TICKETMASTER_API_KEY,
+): Promise<ReturnType<typeof tmEventToShowResult>[]> {
+  if (!apiKey) return [];
+
+  const now = new Date();
+  const start = params.startDate ?? formatIsoDate(new Date(now.getFullYear() - 10, 0, 1));
+  const end = params.endDate ?? formatIsoDate(new Date(now.getFullYear() + 1, now.getMonth() + 6, 1));
+  const size = params.size ?? 20;
+
+  const url = new URL(`${TM_BASE}/events.json`);
+  url.searchParams.set("apikey", apiKey);
+  url.searchParams.set("keyword", params.keyword);
+  url.searchParams.set("startDateTime", `${start}T00:00:00Z`);
+  url.searchParams.set("endDateTime", `${end}T23:59:59Z`);
+  url.searchParams.set("size", String(size));
+  url.searchParams.set("sort", "date,desc");
+  url.searchParams.set("classificationSegment", "Music");
+
+  const res = await fetch(url.toString());
+  if (res.status === 429) {
+    await sleep(1000);
+    const retry = await fetch(url.toString());
+    if (!retry.ok) return [];
+    const data = await retry.json() as { _embedded?: { events?: TmEventRaw[] } };
+    return (data._embedded?.events ?? [])
+      .map(normalizeEvent)
+      .filter((e) => e.isMusic && eventMatchesArtist(e, params.keyword))
+      .map((e) => tmEventToShowResult(e, params.keyword));
+  }
+  if (!res.ok) {
+    console.warn("[ticketmaster] artist search failed", res.status);
+    return [];
+  }
+
+  const data = await res.json() as { _embedded?: { events?: TmEventRaw[] } };
+  return (data._embedded?.events ?? [])
+    .map(normalizeEvent)
+    .filter((e) => e.isMusic && eventMatchesArtist(e, params.keyword))
+    .map((e) => tmEventToShowResult(e, params.keyword));
+}
+
 /**
  * Search Ticketmaster events. Throttles ~5 req/s via optional pre-call delay
  * when `throttleMs` is set by the caller between requests.

@@ -368,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(normalizeSong(song));
   });
   
-  // Global search — aggregates Spotify artists, Setlist.fm shows, Spotify albums, local places
+  // Global search — aggregates Spotify artists, shows (TM → Setlist.fm), Spotify albums, local places
   app.get("/api/search", async (req: Request, res: Response) => {
     const q = ((req.query.q as string) || "").trim();
     const type = (req.query.type as string) || "all";
@@ -379,11 +379,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
 
     const token = await getSpotifyToken();
-    const setlistKey = process.env.SETLISTFM_API_KEY;
 
     type SpotifyArtistItem = { id: string; name: string; images: Array<{ url: string }>; genres: string[] };
     type SpotifyAlbumItem = { id: string; name: string; images: Array<{ url: string }>; release_date: string; artists: Array<{ id: string; name: string }> };
-    type SetlistFmSetlist = { id: string; artist: { name: string }; venue: { name: string; city: { name: string; country: { name: string } } }; eventDate: string };
 
     await Promise.allSettled([
       // Spotify artists
@@ -397,20 +395,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }).catch(err => console.warn("[search] Spotify artist search failed:", err))
         : Promise.resolve(),
 
-      // Setlist.fm shows
-      (type === "all" || type === "shows") && setlistKey
-        ? fetch(`https://api.setlist.fm/rest/1.0/search/setlists?artistName=${encodeURIComponent(q)}&p=1`, {
-            headers: { "x-api-key": setlistKey, Accept: "application/json" },
-          }).then(r => r.json()).then((data: { setlist?: SetlistFmSetlist[] }) => {
-            results.shows = (data.setlist || []).slice(0, 6).map(s => ({
-              setlistfmId: s.id,
-              artistName: s.artist?.name ?? q,
-              venueName: s.venue?.name ?? "Unknown Venue",
-              city: s.venue?.city?.name ?? "",
-              country: s.venue?.city?.country?.name ?? "",
-              eventDate: s.eventDate ? s.eventDate.split("-").reverse().join("-") : "",
-            }));
-          }).catch(err => console.warn("[search] Setlist.fm search failed:", err))
+      // Shows — Ticketmaster primary, Setlist.fm fallback
+      (type === "all" || type === "shows")
+        ? import("./showSearch").then(({ searchShowsForQuery }) =>
+            searchShowsForQuery(q, 6).then(shows => { results.shows = shows; })
+          ).catch(err => console.warn("[search] Show search failed:", err))
         : Promise.resolve(),
 
       // Spotify albums
@@ -1037,43 +1026,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch { return res.json({ error: "Failed to fetch album from Spotify", album: null }); }
   });
 
-  // Setlist.fm proxy
+  // Show search proxy — Ticketmaster primary, Setlist.fm fallback (legacy path name kept)
   app.get("/api/setlistfm/search", async (req: Request, res: Response) => {
     const artist = (req.query.artist as string || "").trim();
-    if (!artist) return res.json({ results: [] });
-    const apiKey = process.env.SETLISTFM_API_KEY;
-    if (!apiKey) {
-      return res.json({ error: "SETLISTFM_API_KEY not configured", results: [] });
-    }
-    try {
-      const url = `https://api.setlist.fm/rest/1.0/search/setlists?artistName=${encodeURIComponent(artist)}&p=1`;
-      const response = await fetch(url, {
-        headers: { "x-api-key": apiKey, "Accept": "application/json" },
+    if (!artist) return res.json({ results: [], sources: [] });
+
+    const hasTm = !!process.env.TICKETMASTER_API_KEY;
+    const hasSetlist = !!process.env.SETLISTFM_API_KEY;
+    if (!hasTm && !hasSetlist) {
+      return res.json({
+        error: "No show search API configured (set TICKETMASTER_API_KEY and/or SETLISTFM_API_KEY)",
+        results: [],
+        sources: [],
       });
-      if (!response.ok) {
-        return res.json({ error: "Setlist.fm API error", results: [] });
-      }
-      const data = await response.json() as {
-        setlist?: Array<{
-          id: string;
-          artist: { name: string };
-          venue: { name: string; city: { name: string; country: { name: string } } };
-          eventDate: string;
-        }>;
-      };
-      const results = (data.setlist || []).map(s => ({
-        setlistfmId: s.id,
-        artistName: s.artist?.name ?? artist,
-        venueName: s.venue?.name ?? "Unknown Venue",
-        city: s.venue?.city?.name ?? "",
-        country: s.venue?.city?.country?.name ?? "",
-        eventDate: s.eventDate
-          ? s.eventDate.split("-").reverse().join("-")
-          : "",
-      }));
-      return res.json({ results });
+    }
+
+    try {
+      const { searchShowsByArtist } = await import("./showSearch");
+      const { results, sources } = await searchShowsByArtist(artist, 20);
+      return res.json({ results, sources });
     } catch {
-      return res.json({ error: "Failed to fetch from Setlist.fm", results: [] });
+      return res.json({ error: "Failed to search for shows", results: [], sources: [] });
     }
   });
 

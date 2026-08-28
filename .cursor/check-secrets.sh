@@ -4,14 +4,14 @@ set -euo pipefail
 required=(
   DATABASE_URL
   SESSION_SECRET
-)
-
-optional=(
+  CRON_SECRET
   SPOTIFY_CLIENT_ID
   SPOTIFY_CLIENT_SECRET
   TICKETMASTER_API_KEY
+)
+
+optional=(
   SETLISTFM_API_KEY
-  CRON_SECRET
 )
 
 missing_required=0
@@ -30,7 +30,7 @@ for name in "${required[@]}"; do
 done
 
 echo
-echo "API keys (optional for boot; required for full feature coverage)"
+echo "API keys (optional for boot; SETLISTFM is fallback for past shows)"
 for name in "${optional[@]}"; do
   if [[ -n "${!name:-}" ]]; then
     echo "✓ $name"

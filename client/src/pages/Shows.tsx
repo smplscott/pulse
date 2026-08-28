@@ -25,6 +25,7 @@ interface SetlistFmResult {
   city: string;
   country: string;
   eventDate: string;
+  source?: "ticketmaster" | "setlistfm";
 }
 
 function formatDate(dateStr: string) {
@@ -58,7 +59,7 @@ function ShowCard({
             <div className="flex gap-1 flex-shrink-0">
               {!isLocal && (
                 <span className="text-[10px] bg-[#1a0d2e] text-[#b388eb] px-2 py-0.5 rounded-full">
-                  Setlist.fm
+                  {(show as SetlistFmResult).source === "ticketmaster" ? "Ticketmaster" : "Setlist.fm"}
                 </span>
               )}
               {isLocal && local?.isManual && (
@@ -126,6 +127,7 @@ export default function Shows() {
 
   const { data: searchData, isFetching: searchLoading } = useQuery<{
     results: SetlistFmResult[];
+    sources?: ("ticketmaster" | "setlistfm")[];
     error?: string;
   }>({
     queryKey: ["/api/setlistfm/search", searchQuery],
@@ -154,8 +156,13 @@ export default function Shows() {
     searchTimeoutRef.current = setTimeout(() => setSearchQuery(val.trim()), 500);
   };
 
-  const noApiKey = searchData?.error?.includes("not configured");
+  const noApiKey = searchData?.error?.includes("not configured") || searchData?.error?.includes("No show search");
   const setlistResults = searchData?.results ?? [];
+  const searchSourceLabel = searchData?.sources?.includes("ticketmaster")
+    ? "Ticketmaster"
+    : searchData?.sources?.includes("setlistfm")
+      ? "Setlist.fm"
+      : "Live search";
   const isSearching = searchQuery.length >= 2;
 
   const allCities = Array.from(new Set((shows ?? []).map(s => s.city))).sort();
@@ -252,14 +259,14 @@ export default function Shows() {
 
         {isSearching && (
           <div className="mb-6">
-            <p className="text-xs text-[#555] uppercase tracking-wider mb-2 font-medium">Setlist.fm results</p>
+            <p className="text-xs text-[#555] uppercase tracking-wider mb-2 font-medium">{searchSourceLabel} results</p>
             {noApiKey ? (
               <div className="bg-[#181818] rounded-xl p-4 flex items-start gap-3">
                 <AlertCircle className="h-4 w-4 text-[#555] flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-[#B3B3B3]">Setlist.fm API key not configured.</p>
+                  <p className="text-sm text-[#B3B3B3]">Show search not configured.</p>
                   <p className="text-xs text-[#555] mt-0.5">
-                    Add <code className="bg-[#282828] px-1 rounded text-[#B3B3B3]">SETLISTFM_API_KEY</code> as a secret to enable live search.
+                    Add <code className="bg-[#282828] px-1 rounded text-[#B3B3B3]">TICKETMASTER_API_KEY</code> (primary) and optionally <code className="bg-[#282828] px-1 rounded text-[#B3B3B3]">SETLISTFM_API_KEY</code> for past shows.
                   </p>
                 </div>
               </div>
@@ -279,7 +286,7 @@ export default function Shows() {
               </div>
             ) : (
               <div className="bg-[#181818] rounded-xl p-4">
-                <p className="text-sm text-[#666]">No setlists found for "{searchQuery}".</p>
+                <p className="text-sm text-[#666]">No shows found for "{searchQuery}". Try another artist or add manually.</p>
                 <p className="text-xs text-[#555] mt-1">Use the + button to add a show manually.</p>
               </div>
             )}
