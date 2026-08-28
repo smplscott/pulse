@@ -57,6 +57,7 @@ interface SetlistShow {
   city: string;
   country: string;
   eventDate: string;
+  source?: "ticketmaster" | "setlistfm";
 }
 
 const threadFormSchema = z.object({
@@ -208,7 +209,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   });
 
   const { data: setlistData, isFetching: setlistSearching } = useQuery<{
-    results: SetlistShow[]; error?: string;
+    results: SetlistShow[]; sources?: ("ticketmaster" | "setlistfm")[]; error?: string;
   }>({
     queryKey: ["/api/setlistfm/search", artistDisplayName],
     queryFn: async () => {
@@ -595,7 +596,9 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 </div>
               )}
 
-              <p className="text-[10px] text-[#555] uppercase tracking-wider font-medium mb-2">Setlist.fm</p>
+              <p className="text-[10px] text-[#555] uppercase tracking-wider font-medium mb-2">
+                {setlistData?.sources?.includes("ticketmaster") ? "Ticketmaster" : setlistData?.sources?.includes("setlistfm") ? "Setlist.fm" : "Shows"}
+              </p>
 
               {setlistSearching && (
                 <div className="flex justify-center py-3">
@@ -606,7 +609,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
               {!setlistSearching && setlistData?.error?.includes("not configured") && (
                 <div className="flex items-start gap-2 bg-[#1e1e1e] border border-[#333] rounded-lg p-3 mb-3">
                   <AlertCircle className="h-4 w-4 text-[#555] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#666]">Setlist.fm not configured. Add manually below.</p>
+                  <p className="text-xs text-[#666]">Show search not configured. Add manually below.</p>
                 </div>
               )}
 
@@ -633,7 +636,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
               )}
 
               {!setlistSearching && !setlistData?.error && (setlistData?.results ?? []).length === 0 && (
-                <p className="text-xs text-[#555] mb-3">No results from Setlist.fm.</p>
+                <p className="text-xs text-[#555] mb-3">No shows found for this artist.</p>
               )}
 
               {!showManualForm ? (

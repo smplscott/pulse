@@ -47,6 +47,7 @@ interface SetlistShow {
   city: string;
   country: string;
   eventDate: string;
+  source?: "ticketmaster" | "setlistfm";
 }
 
 const formSchema = z.object({
@@ -149,6 +150,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
   const artistDisplayName = selectedArtist?.name || freeformArtist || "";
   const { data: setlistData, isFetching: setlistSearching } = useQuery<{
     results: SetlistShow[];
+    sources?: ("ticketmaster" | "setlistfm")[];
     error?: string;
   }>({
     queryKey: ["/api/setlistfm/search", artistDisplayName],
@@ -473,8 +475,10 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
               </div>
             )}
 
-            {/* Setlist.fm results */}
-            <p className="text-[10px] text-[#555] uppercase tracking-wider font-medium mb-2">Setlist.fm</p>
+            {/* Show search results (Ticketmaster → Setlist.fm fallback) */}
+            <p className="text-[10px] text-[#555] uppercase tracking-wider font-medium mb-2">
+              {setlistData?.sources?.includes("ticketmaster") ? "Ticketmaster" : setlistData?.sources?.includes("setlistfm") ? "Setlist.fm" : "Shows"}
+            </p>
             {setlistSearching && (
               <div className="flex justify-center py-3">
                 <div className="w-5 h-5 border-2 border-[#c2f970] border-t-transparent rounded-full animate-spin" />
@@ -483,7 +487,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
             {!setlistSearching && setlistData?.error?.includes("not configured") && (
               <div className="flex items-start gap-2 bg-[#1e1e1e] border border-[#3E3E3E] rounded-lg p-3 mb-3">
                 <AlertCircle className="h-4 w-4 text-[#555] flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-[#666]">Setlist.fm not configured. Add manually below.</p>
+                <p className="text-xs text-[#666]">Show search not configured. Add manually below.</p>
               </div>
             )}
             {!setlistSearching && !setlistData?.error && (setlistData?.results ?? []).length > 0 && (
@@ -504,7 +508,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
               </div>
             )}
             {!setlistSearching && !setlistData?.error && (setlistData?.results ?? []).length === 0 && (
-              <p className="text-xs text-[#555] mb-3">No results from Setlist.fm for this artist.</p>
+              <p className="text-xs text-[#555] mb-3">No shows found for this artist.</p>
             )}
 
             {/* Can't find it / manual entry */}
