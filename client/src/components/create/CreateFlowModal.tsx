@@ -678,6 +678,20 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 />
               </div>
 
+              {!artistInput.trim() && radarWishlist.length > 0 && (
+                <div className="mb-4 flex items-center gap-3 rounded-xl border border-[#c2f970]/25 bg-[#c2f970]/8 p-3">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#c2f970]/15">
+                    <Check className="h-4 w-4 text-[#c2f970]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">
+                      {radarWishlist.length} artist{radarWishlist.length === 1 ? "" : "s"} on your Radar
+                    </p>
+                    <p className="text-xs text-[#888]">Search to add another, or continue to your trip.</p>
+                  </div>
+                </div>
+              )}
+
               {spotifySearching && (
                 <div className="flex justify-center py-4">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#ff6fae] border-t-transparent" />
