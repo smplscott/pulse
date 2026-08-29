@@ -8,10 +8,11 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Place } from "@shared/schema";
+import type { Place, UserShowWishlistItem, UserTravelPlan } from "@shared/schema";
 import {
   X, ChevronLeft, Search, Music2, Ticket, Disc3,
-  MapPin, Calendar, Star, Plus, AlertCircle,
+  MapPin, Calendar, Star, Plus, AlertCircle, Radar as RadarIcon,
+  ArrowRight, Check, Plane, Sparkles,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,14 +26,17 @@ import ReviewImageUpload from "@/components/ReviewImageUpload";
 type FlowStep =
   | "root"
   | "artist"
-  | "type"
   | "show"
   | "album"
   | "thread_form"
   | "place_search"
-  | "place_form";
+  | "place_form"
+  | "radar_artist"
+  | "radar_trip"
+  | "radar_complete";
 
 type ThreadType = "live_show_review" | "album_review" | "topic";
+type CreateAction = "radar" | "place" | "show" | "album";
 
 interface SpotifyArtist {
   spotifyId: string;
@@ -130,6 +134,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
 
   // Step state
   const [step, setStep] = useState<FlowStep>("root");
+  const [selectedAction, setSelectedAction] = useState<CreateAction | null>(null);
 
   // Artist-path state
   const [artistInput, setArtistInput] = useState("");
@@ -150,6 +155,12 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   const [placeQuery, setPlaceQuery] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [placeRating, setPlaceRating] = useState(0);
+
+  // Radar-path state
+  const [radarCity, setRadarCity] = useState("");
+  const [radarCountry, setRadarCountry] = useState("");
+  const [radarStart, setRadarStart] = useState("");
+  const [radarEnd, setRadarEnd] = useState("");
 
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -172,12 +183,14 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
     onOpenChange(false);
     setTimeout(() => {
       setStep("root");
+      setSelectedAction(null);
       setArtistInput(""); setArtistQuery("");
       setSelectedArtist(null); setFreeformArtist(null);
       setSelectedType(null); setSelectedShow(null); setSelectedAlbum(null);
       setStarRating(0); setReviewImage(null); setShowManualForm(false);
       setManualShow({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
       setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0);
+      setRadarCity(""); setRadarCountry(""); setRadarStart(""); setRadarEnd("");
       threadForm.reset(); placeForm.reset();
     }, 300);
   }
@@ -233,6 +246,16 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   const { data: allPlaces } = useQuery<Place[]>({
     queryKey: ["/api/places"],
     enabled: step === "place_search",
+  });
+
+  const { data: radarWishlist = [] } = useQuery<UserShowWishlistItem[]>({
+    queryKey: [`/api/users/${user?.id}/show-wishlist`],
+    enabled: open && selectedAction === "radar" && !!user?.id,
+  });
+
+  const { data: radarTrips = [] } = useQuery<UserTravelPlan[]>({
+    queryKey: [`/api/users/${user?.id}/travel-plans`],
+    enabled: open && selectedAction === "radar" && !!user?.id,
   });
 
   const placeResults = placeQuery.trim().length >= 1
@@ -320,7 +343,66 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
 
+  const radarWishlistMutation = useMutation({
+    mutationFn: async (artist: SpotifyArtist | { name: string; imageUrl: null }) => {
+      if (!user) throw new Error("Sign in to use Radar");
+      const res = await apiRequest("POST", `/api/users/${user.id}/show-wishlist`, {
+        artistName: artist.name,
+        ...(artist.imageUrl ? { spotifyImageUrl: artist.imageUrl } : {}),
+      });
+      return res.json();
+    },
+    onSuccess: async () => {
+      if (user) {
+        await queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/show-wishlist`] });
+      }
+      setArtistInput("");
+      setArtistQuery("");
+      setSelectedArtist(null);
+      setFreeformArtist(null);
+      toast({ title: "Added to Radar", description: "Add another artist or continue to your trip." });
+    },
+    onError: (err: Error) =>
+      toast({ title: "Couldn't add artist", description: err.message, variant: "destructive" }),
+  });
+
+  const radarTripMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Sign in to use Radar");
+      const res = await apiRequest("POST", `/api/users/${user.id}/travel-plans`, {
+        city: radarCity.trim(),
+        country: radarCountry.trim(),
+        startDate: radarStart,
+        endDate: radarEnd || radarStart,
+      });
+      return res.json();
+    },
+    onSuccess: async () => {
+      if (user) {
+        await queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/travel-plans`] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/users/${user.id}/wishlist-matches`] });
+      }
+      setStep("radar_complete");
+    },
+    onError: (err: Error) =>
+      toast({ title: "Couldn't add trip", description: err.message, variant: "destructive" }),
+  });
+
   // ── Navigation helpers ────────────────────────────────────────────────────
+
+  function startAction(action: CreateAction) {
+    setSelectedAction(action);
+    if (action === "place") {
+      setStep("place_search");
+      return;
+    }
+    if (action === "radar") {
+      setStep("radar_artist");
+      return;
+    }
+    setSelectedType(action === "show" ? "live_show_review" : "album_review");
+    setStep("artist");
+  }
 
   function handleArtistInputChange(val: string) {
     setArtistInput(val);
@@ -329,49 +411,49 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   }
 
   function selectArtist(artist: SpotifyArtist) {
-    setSelectedArtist(artist); setFreeformArtist(null); setStep("type");
+    setSelectedArtist(artist);
+    setFreeformArtist(null);
+    setStep(selectedAction === "show" ? "show" : "album");
   }
 
   function proceedWithFreeform() {
     if (!artistInput.trim()) return;
-    setFreeformArtist(artistInput.trim()); setSelectedArtist(null); setStep("type");
-  }
-
-  function selectType(type: ThreadType) {
-    setSelectedType(type);
-    if (type === "live_show_review") setStep("show");
-    else if (type === "album_review") setStep("album");
-    else setStep("thread_form");
+    setFreeformArtist(artistInput.trim());
+    setSelectedArtist(null);
+    setStep(selectedAction === "show" ? "show" : "album");
   }
 
   function selectShow(show: SetlistShow) { setSelectedShow(show); setStep("thread_form"); }
   function selectAlbum(album: SpotifyAlbum) { setSelectedAlbum(album); setStep("thread_form"); }
 
   function handleBack() {
-    if (step === "artist" || step === "place_search") setStep("root");
-    else if (step === "type") { setStep("artist"); setSelectedArtist(null); setFreeformArtist(null); }
-    else if (step === "show") { setStep("type"); setSelectedShow(null); setShowManualForm(false); }
-    else if (step === "album") { setStep("type"); setSelectedAlbum(null); }
+    if (step === "artist" || step === "place_search" || step === "radar_artist") setStep("root");
+    else if (step === "show") { setStep("artist"); setSelectedArtist(null); setFreeformArtist(null); setSelectedShow(null); setShowManualForm(false); }
+    else if (step === "album") { setStep("artist"); setSelectedArtist(null); setFreeformArtist(null); setSelectedAlbum(null); }
     else if (step === "thread_form") {
       if (selectedType === "live_show_review") setStep("show");
       else if (selectedType === "album_review") setStep("album");
       else if (!selectedArtist && !freeformArtist) setStep("root");
-      else setStep("type");
+      else setStep("artist");
     }
     else if (step === "place_form") setStep("place_search");
+    else if (step === "radar_trip") setStep("radar_artist");
+    else if (step === "radar_complete") setStep("root");
   }
 
   const artistResults = spotifyData?.results ?? [];
 
   const stepTitle: Record<FlowStep, string> = {
-    root: "What are you adding?",
-    artist: "Find the artist",
-    type: "What type of thread?",
+    root: "What do you want to do?",
+    artist: selectedAction === "show" ? "Who did you see?" : "Choose the artist",
     show: "Which show?",
     album: "Which album?",
     thread_form: "Write your thread",
     place_search: "Find a place",
     place_form: "Add a place",
+    radar_artist: "Artists on your Radar",
+    radar_trip: "Where are you going?",
+    radar_complete: "Radar is on",
   };
 
   if (!open) return null;
@@ -415,43 +497,86 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
 
           {/* ── ROOT ── */}
           {step === "root" && (
-            <div className="space-y-3">
-              <button
-                onClick={() => setStep("artist")}
-                className="w-full text-left p-5 rounded-2xl border border-[#b388eb]/40 bg-[#160d2a] hover:bg-[#1e1040] transition-colors"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#b388eb]/20 to-[#ff6fd8]/20 flex items-center justify-center">
-                    <Music2 className="h-5 w-5 text-[#b388eb]" />
-                  </div>
-                  <p className="font-bold text-white text-base">Artist</p>
-                </div>
-                <p className="text-sm text-[#B3B3B3] leading-relaxed pl-12">
-                  Discuss an artist — review a show, album, or start a thread.
-                </p>
-              </button>
-
-              <button
-                onClick={() => setStep("place_search")}
-                className="w-full text-left p-5 rounded-2xl border border-[#c2f970]/25 bg-[#0d1a0d] hover:bg-[#122012] transition-colors"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-9 h-9 rounded-xl bg-[#c2f970]/15 flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-[#c2f970]" />
-                  </div>
-                  <p className="font-bold text-white text-base">Place</p>
-                </div>
-                <p className="text-sm text-[#B3B3B3] leading-relaxed pl-12">
-                  Find or add a music venue, bar, record store, or club.
-                </p>
-              </button>
+            <div>
+              <p className="text-sm text-[#B3B3B3] mb-4">
+                Start with the action. We'll help you find the right artist, show, album, or place.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  {
+                    id: "radar" as const,
+                    title: "Radar",
+                    eyebrow: "Find shows while you travel",
+                    description: "Match wishlist artists with your next trip.",
+                    Icon: RadarIcon,
+                    card: "from-[#ff4d8d] via-[#e348ad] to-[#8f5cff] border-[#ff8fbd]/60",
+                    glow: "bg-[#ffb3d1]/30",
+                  },
+                  {
+                    id: "place" as const,
+                    title: "Rate Places",
+                    eyebrow: "Share your scene",
+                    description: "Find a venue, club, bar, or record store.",
+                    Icon: MapPin,
+                    card: "from-[#1ba88a] via-[#168f70] to-[#397a5c] border-[#65e6bc]/50",
+                    glow: "bg-[#8fffd9]/25",
+                  },
+                  {
+                    id: "show" as const,
+                    title: "Rate Shows",
+                    eyebrow: "Capture the night",
+                    description: "Find the artist and show you attended.",
+                    Icon: Ticket,
+                    card: "from-[#f2603f] via-[#d74669] to-[#8e3d79] border-[#ff9b79]/55",
+                    glow: "bg-[#ffd095]/25",
+                  },
+                  {
+                    id: "album" as const,
+                    title: "Rate Albums",
+                    eyebrow: "Put it on record",
+                    description: "Find an artist and review a release.",
+                    Icon: Disc3,
+                    card: "from-[#5d59d9] via-[#6f45bd] to-[#3f2e7e] border-[#aaa7ff]/50",
+                    glow: "bg-[#c9c7ff]/25",
+                  },
+                ].map(action => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    onClick={() => startAction(action.id)}
+                    className={cn(
+                      "group relative min-h-[190px] overflow-hidden rounded-[22px] border bg-gradient-to-br p-4 text-left shadow-lg transition-all",
+                      "hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0 active:scale-[0.98]",
+                      action.card,
+                    )}
+                  >
+                    <div className={cn("absolute -right-8 -top-8 h-28 w-28 rounded-full blur-2xl", action.glow)} />
+                    <div className="absolute bottom-[-32px] right-[-22px] h-28 w-28 rounded-full border-[18px] border-white/10" />
+                    <div className="relative flex h-full flex-col">
+                      <div className="mb-auto flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm">
+                          <action.Icon className="h-5 w-5 text-white" />
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-white/70 transition-transform group-hover:translate-x-1" />
+                      </div>
+                      <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.13em] text-white/70">{action.eyebrow}</p>
+                      <h3 className="mt-1 text-xl font-black leading-tight text-white">{action.title}</h3>
+                      <p className="mt-2 text-xs leading-relaxed text-white/80">{action.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
           {/* ── ARTIST SEARCH ── */}
           {step === "artist" && (
             <div>
-              <p className="text-sm text-[#B3B3B3] mb-3">Search for the artist you want to discuss.</p>
+              <p className="text-sm text-[#B3B3B3] mb-3">
+                {selectedAction === "show"
+                  ? "Search for the artist first, then we'll find the show."
+                  : "Search for the artist first, then choose the album."}
+              </p>
 
               <div className="relative mb-3">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B3B3B3] h-4 w-4" />
@@ -511,56 +636,170 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
             </div>
           )}
 
-          {/* ── TYPE PICKER ── */}
-          {step === "type" && (
+          {/* ── RADAR ARTIST SETUP ── */}
+          {step === "radar_artist" && (
             <div>
-              <div className="flex items-center gap-2 p-3 bg-[#282828] rounded-lg mb-4">
-                {selectedArtist?.imageUrl ? (
-                  <img
-                    src={selectedArtist.imageUrl}
-                    alt={selectedArtist.name}
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-[#3E3E3E] flex items-center justify-center flex-shrink-0">
-                    <Music2 className="h-4 w-4 text-[#B3B3B3]" />
+              <div className="relative overflow-hidden rounded-2xl border border-[#ff6fae]/35 bg-gradient-to-br from-[#35152a] to-[#24183e] p-4 mb-4">
+                <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#ff6fae]/20 blur-2xl" />
+                <div className="relative flex gap-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#ff6fae]/15">
+                    <RadarIcon className="h-5 w-5 text-[#ff83ba]" />
                   </div>
-                )}
-                <p className="text-sm font-medium text-white truncate">{artistDisplayName}</p>
+                  <div>
+                    <p className="font-bold text-white">Who is on your Radar?</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[#c9b7c3]">
+                      Add artists you want to see. Next, tell us where you're going.
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                {[
-                  {
-                    id: "live_show_review" as const,
-                    label: "Live Show Review",
-                    desc: "Review a live performance or concert",
-                    Icon: Ticket,
-                    color: "text-orange-400",
-                    bg: "bg-orange-500/10 border-orange-500/30 hover:border-orange-500/60",
-                  },
-                  {
-                    id: "album_review" as const,
-                    label: "Album Review",
-                    desc: "Deep-dive on an album or project",
-                    Icon: Disc3,
-                    color: "text-[#b388eb]",
-                    bg: "bg-[#b388eb]/10 border-[#b388eb]/30 hover:border-[#b388eb]/60",
-                  },
-                ].map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => selectType(t.id)}
-                    className={cn("w-full text-left p-4 rounded-xl border transition-all", t.bg)}
-                  >
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <t.Icon className={cn("h-4 w-4", t.color)} />
-                      <p className={cn("font-semibold text-sm", t.color)}>{t.label}</p>
-                    </div>
-                    <p className="text-xs text-[#B3B3B3] ml-6">{t.desc}</p>
-                  </button>
-                ))}
+              {radarWishlist.length > 0 && (
+                <div className="mb-4">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[#666]">Already watching</p>
+                  <div className="flex flex-wrap gap-2">
+                    {radarWishlist.map(item => (
+                      <span key={item.id} className="inline-flex items-center gap-1.5 rounded-full bg-[#ff6fae]/10 px-2.5 py-1 text-xs text-[#ff9bc7]">
+                        <Check className="h-3 w-3" />{item.artistName}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B3B3B3] h-4 w-4" />
+                <Input
+                  autoFocus
+                  placeholder="Search artists…"
+                  className="pl-9 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]"
+                  value={artistInput}
+                  onChange={e => handleArtistInputChange(e.target.value)}
+                />
               </div>
+
+              {spotifySearching && (
+                <div className="flex justify-center py-4">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#ff6fae] border-t-transparent" />
+                </div>
+              )}
+
+              {!spotifySearching && artistResults.length > 0 && (
+                <div className="mb-4 space-y-1">
+                  {artistResults.map(artist => {
+                    const saved = radarWishlist.some(item => item.artistName.toLowerCase() === artist.name.toLowerCase());
+                    return (
+                      <button
+                        key={artist.spotifyId}
+                        type="button"
+                        disabled={saved || radarWishlistMutation.isPending}
+                        onClick={() => radarWishlistMutation.mutate(artist)}
+                        className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors hover:bg-[#282828] disabled:opacity-60"
+                      >
+                        {artist.imageUrl ? (
+                          <img src={artist.imageUrl} alt="" className="h-10 w-10 flex-shrink-0 rounded-full object-cover" />
+                        ) : (
+                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#282828]">
+                            <Music2 className="h-4 w-4 text-[#888]" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-white">{artist.name}</p>
+                          <p className="truncate text-xs text-[#555]">{artist.genres.slice(0, 2).join(", ")}</p>
+                        </div>
+                        <span className={cn("text-xs font-semibold", saved ? "text-[#c2f970]" : "text-[#ff83ba]")}>
+                          {saved ? "Watching" : "Add"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {artistInput.trim().length >= 1 && !spotifySearching && (
+                <button
+                  type="button"
+                  onClick={() => radarWishlistMutation.mutate({ name: artistInput.trim(), imageUrl: null })}
+                  disabled={radarWishlistMutation.isPending || radarWishlist.some(item => item.artistName.toLowerCase() === artistInput.trim().toLowerCase())}
+                  className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#3E3E3E] py-2.5 text-sm text-[#B3B3B3] hover:border-[#ff6fae]/60 disabled:opacity-40"
+                >
+                  <Plus className="h-4 w-4" /> Add "{artistInput.trim()}" to Radar
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setStep("radar_trip")}
+                disabled={radarWishlist.length === 0}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#ff4d8d] to-[#8f5cff] py-3 text-sm font-bold text-white disabled:opacity-35"
+              >
+                Continue to trip <ArrowRight className="h-4 w-4" />
+              </button>
+              {radarWishlist.length === 0 && <p className="mt-2 text-center text-xs text-[#555]">Add at least one artist to continue.</p>}
+            </div>
+          )}
+
+          {/* ── RADAR TRIP SETUP ── */}
+          {step === "radar_trip" && (
+            <div>
+              {radarTrips.length > 0 && (
+                <div className="mb-4 rounded-xl border border-[#333] bg-[#181818] p-3">
+                  <p className="text-xs font-semibold text-[#B3B3B3]">Radar is already checking {radarTrips.length} trip{radarTrips.length === 1 ? "" : "s"}.</p>
+                  <p className="mt-1 text-xs text-[#666]">Add another destination below.</p>
+                </div>
+              )}
+              <div className="mb-4 flex items-start gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#c2f970]/12">
+                  <Plane className="h-5 w-5 text-[#c2f970]" />
+                </div>
+                <div>
+                  <p className="font-bold text-white">Add your next trip</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[#888]">We'll look for your Radar artists in this city during your dates.</p>
+                </div>
+              </div>
+              <div className="mb-3 grid grid-cols-2 gap-2">
+                <Input value={radarCity} onChange={e => setRadarCity(e.target.value)} placeholder="City" className="bg-[#282828] border-[#3E3E3E] text-white" />
+                <Input value={radarCountry} onChange={e => setRadarCountry(e.target.value)} placeholder="Country" className="bg-[#282828] border-[#3E3E3E] text-white" />
+              </div>
+              <div className="mb-5 grid grid-cols-2 gap-2">
+                <div>
+                  <p className="mb-1 text-[10px] text-[#666]">Start</p>
+                  <Input type="date" value={radarStart} onChange={e => setRadarStart(e.target.value)} className="bg-[#282828] border-[#3E3E3E] text-white" />
+                </div>
+                <div>
+                  <p className="mb-1 text-[10px] text-[#666]">End</p>
+                  <Input type="date" min={radarStart || undefined} value={radarEnd} onChange={e => setRadarEnd(e.target.value)} className="bg-[#282828] border-[#3E3E3E] text-white" />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => radarTripMutation.mutate()}
+                disabled={!radarCity.trim() || !radarCountry.trim() || !radarStart || (!!radarEnd && radarEnd < radarStart) || radarTripMutation.isPending}
+                className="w-full rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] py-3 text-sm font-bold text-black disabled:opacity-35"
+              >
+                {radarTripMutation.isPending ? "Turning on Radar…" : "Turn on Radar"}
+              </button>
+            </div>
+          )}
+
+          {/* ── RADAR COMPLETE ── */}
+          {step === "radar_complete" && (
+            <div className="py-4 text-center">
+              <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#ff4d8d] to-[#8f5cff] shadow-[0_0_45px_rgba(255,77,141,0.25)]">
+                <RadarIcon className="h-9 w-9 text-white" />
+                <Sparkles className="absolute -right-1 -top-1 h-6 w-6 text-[#c2f970]" />
+              </div>
+              <h3 className="text-2xl font-black text-white">You're on the Radar</h3>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[#B3B3B3]">
+                We'll scan for your wishlist artists around {radarCity} during your trip and notify you when we find a match.
+              </p>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="mt-6 w-full rounded-full bg-gradient-to-r from-[#ff4d8d] to-[#8f5cff] py-3 text-sm font-bold text-white"
+              >
+                Done
+              </button>
             </div>
           )}
 
