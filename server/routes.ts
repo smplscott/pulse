@@ -1358,6 +1358,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/users/:id/travel-plans/:planId", async (req: Request, res: Response) => {
+    try {
+      const sessionUserId = req.session.userId;
+      if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+      const id = parseInt(req.params.id);
+      if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
+      const planId = parseInt(req.params.planId);
+      if (isNaN(planId)) return res.status(400).json({ message: "Invalid plan ID" });
+
+      const plans = await storage.getUserTravelPlans(id);
+      if (!plans.some(plan => plan.id === planId)) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+
+      const schema = z.object({
+        city: z.string().min(1, "City is required").max(100),
+        country: z.string().min(1, "Country is required").max(100),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD"),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be YYYY-MM-DD"),
+        note: z.string().max(200).optional(),
+      });
+      const body = schema.parse(req.body);
+      if (body.endDate < body.startDate) {
+        return res.status(400).json({ message: "endDate must be on or after startDate" });
+      }
+
+      const plan = await storage.updateUserTravelPlan(planId, {
+        city: body.city,
+        country: body.country,
+        startDate: body.startDate,
+        endDate: body.endDate,
+        targetDate: formatTripLabel(body.startDate, body.endDate),
+        note: body.note,
+      });
+      return res.json(plan);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      return res.status(500).json({ message: "Failed to update travel plan" });
+    }
+  });
+
   app.delete("/api/users/:id/travel-plans/:planId", async (req: Request, res: Response) => {
     const sessionUserId = req.session.userId;
     if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });

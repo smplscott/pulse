@@ -98,6 +98,7 @@ export interface IStorage {
   // Travel plan operations
   getUserTravelPlans(userId: number): Promise<UserTravelPlan[]>;
   createUserTravelPlan(plan: InsertUserTravelPlan): Promise<UserTravelPlan>;
+  updateUserTravelPlan(id: number, plan: Partial<InsertUserTravelPlan>): Promise<UserTravelPlan | undefined>;
   deleteUserTravelPlan(id: number): Promise<void>;
 
   // Show wishlist operations
