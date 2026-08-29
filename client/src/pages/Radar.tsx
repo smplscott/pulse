@@ -63,6 +63,7 @@ export default function Radar() {
   const [artistQuery, setArtistQuery] = useState("");
   const [artistImage, setArtistImage] = useState<string | null>(null);
   const [showArtistResults, setShowArtistResults] = useState(false);
+  const [replacingArtistId, setReplacingArtistId] = useState<number | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [showTripForm, setShowTripForm] = useState(false);
@@ -145,7 +146,17 @@ export default function Radar() {
     setArtistImage(null);
     setArtistQuery("");
     setShowArtistResults(false);
+    setReplacingArtistId(null);
     setShowArtistForm(false);
+  }
+
+  function replaceArtist(artist: UserShowWishlistItem) {
+    setReplacingArtistId(artist.id);
+    setArtistInput("");
+    setArtistImage(null);
+    setArtistQuery("");
+    setShowArtistResults(false);
+    setShowArtistForm(true);
   }
 
   function resetTripForm() {
@@ -167,15 +178,23 @@ export default function Radar() {
   }
 
   const addArtist = useMutation({
-    mutationFn: () =>
-      apiRequest("POST", `/api/users/${userId}/show-wishlist`, {
+    mutationFn: async () => {
+      const previous = artists.find(artist => artist.id === replacingArtistId);
+      const result = await apiRequest("POST", `/api/users/${userId}/show-wishlist`, {
         artistName: artistInput.trim(),
         ...(artistImage ? { spotifyImageUrl: artistImage } : {}),
-      }),
+      });
+      if (previous && previous.artistName.toLowerCase() !== artistInput.trim().toLowerCase()) {
+        await apiRequest("DELETE", `/api/users/${userId}/show-wishlist/${previous.id}`);
+      }
+      return result;
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/show-wishlist`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
+      const wasReplacing = replacingArtistId !== null;
       resetArtistForm();
-      toast({ title: "Artist added to Radar" });
+      toast({ title: wasReplacing ? "Radar artist updated" : "Artist added to Radar" });
     },
     onError: () => toast({ title: "Couldn't add artist", variant: "destructive" }),
   });
@@ -341,6 +360,14 @@ export default function Radar() {
 
             {showArtistForm && (
               <div className="mb-4 rounded-xl border border-[#333] bg-[#111] p-3">
+                {replacingArtistId && (
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs text-[#aaa]">
+                      Replace <span className="font-semibold text-white">{artists.find(artist => artist.id === replacingArtistId)?.artistName}</span>
+                    </p>
+                    <button onClick={resetArtistForm} className="text-[10px] font-semibold text-[#ff83ba]">Cancel</button>
+                  </div>
+                )}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#666]" />
                   <Input
@@ -374,7 +401,7 @@ export default function Radar() {
                   disabled={!artistInput.trim() || addArtist.isPending}
                   className="mt-2 w-full bg-gradient-to-r from-[#ff4d8d] to-[#8f5cff] font-bold text-white"
                 >
-                  {addArtist.isPending ? "Adding…" : "Add to Radar"}
+                  {addArtist.isPending ? "Saving…" : replacingArtistId ? "Replace artist" : "Add to Radar"}
                 </Button>
               </div>
             )}
@@ -395,6 +422,13 @@ export default function Radar() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#333]"><Music2 className="h-4 w-4 text-[#777]" /></div>
                     )}
                     <p className="min-w-0 flex-1 truncate text-sm font-semibold text-white">{artist.artistName}</p>
+                    <button
+                      onClick={() => replaceArtist(artist)}
+                      className="rounded-lg p-2 text-[#666] hover:bg-white/5 hover:text-white"
+                      aria-label={`Replace ${artist.artistName} on Radar`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => removeArtist.mutate(artist.id)}
                       disabled={removeArtist.isPending}
