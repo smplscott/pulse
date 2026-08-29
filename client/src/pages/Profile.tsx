@@ -299,7 +299,7 @@ export default function Profile() {
       setTpCountry("");
       setTpStart("");
       setTpEnd("");
-      toast({ title: "Trip added — we'll scan Ticketmaster weekly for wishlist artists" });
+      toast({ title: "Trip added to Radar", description: "We'll scan for your wishlist artists during these dates." });
     },
     onError: () => toast({ title: "Failed to add plan", variant: "destructive" }),
   });
@@ -531,7 +531,7 @@ export default function Profile() {
                   <button className={subTabClass(placesTab === "going")} onClick={() => setPlacesTab("going")}>
                     <span className="flex items-center justify-center gap-1.5">
                       <Plane className="h-3 w-3" />
-                      Where I'm Going
+                      Radar Trips
                     </span>
                   </button>
                 </div>
@@ -583,7 +583,7 @@ export default function Profile() {
                   <div className="pb-4">
                     {isOwnProfile && (
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
-                        <p className="text-xs text-[#888] font-medium mb-3">Add upcoming trip</p>
+                        <p className="text-xs text-[#888] font-medium mb-3">Add a trip to Radar</p>
                         <div className="grid grid-cols-2 gap-2 mb-2">
                           <Input placeholder="City" value={tpCity} onChange={e => setTpCity(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9" />
                           <Input placeholder="Country" value={tpCountry} onChange={e => setTpCountry(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9" />
@@ -606,7 +606,7 @@ export default function Profile() {
                         >
                           Add trip
                         </Button>
-                        <p className="text-[10px] text-[#555] mt-2">We scan Ticketmaster weekly for Future Wishlist artists in this city during your dates.</p>
+                        <p className="text-[10px] text-[#555] mt-2">Radar scans for wishlist artists playing in this city during your dates.</p>
                       </div>
                     )}
                     {isLoadingPlans ? (
@@ -651,15 +651,15 @@ export default function Profile() {
                       <div className="mt-6">
                         <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
                           <Ticket className="h-4 w-4 text-[#c2f970]" />
-                          Coming up for your trips
+                          On your Radar
                         </h3>
-                        <p className="text-[11px] text-[#666] mb-3">Wishlist artists with Ticketmaster listings during your travel dates</p>
+                        <p className="text-[11px] text-[#666] mb-3">Wishlist artists with shows during your travel dates</p>
                         {isLoadingMatches ? (
                           [1, 2].map(i => <Skeleton key={i} className="h-16 w-full mb-2" />)
                         ) : !wishlistMatches || wishlistMatches.length === 0 ? (
                           <div className="bg-[#181818] rounded-lg p-6 text-center">
                             <p className="text-sm text-[#B3B3B3]">No matches yet</p>
-                            <p className="text-xs text-[#555] mt-1">Add a wishlist artist and a trip — we scan weekly</p>
+                            <p className="text-xs text-[#555] mt-1">Add a Radar artist and trip to start matching</p>
                           </div>
                         ) : (
                           <div className="space-y-4">
@@ -741,7 +741,7 @@ export default function Profile() {
                   <button className={subTabClass(showsTab === "wishlist")} onClick={() => setShowsTab("wishlist")}>
                     <span className="flex items-center justify-center gap-1.5">
                       <Bookmark className="h-3 w-3" />
-                      Future Wishlist
+                      Radar Artists
                     </span>
                   </button>
                 </div>
@@ -787,7 +787,7 @@ export default function Profile() {
                   <div className="pb-4">
                     {isOwnProfile && (
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
-                        <p className="text-xs text-[#888] font-medium mb-3">Artists you want to see live</p>
+                        <p className="text-xs text-[#888] font-medium mb-3">Artists you want on your Radar</p>
                         <div className="flex gap-2">
                           <div className="relative flex-1">
                             <Input
