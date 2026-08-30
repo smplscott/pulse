@@ -13,6 +13,7 @@ import {
   getGooglePlaceDetails,
   GooglePlacesError,
 } from "./googlePlaces";
+import { fetchPlaceStaticMap, StaticMapError } from "./staticMap";
 
 // ─── Runtime normalization helpers ───────────────────────────────────────────
 
@@ -904,6 +905,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: error.errors[0]?.message || "Invalid place identity" });
       }
       return res.status(500).json({ message: "Failed to resolve place" });
+    }
+  });
+
+  app.get("/api/places/:id/static-map", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid place ID" });
+    const place = await storage.getPlace(id);
+    if (!place) return res.status(404).json({ message: "Place not found" });
+    if (place.latitude == null || place.longitude == null) {
+      return res.status(404).json({ message: "Place has no coordinates" });
+    }
+    try {
+      const image = await fetchPlaceStaticMap(place.latitude, place.longitude);
+      res.setHeader("Content-Type", image.contentType);
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return res.send(image.body);
+    } catch (error) {
+      if (error instanceof StaticMapError) {
+        return res.status(error.status).json({ message: error.message });
+      }
+      console.warn("[static-map] failed", error);
+      return res.status(502).json({ message: "Static map failed" });
     }
   });
 
