@@ -3,10 +3,16 @@ import { createServer, type Server } from "http";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-db";
+import { normalizePlaceDedupeKey } from "./placeDedupe";
 import { z } from "zod";
 import { insertUserSchema, insertArtistSchema, insertThreadSchema, insertCommentSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema, insertUserTravelPlanSchema, insertUserShowWishlistSchema, artistResponseSchema, songResponseSchema, musicSetResponseSchema, insertPlaceListSchema, insertPlaceListItemSchema } from "@shared/schema";
 import type { Artist, Song, MusicSet, ArtistResponse, SongResponse, MusicSetResponse, Badge } from "@shared/schema";
 import { scanWishlistMatches } from "./jobs/scanWishlistMatches";
+import {
+  autocompleteGooglePlaces,
+  getGooglePlaceDetails,
+  GooglePlacesError,
+} from "./googlePlaces";
 
 // ─── Runtime normalization helpers ───────────────────────────────────────────
 
@@ -806,10 +812,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return { ...place, firstReviewerUsername, reviewCount: reviews.length, avgRating };
   }
 
+  app.post("/api/google-places/autocomplete", async (req: Request, res: Response) => {
+    try {
+      if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+      const schema = z.object({
+        input: z.string().trim().min(2).max(120),
+        mode: z.enum(["city", "place"]),
+        sessionToken: z.string().uuid(),
+      });
+      const { input, mode, sessionToken } = schema.parse(req.body);
+      const results = await autocompleteGooglePlaces(input, mode, sessionToken);
+      return res.json({ results, configured: true });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid search" });
+      }
+      if (error instanceof GooglePlacesError) {
+        return res.status(error.status).json({
+          message: error.message,
+          configured: error.status !== 503,
+          results: [],
+        });
+      }
+      console.warn("[google-places] autocomplete failed", error);
+      return res.status(502).json({ message: "Google Places search failed", configured: true, results: [] });
+    }
+  });
+
+  app.get("/api/google-places/:placeId/details", async (req: Request, res: Response) => {
+    try {
+      if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+      const schema = z.object({
+        placeId: z.string().min(1).max(256),
+        mode: z.enum(["city", "place"]),
+        sessionToken: z.string().uuid(),
+      });
+      const { placeId, mode, sessionToken } = schema.parse({
+        placeId: req.params.placeId,
+        mode: req.query.mode,
+        sessionToken: req.query.sessionToken,
+      });
+      const details = await getGooglePlaceDetails(placeId, mode, sessionToken);
+      return res.json(details);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid place" });
+      }
+      if (error instanceof GooglePlacesError) {
+        return res.status(error.status).json({ message: error.message });
+      }
+      console.warn("[google-places] details failed", error);
+      return res.status(502).json({ message: "Google Place details failed" });
+    }
+  });
+
   app.get("/api/places", async (_req: Request, res: Response) => {
     const places = await storage.getAllPlaces();
     const enriched = await Promise.all(places.map(enrichPlace));
     return res.json(enriched);
+  });
+
+  app.get("/api/places/search", async (req: Request, res: Response) => {
+    const query = typeof req.query.q === "string" ? req.query.q.trim() : "";
+    if (query.length < 2) return res.json([]);
+    const results = await storage.searchPlaces(query);
+    const enriched = await Promise.all(results.slice(0, 8).map(enrichPlace));
+    return res.json(enriched);
+  });
+
+  app.post("/api/places/resolve", async (req: Request, res: Response) => {
+    if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
+    const schema = z.object({
+      googlePlaceId: z.string().min(1).max(256),
+      name: z.string().min(1).max(200),
+      city: z.string().min(1).max(100),
+      country: z.string().min(1).max(100),
+    });
+    try {
+      const input = schema.parse(req.body);
+      const byGoogleId = await storage.getPlaceByGooglePlaceId(input.googlePlaceId);
+      if (byGoogleId) return res.json({ existing: await enrichPlace(byGoogleId) });
+      const key = normalizePlaceDedupeKey(input.name, input.city, input.country);
+      const byKey = await storage.getPlaceByDedupeKey(key);
+      if (byKey) return res.json({ existing: await enrichPlace(byKey) });
+      const legacy = (await storage.searchPlaces(input.name)).find(place =>
+        normalizePlaceDedupeKey(place.name, place.city, place.country) === key
+      );
+      return res.json({ existing: legacy ? await enrichPlace(legacy) : null });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Invalid place identity" });
+      }
+      return res.status(500).json({ message: "Failed to resolve place" });
+    }
   });
 
   app.get("/api/places/:id", async (req: Request, res: Response) => {
@@ -830,9 +925,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         country: z.string().min(1, "Country is required"),
         description: z.string().min(10, "Description must be at least 10 characters").max(280, "Max 280 characters"),
         category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
+        googlePlaceId: z.string().min(1).max(256).nullish(),
+        latitude: z.number().min(-90).max(90).nullish(),
+        longitude: z.number().min(-180).max(180).nullish(),
+        formattedAddress: z.string().max(500).nullish(),
+        googlePrimaryType: z.string().max(100).nullish(),
         rating: z.number().int().min(1).max(5).optional(),
       });
-      const { rating, ...placeFields } = schema.parse({ ...req.body, userId });
+      const { rating, ...parsedPlaceFields } = schema.parse({ ...req.body, userId });
+      const placeFields = {
+        ...parsedPlaceFields,
+        dedupeKey: normalizePlaceDedupeKey(
+          parsedPlaceFields.name,
+          parsedPlaceFields.city,
+          parsedPlaceFields.country,
+        ),
+      };
       const place = await storage.createPlace(placeFields);
       // Auto-create a review for the creator if they provided a rating
       if (rating) {
@@ -1332,6 +1440,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schema = z.object({
         city: z.string().min(1, "City is required").max(100),
         country: z.string().min(1, "Country is required").max(100),
+        countryCode: z.string().length(2).toUpperCase().optional(),
+        googlePlaceId: z.string().min(1).max(256).optional(),
+        latitude: z.number().min(-90).max(90).optional(),
+        longitude: z.number().min(-180).max(180).optional(),
         startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD"),
         endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be YYYY-MM-DD"),
         targetDate: z.string().max(50).optional(),
@@ -1346,6 +1458,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: id,
         city: body.city,
         country: body.country,
+        countryCode: body.countryCode,
+        googlePlaceId: body.googlePlaceId,
+        latitude: body.latitude,
+        longitude: body.longitude,
         targetDate,
         startDate: body.startDate,
         endDate: body.endDate,
@@ -1375,6 +1491,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schema = z.object({
         city: z.string().min(1, "City is required").max(100),
         country: z.string().min(1, "Country is required").max(100),
+        countryCode: z.string().length(2).toUpperCase().optional(),
+        googlePlaceId: z.string().min(1).max(256).optional(),
+        latitude: z.number().min(-90).max(90).optional(),
+        longitude: z.number().min(-180).max(180).optional(),
         startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD"),
         endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be YYYY-MM-DD"),
         note: z.string().max(200).optional(),
@@ -1387,6 +1507,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const plan = await storage.updateUserTravelPlan(planId, {
         city: body.city,
         country: body.country,
+        countryCode: body.countryCode,
+        googlePlaceId: body.googlePlaceId,
+        latitude: body.latitude,
+        longitude: body.longitude,
         startDate: body.startDate,
         endDate: body.endDate,
         targetDate: formatTripLabel(body.startDate, body.endDate),

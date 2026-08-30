@@ -113,6 +113,8 @@ export interface IStorage {
 
   // Place operations
   getPlace(id: number): Promise<Place | undefined>;
+  getPlaceByGooglePlaceId(googlePlaceId: string): Promise<Place | undefined>;
+  getPlaceByDedupeKey(dedupeKey: string): Promise<Place | undefined>;
   getAllPlaces(limit?: number): Promise<Place[]>;
   searchPlaces(query: string): Promise<Place[]>;
   createPlace(place: InsertPlace): Promise<Place>;

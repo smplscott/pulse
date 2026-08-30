@@ -31,6 +31,9 @@ import type {
   PlaceListItem, InsertPlaceListItem,
 } from "@shared/schema";
 import type { IStorage } from "./storage-interface";
+import { normalizePlaceDedupeKey } from "./placeDedupe";
+
+export { normalizePlaceDedupeKey };
 
 function isUniqueViolation(err: unknown): boolean {
   return typeof err === "object" && err !== null && (err as { code?: string }).code === "23505";
@@ -445,6 +448,16 @@ export class DbStorage implements IStorage {
     return row;
   }
 
+  async getPlaceByGooglePlaceId(googlePlaceId: string): Promise<Place | undefined> {
+    const [row] = await db.select().from(places).where(eq(places.googlePlaceId, googlePlaceId));
+    return row;
+  }
+
+  async getPlaceByDedupeKey(dedupeKey: string): Promise<Place | undefined> {
+    const [row] = await db.select().from(places).where(eq(places.dedupeKey, dedupeKey));
+    return row;
+  }
+
   async getAllPlaces(limit: number = 50): Promise<Place[]> {
     return db.select().from(places).orderBy(desc(places.createdAt)).limit(limit);
   }
@@ -466,8 +479,53 @@ export class DbStorage implements IStorage {
   }
 
   async createPlace(insertPlace: InsertPlace): Promise<Place> {
-    const [row] = await db.insert(places).values(insertPlace).returning();
-    return row;
+    const dedupeKey = insertPlace.dedupeKey
+      ?? normalizePlaceDedupeKey(insertPlace.name, insertPlace.city, insertPlace.country);
+    const existing = insertPlace.googlePlaceId
+      ? await this.getPlaceByGooglePlaceId(insertPlace.googlePlaceId)
+      : undefined;
+    const keyedExisting = await this.getPlaceByDedupeKey(dedupeKey);
+    const [legacyExisting] = keyedExisting ? [] : await db
+      .select()
+      .from(places)
+      .where(and(
+        sql`lower(trim(${places.name})) = ${insertPlace.name.trim().toLowerCase()}`,
+        sql`lower(trim(${places.city})) = ${insertPlace.city.trim().toLowerCase()}`,
+        sql`lower(trim(${places.country})) = ${insertPlace.country.trim().toLowerCase()}`,
+      ))
+      .limit(1);
+    const canonicalExisting = existing ?? keyedExisting ?? legacyExisting;
+    if (canonicalExisting) {
+      if (insertPlace.googlePlaceId && !canonicalExisting.googlePlaceId) {
+        const [enriched] = await db
+          .update(places)
+          .set({
+            googlePlaceId: insertPlace.googlePlaceId,
+            latitude: insertPlace.latitude,
+            longitude: insertPlace.longitude,
+            formattedAddress: insertPlace.formattedAddress,
+            googlePrimaryType: insertPlace.googlePrimaryType,
+            mapsLink: insertPlace.mapsLink ?? canonicalExisting.mapsLink,
+            dedupeKey,
+          })
+          .where(eq(places.id, canonicalExisting.id))
+          .returning();
+        return enriched;
+      }
+      return canonicalExisting;
+    }
+
+    try {
+      const [row] = await db.insert(places).values({ ...insertPlace, dedupeKey }).returning();
+      return row;
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error;
+      const duplicate = insertPlace.googlePlaceId
+        ? await this.getPlaceByGooglePlaceId(insertPlace.googlePlaceId)
+        : await this.getPlaceByDedupeKey(dedupeKey);
+      if (duplicate) return duplicate;
+      throw error;
+    }
   }
 
   async getPlaceReviews(placeId: number): Promise<PlaceReview[]> {

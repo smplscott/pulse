@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, doublePrecision } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -327,10 +327,19 @@ export const places = pgTable("places", {
   genres: text("genres").array(),
   description: text("description").notNull(),
   mapsLink: text("maps_link"),
+  googlePlaceId: text("google_place_id"),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  formattedAddress: text("formatted_address"),
+  googlePrimaryType: text("google_primary_type"),
+  dedupeKey: text("dedupe_key"),
   rating: integer("rating").default(0),
   reviewsCount: integer("reviews_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (t) => ({
+  googlePlaceUnique: unique("places_google_place_id_unique").on(t.googlePlaceId),
+  dedupeKeyUnique: unique("places_dedupe_key_unique").on(t.dedupeKey),
+}));
 
 export const insertPlaceSchema = createInsertSchema(places).pick({
   userId: true,
@@ -340,6 +349,12 @@ export const insertPlaceSchema = createInsertSchema(places).pick({
   category: true,
   description: true,
   mapsLink: true,
+  googlePlaceId: true,
+  latitude: true,
+  longitude: true,
+  formattedAddress: true,
+  googlePrimaryType: true,
+  dedupeKey: true,
 }).extend({
   genres: z.array(z.string()).optional().default([]),
   category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
@@ -558,6 +573,10 @@ export const userTravelPlans = pgTable("user_travel_plans", {
   userId: integer("user_id").notNull(),
   city: text("city").notNull(),
   country: text("country").notNull(),
+  countryCode: text("country_code"),
+  googlePlaceId: text("google_place_id"),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
   /** Display label (e.g. "Aug 2026") — kept for backwards compatibility */
   targetDate: text("target_date").notNull(),
   /** ISO date YYYY-MM-DD — required for Ticketmaster scans */
@@ -572,6 +591,10 @@ export const insertUserTravelPlanSchema = createInsertSchema(userTravelPlans).pi
   userId: true,
   city: true,
   country: true,
+  countryCode: true,
+  googlePlaceId: true,
+  latitude: true,
+  longitude: true,
   targetDate: true,
   startDate: true,
   endDate: true,
