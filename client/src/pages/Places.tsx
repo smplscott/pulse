@@ -45,6 +45,9 @@ function PlaceCard({ place }: { place: Place }) {
               <div className="min-w-0">
                 <h3 className="font-semibold text-sm truncate hover:text-[#c3f872] transition-colors">{place.name}</h3>
                 <p className="text-xs text-[#B3B3B3] mt-0.5">{place.city}, {place.country}</p>
+                {place.formattedAddress && (
+                  <p className="text-[10px] text-[#666] mt-0.5 truncate">{place.formattedAddress}</p>
+                )}
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Star className="h-3 w-3 text-[#c3f872] fill-[#c3f872]" />
@@ -59,6 +62,11 @@ function PlaceCard({ place }: { place: Place }) {
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
               {categoryLabel(place.category)}
             </span>
+            {place.googlePlaceId && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#8ab4f8]/10 text-[#8ab4f8]">
+                Maps
+              </span>
+            )}
             {genres.slice(0, 2).map(g => (
               <span key={g} className="text-[10px] px-2 py-0.5 rounded-full bg-[#1a2a1a] text-[#c2f970]">
                 {g}
@@ -93,6 +101,7 @@ export default function Places() {
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.formattedAddress?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.genres?.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCategory = activeCategory === "all" || p.category === activeCategory;
     return matchesSearch && matchesCategory;

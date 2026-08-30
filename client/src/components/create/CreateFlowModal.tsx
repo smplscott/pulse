@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
@@ -12,7 +12,7 @@ import type { Place, UserShowWishlistItem, UserTravelPlan } from "@shared/schema
 import {
   X, ChevronLeft, Search, Music2, Ticket, Disc3,
   MapPin, Calendar, Star, Plus, AlertCircle, Radar as RadarIcon,
-  ArrowRight, Check, Plane, Sparkles,
+  ArrowRight, Check, Plane, Sparkles, Loader2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import ReviewImageUpload from "@/components/ReviewImageUpload";
+import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -51,6 +52,32 @@ interface SpotifyAlbum {
   imageUrl: string | null;
   releaseYear: string;
   albumType: string;
+}
+
+type PulsePlace = Place & {
+  reviewCount?: number;
+  avgRating?: number | null;
+};
+
+interface GooglePlaceSuggestion {
+  placeId: string;
+  text: string;
+  mainText: string;
+  secondaryText: string;
+  types: string[];
+}
+
+interface GooglePlaceDetails {
+  placeId: string;
+  displayName: string;
+  formattedAddress: string;
+  city: string;
+  country: string;
+  countryCode: string;
+  latitude: number | null;
+  longitude: number | null;
+  primaryType: string | null;
+  googleMapsUri: string;
 }
 
 interface SetlistShow {
@@ -86,6 +113,14 @@ const GENRE_OPTIONS = [
   "R&B", "Soul", "Jazz", "Electronic", "Disco", "Funk",
   "Rock", "Indie", "Pop", "Ambient", "Experimental",
 ];
+
+function googleTypeToCategory(primaryType: string | null): PlaceFormValues["category"] {
+  if (primaryType === "bar") return "bar";
+  if (primaryType === "night_club") return "club";
+  if (primaryType === "record_store") return "record_store";
+  if (primaryType === "cafe" || primaryType === "coffee_shop") return "coffee_shop";
+  return "other";
+}
 
 function formatDate(dateStr: string) {
   if (!dateStr) return "";
@@ -153,12 +188,19 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
 
   // Place-path state
   const [placeQuery, setPlaceQuery] = useState("");
+  const [debouncedPlaceQuery, setDebouncedPlaceQuery] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [placeRating, setPlaceRating] = useState(0);
+  const [selectedGooglePlace, setSelectedGooglePlace] = useState<GooglePlaceDetails | null>(null);
+  const placeSessionToken = useRef(crypto.randomUUID());
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedPlaceQuery(placeQuery.trim()), 350);
+    return () => clearTimeout(timeout);
+  }, [placeQuery]);
 
   // Radar-path state
-  const [radarCity, setRadarCity] = useState("");
-  const [radarCountry, setRadarCountry] = useState("");
+  const [radarLocation, setRadarLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [radarStart, setRadarStart] = useState("");
   const [radarEnd, setRadarEnd] = useState("");
 
@@ -189,8 +231,8 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       setSelectedType(null); setSelectedShow(null); setSelectedAlbum(null);
       setStarRating(0); setReviewImage(null); setShowManualForm(false);
       setManualShow({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
-      setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0);
-      setRadarCity(""); setRadarCountry(""); setRadarStart(""); setRadarEnd("");
+      setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0); setSelectedGooglePlace(null);
+      setRadarLocation({ city: "", country: "" }); setRadarStart(""); setRadarEnd("");
       threadForm.reset(); placeForm.reset();
     }, 300);
   }
@@ -243,9 +285,35 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
     enabled: step === "show" && artistDisplayName.length >= 2,
   });
 
-  const { data: allPlaces } = useQuery<Place[]>({
-    queryKey: ["/api/places"],
-    enabled: step === "place_search",
+  const { data: placeResults = [], isFetching: localPlacesSearching } = useQuery<PulsePlace[]>({
+    queryKey: ["/api/places/search", debouncedPlaceQuery],
+    queryFn: async () => {
+      const response = await fetch(`/api/places/search?q=${encodeURIComponent(debouncedPlaceQuery)}`);
+      return response.json();
+    },
+    enabled: step === "place_search" && debouncedPlaceQuery.length >= 2,
+  });
+
+  const { data: googlePlaceData, isFetching: googlePlacesSearching } = useQuery<{
+    results: GooglePlaceSuggestion[];
+    configured: boolean;
+    message?: string;
+  }>({
+    queryKey: ["/api/google-places/autocomplete", "place", debouncedPlaceQuery],
+    queryFn: async () => {
+      const response = await fetch("/api/google-places/autocomplete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          input: debouncedPlaceQuery,
+          mode: "place",
+          sessionToken: placeSessionToken.current,
+        }),
+      });
+      return response.json();
+    },
+    enabled: step === "place_search" && debouncedPlaceQuery.length >= 2,
   });
 
   const { data: radarWishlist = [] } = useQuery<UserShowWishlistItem[]>({
@@ -257,13 +325,6 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
     queryKey: [`/api/users/${user?.id}/travel-plans`],
     enabled: open && selectedAction === "radar" && !!user?.id,
   });
-
-  const placeResults = placeQuery.trim().length >= 1
-    ? (allPlaces ?? []).filter(p =>
-        p.name.toLowerCase().includes(placeQuery.toLowerCase()) ||
-        p.city.toLowerCase().includes(placeQuery.toLowerCase())
-      )
-    : [];
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
@@ -323,7 +384,17 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
 
   const placeMutation = useMutation({
     mutationFn: async (values: PlaceFormValues & { genres: string[] }) => {
-      const res = await apiRequest("POST", "/api/places", values);
+      const res = await apiRequest("POST", "/api/places", {
+        ...values,
+        ...(selectedGooglePlace ? {
+          googlePlaceId: selectedGooglePlace.placeId,
+          latitude: selectedGooglePlace.latitude,
+          longitude: selectedGooglePlace.longitude,
+          formattedAddress: selectedGooglePlace.formattedAddress,
+          googlePrimaryType: selectedGooglePlace.primaryType,
+          mapsLink: selectedGooglePlace.googleMapsUri,
+        } : {}),
+      });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.message || "Failed to add place");
@@ -341,6 +412,46 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
     },
     onError: (err: Error) =>
       toast({ title: "Error", description: err.message, variant: "destructive" }),
+  });
+
+  const resolveGooglePlaceMutation = useMutation({
+    mutationFn: async (suggestion: GooglePlaceSuggestion) => {
+      const params = new URLSearchParams({
+        mode: "place",
+        sessionToken: placeSessionToken.current,
+      });
+      const detailsResponse = await fetch(
+        `/api/google-places/${encodeURIComponent(suggestion.placeId)}/details?${params}`,
+        { credentials: "include" },
+      );
+      if (!detailsResponse.ok) throw new Error("Couldn't load place details");
+      const details = await detailsResponse.json() as GooglePlaceDetails;
+      const resolveResponse = await apiRequest("POST", "/api/places/resolve", {
+        googlePlaceId: details.placeId,
+        name: details.displayName || suggestion.mainText,
+        city: details.city,
+        country: details.country,
+      });
+      const resolved = await resolveResponse.json() as { existing: PulsePlace | null };
+      return { details, suggestion, existing: resolved.existing };
+    },
+    onSuccess: ({ details, suggestion, existing }) => {
+      placeSessionToken.current = crypto.randomUUID();
+      if (existing) {
+        handleClose();
+        navigate(`/places/${existing.id}`);
+        return;
+      }
+      setSelectedGooglePlace(details);
+      placeForm.setValue("name", details.displayName || suggestion.mainText);
+      placeForm.setValue("city", details.city);
+      placeForm.setValue("country", details.country);
+      placeForm.setValue("mapsLink", details.googleMapsUri);
+      placeForm.setValue("category", googleTypeToCategory(details.primaryType));
+      setStep("place_form");
+    },
+    onError: (error: Error) =>
+      toast({ title: "Couldn't load place", description: error.message, variant: "destructive" }),
   });
 
   const radarWishlistMutation = useMutation({
@@ -370,8 +481,12 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
     mutationFn: async () => {
       if (!user) throw new Error("Sign in to use Radar");
       const res = await apiRequest("POST", `/api/users/${user.id}/travel-plans`, {
-        city: radarCity.trim(),
-        country: radarCountry.trim(),
+        city: radarLocation.city.trim(),
+        country: radarLocation.country.trim(),
+        countryCode: radarLocation.countryCode,
+        googlePlaceId: radarLocation.googlePlaceId,
+        latitude: radarLocation.latitude,
+        longitude: radarLocation.longitude,
         startDate: radarStart,
         endDate: radarEnd || radarStart,
       });
@@ -771,10 +886,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                   <p className="mt-1 text-xs leading-relaxed text-[#888]">We'll look for your Radar artists in this city during your dates.</p>
                 </div>
               </div>
-              <div className="mb-3 grid grid-cols-2 gap-2">
-                <Input value={radarCity} onChange={e => setRadarCity(e.target.value)} placeholder="City" className="bg-[#282828] border-[#3E3E3E] text-white" />
-                <Input value={radarCountry} onChange={e => setRadarCountry(e.target.value)} placeholder="Country" className="bg-[#282828] border-[#3E3E3E] text-white" />
-              </div>
+              <GoogleCityAutocomplete value={radarLocation} onChange={setRadarLocation} className="mb-3" />
               <div className="mb-5 grid grid-cols-2 gap-2">
                 <div>
                   <p className="mb-1 text-[10px] text-[#666]">Start</p>
@@ -788,7 +900,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
               <button
                 type="button"
                 onClick={() => radarTripMutation.mutate()}
-                disabled={!radarCity.trim() || !radarCountry.trim() || !radarStart || (!!radarEnd && radarEnd < radarStart) || radarTripMutation.isPending}
+                disabled={!radarLocation.city.trim() || !radarLocation.country.trim() || !radarStart || (!!radarEnd && radarEnd < radarStart) || radarTripMutation.isPending}
                 className="w-full rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] py-3 text-sm font-bold text-black disabled:opacity-35"
               >
                 {radarTripMutation.isPending ? "Turning on Radar…" : "Turn on Radar"}
@@ -805,7 +917,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
               </div>
               <h3 className="text-2xl font-black text-white">You're on the Radar</h3>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[#B3B3B3]">
-                We'll scan for your wishlist artists around {radarCity} during your trip and notify you when we find a match.
+                We'll scan for your wishlist artists around {radarLocation.city} during your trip and notify you when we find a match.
               </p>
               <button
                 type="button"
@@ -1120,8 +1232,20 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 />
               </div>
 
-              {placeQuery.trim().length >= 1 && placeResults.length > 0 && (
-                <div className="space-y-2 mb-4">
+              {(localPlacesSearching || googlePlacesSearching) && (
+                <div className="mb-3 flex items-center justify-center gap-2 py-2 text-xs text-[#777]">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#c2f970]" />
+                  Searching Pulse and Google Maps…
+                </div>
+              )}
+
+              {debouncedPlaceQuery.length >= 2 && placeResults.length > 0 && (
+                <div className="mb-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c2f970]">Already on Pulse</p>
+                    <p className="text-[10px] text-[#666]">Rate it without adding it again</p>
+                  </div>
+                  <div className="space-y-2">
                   {placeResults.slice(0, 6).map(p => (
                     <button
                       key={p.id}
@@ -1131,44 +1255,75 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                       <div className="w-10 h-10 rounded-lg bg-[#1a2a1a] flex items-center justify-center flex-shrink-0">
                         <MapPin className="h-4 w-4 text-[#c2f970]" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-white truncate">{p.name}</p>
                         <p className="text-xs text-[#555]">{p.city}, {p.country}</p>
                       </div>
+                      <div className="text-right">
+                        {p.reviewCount && p.reviewCount > 0 ? (
+                          <>
+                            <p className="flex items-center justify-end gap-1 text-xs font-semibold text-[#c2f970]">
+                              <Star className="h-3 w-3 fill-[#c2f970]" />{p.avgRating ?? p.rating ?? 0}
+                            </p>
+                            <p className="text-[10px] text-[#666]">{p.reviewCount} review{p.reviewCount === 1 ? "" : "s"}</p>
+                          </>
+                        ) : (
+                          <p className="text-[10px] font-semibold text-[#b388eb]">Be first to rate</p>
+                        )}
+                      </div>
                     </button>
                   ))}
+                  </div>
                 </div>
               )}
 
-              {placeQuery.trim().length >= 2 && placeResults.length === 0 && (
-                <div className="bg-[#181818] rounded-xl p-4 border border-[#222]">
-                  <p className="text-sm text-[#B3B3B3] mb-3">
-                    "<span className="text-white">{placeQuery}</span>" isn't on Pulse yet.
-                  </p>
-                  <button
-                    onClick={() => {
-                      placeForm.setValue("name", placeQuery.trim());
-                      setStep("place_form");
-                    }}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-bold text-sm hover:opacity-90 transition-opacity"
-                  >
-                    Add it →
-                  </button>
+              {(googlePlaceData?.results ?? []).length > 0 && (
+                <div className="mb-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8ab4f8]">From Google Maps</p>
+                    <p className="text-[10px] font-semibold text-[#777]">Powered by Google</p>
+                  </div>
+                  <div className="space-y-1">
+                    {googlePlaceData!.results.slice(0, 6).map(result => (
+                      <button
+                        key={result.placeId}
+                        type="button"
+                        onClick={() => resolveGooglePlaceMutation.mutate(result)}
+                        disabled={resolveGooglePlaceMutation.isPending}
+                        className="flex w-full items-center gap-3 rounded-xl border border-[#2f2f2f] bg-[#1b1b1b] p-3 text-left hover:border-[#8ab4f8]/40 hover:bg-[#222] disabled:opacity-50"
+                      >
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#8ab4f8]/10">
+                          {resolveGooglePlaceMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin text-[#8ab4f8]" /> : <MapPin className="h-4 w-4 text-[#8ab4f8]" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-white">{result.mainText}</p>
+                          <p className="truncate text-xs text-[#666]">{result.secondaryText}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {placeQuery.trim().length >= 2 && placeResults.length > 0 && (
+              {googlePlaceData?.configured === false && (
+                <div className="mb-4 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3">
+                  <p className="text-xs text-amber-200">Google Maps search isn't configured. Pulse results and manual entry are still available.</p>
+                </div>
+              )}
+
+              {placeQuery.trim().length >= 2 && (
                 <div className="border-t border-[#1e1e1e] pt-3">
-                  <p className="text-xs text-[#555] mb-2">Not seeing the right place?</p>
+                  <p className="text-xs text-[#555] mb-2">Still not seeing the right place?</p>
                   <button
                     onClick={() => {
+                      setSelectedGooglePlace(null);
                       placeForm.setValue("name", placeQuery.trim());
                       setStep("place_form");
                     }}
                     className="flex items-center gap-2 text-sm text-[#c2f970] font-medium hover:text-[#aee05a] transition-colors"
                   >
                     <Plus className="h-4 w-4" />
-                    Add "{placeQuery}" as a new place
+                    Add "{placeQuery}" manually
                   </button>
                 </div>
               )}
@@ -1178,10 +1333,20 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
           {/* ── PLACE FORM ── */}
           {step === "place_form" && (
             <div className="space-y-3">
+              {selectedGooglePlace && (
+                <div className="rounded-xl border border-[#8ab4f8]/25 bg-[#8ab4f8]/8 p-3">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-[#8ab4f8]" />
+                    <p className="text-xs font-semibold text-white">Matched with Google Maps</p>
+                  </div>
+                  <p className="mt-1 pl-6 text-[11px] text-[#777]">{selectedGooglePlace.formattedAddress}</p>
+                </div>
+              )}
               <div>
                 <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">Venue name *</p>
                 <Input
                   {...placeForm.register("name")}
+                  disabled={!!selectedGooglePlace}
                   className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]"
                   placeholder="e.g. Fabric, Berghain"
                 />
@@ -1195,6 +1360,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                   <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">City *</p>
                   <Input
                     {...placeForm.register("city")}
+                    disabled={!!selectedGooglePlace}
                     className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]"
                     placeholder="London"
                   />
@@ -1206,6 +1372,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                   <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">Country *</p>
                   <Input
                     {...placeForm.register("country")}
+                    disabled={!!selectedGooglePlace}
                     className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]"
                     placeholder="UK"
                   />
@@ -1290,16 +1457,18 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 )}
               </div>
 
-              <div>
-                <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">
-                  Google Maps link <span className="text-[#555]">(optional)</span>
-                </p>
-                <Input
-                  {...placeForm.register("mapsLink")}
-                  className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]"
-                  placeholder="https://maps.google.com/…"
-                />
-              </div>
+              {!selectedGooglePlace && (
+                <div>
+                  <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">
+                    Google Maps link <span className="text-[#555]">(optional)</span>
+                  </p>
+                  <Input
+                    {...placeForm.register("mapsLink")}
+                    className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]"
+                    placeholder="https://maps.google.com/…"
+                  />
+                </div>
+              )}
 
               <button
                 onClick={placeForm.handleSubmit(vals => {

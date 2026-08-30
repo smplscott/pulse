@@ -12,6 +12,7 @@ required=(
 
 optional=(
   SETLISTFM_API_KEY
+  GOOGLE_PLACES_API_KEY
 )
 
 missing_required=0
@@ -30,7 +31,7 @@ for name in "${required[@]}"; do
 done
 
 echo
-echo "API keys (optional for boot; SETLISTFM is fallback for past shows)"
+echo "API keys (optional for boot; external search falls back when unavailable)"
 for name in "${optional[@]}"; do
   if [[ -n "${!name:-}" ]]; then
     echo "✓ $name"
