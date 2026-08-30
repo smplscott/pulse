@@ -44,6 +44,17 @@ export function countryToCode(country: string): string | undefined {
   return undefined;
 }
 
+/** Prefer a stored ISO country code; fall back to mapping a country name. */
+export function resolveTicketmasterCountryCode(params: {
+  countryCode?: string | null;
+  country?: string | null;
+}): string | undefined {
+  const stored = params.countryCode?.trim().toUpperCase();
+  if (stored && /^[A-Z]{2}$/.test(stored)) return stored;
+  if (params.country) return countryToCode(params.country);
+  return undefined;
+}
+
 export interface TicketmasterEvent {
   id: string;
   name: string;
@@ -127,6 +138,8 @@ export interface SearchEventsParams {
   keyword: string;
   city: string;
   country?: string;
+  /** ISO 3166-1 alpha-2 when already known from Google Places */
+  countryCode?: string;
   /** ISO date YYYY-MM-DD */
   startDate: string;
   /** ISO date YYYY-MM-DD */
@@ -235,7 +248,7 @@ export async function searchEvents(
   url.searchParams.set("sort", "date,asc");
   url.searchParams.set("classificationSegment", "Music");
 
-  const countryCode = params.country ? countryToCode(params.country) : undefined;
+  const countryCode = resolveTicketmasterCountryCode(params);
   if (countryCode) url.searchParams.set("countryCode", countryCode);
 
   const res = await fetch(url.toString());

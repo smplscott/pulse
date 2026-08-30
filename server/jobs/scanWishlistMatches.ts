@@ -88,7 +88,7 @@ export async function scanWishlistMatches(): Promise<ScanResult> {
         const cacheKey = [
           item.artistName.toLowerCase(),
           plan.city.toLowerCase(),
-          (plan.country ?? "").toLowerCase(),
+          (plan.countryCode ?? plan.country ?? "").toLowerCase(),
           startDate,
           plan.endDate,
         ].join("|");
@@ -101,6 +101,7 @@ export async function scanWishlistMatches(): Promise<ScanResult> {
               keyword: item.artistName,
               city: plan.city,
               country: plan.country,
+              countryCode: plan.countryCode ?? undefined,
               startDate,
               endDate: plan.endDate,
             });
