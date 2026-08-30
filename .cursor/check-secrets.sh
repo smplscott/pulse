@@ -13,6 +13,7 @@ required=(
 optional=(
   SETLISTFM_API_KEY
   GOOGLE_PLACES_API_KEY
+  GOOGLE_MAPS_API_KEY
 )
 
 missing_required=0

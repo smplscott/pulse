@@ -107,3 +107,15 @@
   background-color: #1DB954;
   border-radius: 50%;
 }
+
+.pulse-places-map .leaflet-container {
+  background: #111;
+  font-family: inherit;
+  z-index: 1;
+}
+
+.pulse-places-map .leaflet-popup-content-wrapper,
+.pulse-places-map .leaflet-popup-tip {
+  background: #f4f4f4;
+  color: #111;
+}
