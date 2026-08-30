@@ -220,6 +220,9 @@ export default function PlaceDetail() {
                     <MapPin className="h-3.5 w-3.5" />
                     <span className="text-sm">{place.city}, {place.country}</span>
                   </div>
+                  {place.formattedAddress && (
+                    <p className="text-xs text-[#666] mt-1">{place.formattedAddress}</p>
+                  )}
                   {place.firstReviewerUsername && (
                     <p className="text-[10px] text-[#555] mt-1.5 flex items-center gap-1">
                       <Crown className="h-2.5 w-2.5 text-[#c2f970] flex-shrink-0" />

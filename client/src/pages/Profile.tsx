@@ -18,6 +18,7 @@ import { Thread, Place, Show, ShowReview, UserTravelPlan, UserShowWishlistItem, 
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useRef, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
+import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
 
 interface SpotifyArtist {
   spotifyId: string;
@@ -189,8 +190,7 @@ export default function Profile() {
   const [placesTab, setPlacesTab] = useState<"been" | "going">("been");
   const [showsTab, setShowsTab] = useState<"attended" | "wishlist">("attended");
 
-  const [tpCity, setTpCity] = useState("");
-  const [tpCountry, setTpCountry] = useState("");
+  const [tpLocation, setTpLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [tpStart, setTpStart] = useState(""); // YYYY-MM-DD
   const [tpEnd, setTpEnd] = useState("");
   const [wlArtist, setWlArtist] = useState("");
@@ -288,15 +288,18 @@ export default function Profile() {
   const addTravelPlan = useMutation({
     mutationFn: () =>
       apiRequest("POST", `/api/users/${userId}/travel-plans`, {
-        city: tpCity.trim(),
-        country: tpCountry.trim(),
+        city: tpLocation.city.trim(),
+        country: tpLocation.country.trim(),
+        countryCode: tpLocation.countryCode,
+        googlePlaceId: tpLocation.googlePlaceId,
+        latitude: tpLocation.latitude,
+        longitude: tpLocation.longitude,
         startDate: tpStart,
         endDate: tpEnd || tpStart,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
-      setTpCity("");
-      setTpCountry("");
+      setTpLocation({ city: "", country: "" });
       setTpStart("");
       setTpEnd("");
       toast({ title: "Trip added to Radar", description: "We'll scan for your wishlist artists during these dates." });
@@ -595,10 +598,7 @@ export default function Profile() {
                     {isOwnProfile && (
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
                         <p className="text-xs text-[#888] font-medium mb-3">Add a trip to Radar</p>
-                        <div className="grid grid-cols-2 gap-2 mb-2">
-                          <Input placeholder="City" value={tpCity} onChange={e => setTpCity(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9" />
-                          <Input placeholder="Country" value={tpCountry} onChange={e => setTpCountry(e.target.value)} className="bg-[#111] border-[#333] text-white text-sm h-9" />
-                        </div>
+                        <GoogleCityAutocomplete value={tpLocation} onChange={setTpLocation} className="mb-2" />
                         <div className="grid grid-cols-2 gap-2 mb-2">
                           <div>
                             <p className="text-[10px] text-[#666] mb-1">Start</p>
@@ -613,7 +613,7 @@ export default function Profile() {
                           size="sm"
                           className="green-gradient text-black font-semibold h-9 px-4 w-full"
                           onClick={() => addTravelPlan.mutate()}
-                          disabled={!tpCity.trim() || !tpCountry.trim() || !tpStart || addTravelPlan.isPending}
+                          disabled={!tpLocation.city.trim() || !tpLocation.country.trim() || !tpStart || addTravelPlan.isPending}
                         >
                           Add trip
                         </Button>

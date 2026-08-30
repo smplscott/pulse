@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,8 +69,7 @@ export default function Radar() {
 
   const [showTripForm, setShowTripForm] = useState(false);
   const [editingTripId, setEditingTripId] = useState<number | null>(null);
-  const [city, setCity] = useState("");
-  const [country, setCountry] = useState("");
+  const [tripLocation, setTripLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -160,8 +160,7 @@ export default function Radar() {
   }
 
   function resetTripForm() {
-    setCity("");
-    setCountry("");
+    setTripLocation({ city: "", country: "" });
     setStartDate("");
     setEndDate("");
     setEditingTripId(null);
@@ -170,8 +169,14 @@ export default function Radar() {
 
   function editTrip(trip: UserTravelPlan) {
     setEditingTripId(trip.id);
-    setCity(trip.city);
-    setCountry(trip.country);
+    setTripLocation({
+      city: trip.city,
+      country: trip.country,
+      countryCode: trip.countryCode ?? undefined,
+      googlePlaceId: trip.googlePlaceId ?? undefined,
+      latitude: trip.latitude ?? undefined,
+      longitude: trip.longitude ?? undefined,
+    });
     setStartDate(trip.startDate ?? "");
     setEndDate(trip.endDate ?? trip.startDate ?? "");
     setShowTripForm(true);
@@ -213,8 +218,12 @@ export default function Radar() {
   const saveTrip = useMutation({
     mutationFn: () => {
       const payload = {
-        city: city.trim(),
-        country: country.trim(),
+        city: tripLocation.city.trim(),
+        country: tripLocation.country.trim(),
+        countryCode: tripLocation.countryCode,
+        googlePlaceId: tripLocation.googlePlaceId,
+        latitude: tripLocation.latitude,
+        longitude: tripLocation.longitude,
         startDate,
         endDate: endDate || startDate,
       };
@@ -248,8 +257,8 @@ export default function Radar() {
   const isLoading = artistsLoading || tripsLoading || matchesLoading;
   const isEmpty = artists.length === 0 && trips.length === 0;
   const tripFormValid =
-    city.trim() &&
-    country.trim() &&
+    tripLocation.city.trim() &&
+    tripLocation.country.trim() &&
     startDate &&
     (!endDate || endDate >= startDate);
 
@@ -459,10 +468,7 @@ export default function Radar() {
 
             {showTripForm && (
               <div className="mb-4 space-y-2 rounded-xl border border-[#333] bg-[#111] p-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <Input value={city} onChange={event => setCity(event.target.value)} placeholder="City" className="bg-[#202020] text-white" />
-                  <Input value={country} onChange={event => setCountry(event.target.value)} placeholder="Country" className="bg-[#202020] text-white" />
-                </div>
+                <GoogleCityAutocomplete value={tripLocation} onChange={setTripLocation} />
                 <div className="grid grid-cols-2 gap-2">
                   <div><p className="mb-1 text-[10px] text-[#666]">Start</p><Input type="date" value={startDate} onChange={event => setStartDate(event.target.value)} className="bg-[#202020] text-white" /></div>
                   <div><p className="mb-1 text-[10px] text-[#666]">End</p><Input type="date" min={startDate || undefined} value={endDate} onChange={event => setEndDate(event.target.value)} className="bg-[#202020] text-white" /></div>
