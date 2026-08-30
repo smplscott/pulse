@@ -5,11 +5,13 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import MusicPlayer from "@/components/layout/MusicPlayer";
 import { Place } from "@shared/schema";
+import { isMapPinPlace } from "@shared/placeMaps";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, MapPin, Star } from "lucide-react";
+import { SearchIcon, MapPin, Star, List, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
+import PlacesMap, { type MappablePlace } from "@/components/places/PlacesMap";
 
 const GENRE_OPTIONS = [
   "House", "Techno", "Drum & Bass", "Jungle", "Hip-Hop",
@@ -88,11 +90,14 @@ function PlaceCard({ place }: { place: Place }) {
   );
 }
 
+type PlaceListItem = MappablePlace;
+
 export default function Places() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [view, setView] = useState<"list" | "map">("list");
 
-  const { data: places, isLoading } = useQuery<Place[]>({
+  const { data: places, isLoading } = useQuery<PlaceListItem[]>({
     queryKey: ["/api/places"],
   });
 
@@ -107,6 +112,8 @@ export default function Places() {
     return matchesSearch && matchesCategory;
   });
 
+  const mappedPlaces = (filteredPlaces ?? []).filter(isMapPinPlace);
+
   return (
     <div className="min-h-screen pb-32">
       <Header />
@@ -120,6 +127,30 @@ export default function Places() {
             onChange={e => setSearchQuery(e.target.value)}
             className="pl-9 bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#B3B3B3] h-10 text-sm"
           />
+        </div>
+
+        <div className="flex items-center justify-end mb-3">
+          <div className="inline-flex rounded-full border border-[#3E3E3E] bg-[#181818] p-0.5">
+            {([
+              { id: "list" as const, label: "List", icon: List },
+              { id: "map" as const, label: "Map", icon: Map },
+            ]).map(option => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setView(option.id)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                  view === option.id
+                    ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black"
+                    : "text-[#B3B3B3] hover:text-white",
+                )}
+              >
+                <option.icon className="h-3.5 w-3.5" />
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-4">
@@ -145,6 +176,22 @@ export default function Places() {
               <Skeleton key={i} className="h-24 w-full rounded-xl" />
             ))}
           </div>
+        ) : view === "map" ? (
+          mappedPlaces.length > 0 ? (
+            <div className="overflow-hidden rounded-xl border border-[#282828] pulse-places-map">
+              <PlacesMap places={mappedPlaces} />
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="w-14 h-14 rounded-full bg-[#181818] flex items-center justify-center mx-auto mb-3">
+                <Map className="h-6 w-6 text-[#555]" />
+              </div>
+              <p className="text-[#B3B3B3] text-sm mb-1">No mapped places yet</p>
+              <p className="text-xs text-[#555] max-w-xs mx-auto">
+                Pins appear for Pulse places with at least one review and a saved location.
+              </p>
+            </div>
+          )
         ) : filteredPlaces && filteredPlaces.length > 0 ? (
           <div className="space-y-3">
             {filteredPlaces.map(place => (

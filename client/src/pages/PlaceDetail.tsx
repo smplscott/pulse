@@ -9,7 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, MapPin, Star, ExternalLink, PenLine, Trash2, Pencil, Crown } from "lucide-react";
+import { ChevronLeft, MapPin, Star, PenLine, Trash2, Pencil, Crown, Navigation } from "lucide-react";
+import { hasStoredCoordinates, placeDirectionsUrl } from "@shared/placeMaps";
 import SaveToListButton from "@/components/SaveToListButton";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -180,6 +181,7 @@ export default function PlaceDetail() {
   const genres = place ? (place.genres ?? []) : [];
   const avgRating = place?.rating ?? 0;
   const reviewCount = reviews?.length ?? 0;
+  const directionsUrl = place ? placeDirectionsUrl(place) : null;
 
   return (
     <div className="min-h-screen pb-32">
@@ -245,6 +247,19 @@ export default function PlaceDetail() {
                 </div>
               )}
 
+              {hasStoredCoordinates(place) && (
+                <div className="mb-3 overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#111]">
+                  <img
+                    src={`/api/places/${place.id}/static-map`}
+                    alt={`Map of ${place.name}`}
+                    className="h-40 w-full object-cover"
+                    onError={event => {
+                      event.currentTarget.style.display = "none";
+                    }}
+                  />
+                </div>
+              )}
+
               <p className="text-sm text-[#B3B3B3] leading-relaxed">{place.description}</p>
 
               <div className="flex items-center gap-2 mt-4">
@@ -256,14 +271,15 @@ export default function PlaceDetail() {
                   Review
                 </button>
                 <SaveToListButton placeId={placeId} placeName={place.name} />
-                {place.mapsLink && (
+                {directionsUrl && (
                   <a
-                    href={place.mapsLink}
+                    href={directionsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-full bg-[#282828] flex items-center justify-center hover:bg-[#333] transition-colors"
+                    className="flex items-center gap-1.5 rounded-full bg-[#282828] px-3 py-2.5 text-xs font-semibold text-white hover:bg-[#333] transition-colors"
                   >
-                    <ExternalLink className="h-4 w-4 text-white" />
+                    <Navigation className="h-3.5 w-3.5" />
+                    Directions
                   </a>
                 )}
               </div>
