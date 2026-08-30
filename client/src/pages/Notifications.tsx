@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useAuth } from "@/context/AuthContext";
 import type { Notification as AppNotification } from "@shared/schema";
 
 function timeAgo(date: string | Date | null): string {
@@ -20,7 +19,6 @@ function timeAgo(date: string | Date | null): string {
 }
 
 export default function Notifications() {
-  const { user } = useAuth();
   const { data: notifications, isLoading } = useQuery<AppNotification[]>({
     queryKey: ["/api/notifications"],
   });
@@ -92,7 +90,7 @@ export default function Notifications() {
             {notifications.map(n => {
               const isMatch = n.type === "wishlist_match";
               const href = isMatch
-                ? `/profile/${user?.username || ""}`
+                ? "/radar"
                 : `/thread/${n.threadId}`;
               return (
                 <Link key={n.id} href={href}>
@@ -121,7 +119,7 @@ export default function Notifications() {
                       <p className="text-sm text-white leading-snug">
                         {isMatch ? (
                           <>
-                            <span className="font-semibold">Wishlist match</span>
+                            <span className="font-semibold">Radar match</span>
                             <span className="text-[#B3B3B3]"> — {n.threadTitle}</span>
                           </>
                         ) : (

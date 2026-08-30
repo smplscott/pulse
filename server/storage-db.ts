@@ -382,6 +382,15 @@ export class DbStorage implements IStorage {
     return row;
   }
 
+  async updateUserTravelPlan(id: number, plan: Partial<InsertUserTravelPlan>): Promise<UserTravelPlan | undefined> {
+    const [row] = await db
+      .update(userTravelPlans)
+      .set(plan)
+      .where(eq(userTravelPlans.id, id))
+      .returning();
+    return row;
+  }
+
   async deleteUserTravelPlan(id: number): Promise<void> {
     await db.delete(userTravelPlans).where(eq(userTravelPlans.id, id));
   }

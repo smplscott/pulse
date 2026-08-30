@@ -582,6 +582,17 @@ export default function Profile() {
                 {placesTab === "going" && (
                   <div className="pb-4">
                     {isOwnProfile && (
+                      <Link href="/radar">
+                        <button className="mb-4 flex w-full items-center justify-between rounded-xl border border-[#ff6fae]/25 bg-gradient-to-r from-[#35152a] to-[#24183e] px-4 py-3 text-left">
+                          <span>
+                            <span className="block text-sm font-bold text-white">Open Radar control board</span>
+                            <span className="mt-0.5 block text-xs text-[#a998a4]">Manage trips, artists, and show matches</span>
+                          </span>
+                          <ChevronRight className="h-4 w-4 text-[#ff83ba]" />
+                        </button>
+                      </Link>
+                    )}
+                    {isOwnProfile && (
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
                         <p className="text-xs text-[#888] font-medium mb-3">Add a trip to Radar</p>
                         <div className="grid grid-cols-2 gap-2 mb-2">
@@ -785,6 +796,17 @@ export default function Profile() {
 
                 {showsTab === "wishlist" && (
                   <div className="pb-4">
+                    {isOwnProfile && (
+                      <Link href="/radar">
+                        <button className="mb-4 flex w-full items-center justify-between rounded-xl border border-[#ff6fae]/25 bg-gradient-to-r from-[#35152a] to-[#24183e] px-4 py-3 text-left">
+                          <span>
+                            <span className="block text-sm font-bold text-white">Open Radar control board</span>
+                            <span className="mt-0.5 block text-xs text-[#a998a4]">See trips and matches for these artists</span>
+                          </span>
+                          <ChevronRight className="h-4 w-4 text-[#ff83ba]" />
+                        </button>
+                      </Link>
+                    )}
                     {isOwnProfile && (
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
                         <p className="text-xs text-[#888] font-medium mb-3">Artists you want on your Radar</p>

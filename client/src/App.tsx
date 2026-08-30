@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 import Home from "@/pages/Home";
 import Profile from "@/pages/Profile";
+import Radar from "@/pages/Radar";
 import Artists from "@/pages/Artists";
 import Shows from "@/pages/Shows";
 import ShowDetail from "@/pages/ShowDetail";
@@ -52,6 +53,7 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/" component={() => <ProtectedRoute component={Home} />} />
       <Route path="/venues" component={() => <Redirect to="/places" />} />
+      <Route path="/radar" component={() => <ProtectedRoute component={Radar} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/profile/artist-follows" component={() => <ProtectedRoute component={FollowedArtistsPage} />} />
       <Route path="/profile/saved-places" component={() => <ProtectedRoute component={SavedPlacesPage} />} />
