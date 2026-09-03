@@ -155,6 +155,21 @@ export class DbStorage implements IStorage {
     return row;
   }
 
+  async updateThread(id: number, updates: Partial<InsertThread>): Promise<Thread | undefined> {
+    const [row] = await db.update(threads).set(updates).where(eq(threads.id, id)).returning();
+    return row;
+  }
+
+  async deleteThread(id: number): Promise<void> {
+    await db.transaction(async (tx) => {
+      await tx.delete(comments).where(eq(comments.threadId, id));
+      await tx.delete(threadFollows).where(eq(threadFollows.threadId, id));
+      await tx.delete(notifications).where(eq(notifications.threadId, id));
+      await tx.delete(songRecommendations).where(eq(songRecommendations.threadId, id));
+      await tx.delete(threads).where(eq(threads.id, id));
+    });
+  }
+
   // ─── Comment operations ─────────────────────────────────────────────────
   async getCommentsByThread(threadId: number): Promise<Comment[]> {
     return db.select().from(comments).where(eq(comments.threadId, threadId)).orderBy(asc(comments.createdAt));
@@ -395,7 +410,10 @@ export class DbStorage implements IStorage {
   }
 
   async deleteUserTravelPlan(id: number): Promise<void> {
-    await db.delete(userTravelPlans).where(eq(userTravelPlans.id, id));
+    await db.transaction(async (tx) => {
+      await tx.delete(wishlistEventMatches).where(eq(wishlistEventMatches.travelPlanId, id));
+      await tx.delete(userTravelPlans).where(eq(userTravelPlans.id, id));
+    });
   }
 
   // ─── Show wishlist operations ───────────────────────────────────────────
@@ -420,20 +438,35 @@ export class DbStorage implements IStorage {
   }
 
   async removeFromShowWishlist(id: number): Promise<void> {
-    await db.delete(userShowWishlist).where(eq(userShowWishlist.id, id));
+    await db.transaction(async (tx) => {
+      await tx.delete(wishlistEventMatches).where(eq(wishlistEventMatches.wishlistItemId, id));
+      await tx.delete(userShowWishlist).where(eq(userShowWishlist.id, id));
+    });
   }
 
   async removeFromShowWishlistByArtist(userId: number, artistName: string): Promise<void> {
-    await db
-      .delete(userShowWishlist)
-      .where(and(eq(userShowWishlist.userId, userId), sql`lower(${userShowWishlist.artistName}) = ${artistName.toLowerCase()}`));
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(wishlistEventMatches)
+        .where(and(
+          eq(wishlistEventMatches.userId, userId),
+          sql`lower(${wishlistEventMatches.artistName}) = ${artistName.toLowerCase()}`,
+        ));
+      await tx
+        .delete(userShowWishlist)
+        .where(and(eq(userShowWishlist.userId, userId), sql`lower(${userShowWishlist.artistName}) = ${artistName.toLowerCase()}`));
+    });
   }
 
   async getUserWishlistMatches(userId: number): Promise<WishlistEventMatch[]> {
+    // Only surface upcoming (or undated) events; past shows drop off automatically.
     return db
       .select()
       .from(wishlistEventMatches)
-      .where(eq(wishlistEventMatches.userId, userId))
+      .where(and(
+        eq(wishlistEventMatches.userId, userId),
+        sql`(${wishlistEventMatches.eventStartAt} is null or ${wishlistEventMatches.eventStartAt} >= now())`,
+      ))
       .orderBy(asc(wishlistEventMatches.eventStartAt));
   }
 

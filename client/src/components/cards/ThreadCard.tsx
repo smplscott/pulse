@@ -1,12 +1,21 @@
-import { Link } from "wouter";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { MessageCircleIcon, BookmarkIcon, Star, Music2Icon, MicVocalIcon, Disc3, Ticket } from "lucide-react";
+import { MessageCircleIcon, BookmarkIcon, Star, Music2Icon, MicVocalIcon, Disc3, Ticket, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Thread, Song, Artist } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import FollowArtistButton from "@/components/FollowArtistButton";
 import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
+import ThreadEditDialog from "@/components/threads/ThreadEditDialog";
+import { useAuth } from "@/context/AuthContext";
 
 const THREAD_TYPE_LABELS: Record<string, string> = {
   new_music: "New Music",
@@ -35,6 +44,11 @@ type ThreadCardProps = {
 };
 
 export default function ThreadCard({ thread, className }: ThreadCardProps) {
+  const { user: currentUser } = useAuth();
+  const [, navigate] = useLocation();
+  const [editOpen, setEditOpen] = useState(false);
+  const isOwner = !!currentUser && currentUser.id === thread.userId;
+
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${thread.userId}`],
   });
@@ -78,82 +92,128 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
       : `/thread/${thread.id}`;
 
   return (
-    <Link href={threadHref}>
-      <div className={cn("bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors", className)}>
-        <div className="flex items-start gap-3">
-          <Avatar className="w-9 h-9 rounded-full flex-shrink-0 mt-0.5">
-            {user?.profilePicture ? (
-              <AvatarImage src={user.profilePicture} alt={user.username} />
-            ) : (
-              <AvatarFallback className="bg-[#3E3E3E] text-xs">
-                {user?.username?.substring(0, 2).toUpperCase() || "U"}
-              </AvatarFallback>
-            )}
-          </Avatar>
+    <div className={cn("relative", className)}>
+      {isOwner && (
+        <div className="absolute right-3 top-3 z-10">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Thread actions"
+                className="rounded-full p-1 text-[#888] hover:bg-[#2a2a2a] hover:text-white"
+                onClick={event => event.stopPropagation()}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-[#1f1f1f] border-[#3E3E3E] text-white">
+              <DropdownMenuItem
+                className="gap-2 cursor-pointer focus:bg-[#2a2a2a] focus:text-white"
+                onClick={event => {
+                  event.stopPropagation();
+                  setEditOpen(true);
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-2 cursor-pointer text-red-400 focus:bg-[#2a2a2a] focus:text-red-400"
+                onClick={event => {
+                  event.stopPropagation();
+                  setEditOpen(true);
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0", typeColor)}>
-                {TypeIcon && <TypeIcon className="h-3 w-3" />}
-                {typeLabel}
-              </span>
-              {linkedLabel && (
-                <span className="text-xs text-[#B3B3B3] flex items-center gap-1 min-w-0">
-                  {linkedIcon}
-                  <span className="truncate max-w-[120px]">{linkedLabel}</span>
+      <Link href={threadHref}>
+        <div className="bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors">
+          <div className="flex items-start gap-3">
+            <Avatar className="w-9 h-9 rounded-full flex-shrink-0 mt-0.5">
+              {user?.profilePicture ? (
+                <AvatarImage src={user.profilePicture} alt={user.username} />
+              ) : (
+                <AvatarFallback className="bg-[#3E3E3E] text-xs">
+                  {user?.username?.substring(0, 2).toUpperCase() || "U"}
+                </AvatarFallback>
+              )}
+            </Avatar>
+
+            <div className="flex-1 min-w-0 pr-6">
+              <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0", typeColor)}>
+                  {TypeIcon && <TypeIcon className="h-3 w-3" />}
+                  {typeLabel}
                 </span>
+                {linkedLabel && (
+                  <span className="text-xs text-[#B3B3B3] flex items-center gap-1 min-w-0">
+                    {linkedIcon}
+                    <span className="truncate max-w-[120px]">{linkedLabel}</span>
+                  </span>
+                )}
+                {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && (artist?.name || thread.artistName) && (
+                  <>
+                    <FollowArtistButton artistName={artist?.name || thread.artistName!} />
+                    <SaveArtistWishlistButton
+                      artistName={artist?.name || thread.artistName!}
+                      spotifyImageUrl={artist?.profilePicture ?? undefined}
+                    />
+                  </>
+                )}
+              </div>
+
+              <p className="font-semibold text-white text-sm leading-snug mb-1">{thread.title}</p>
+
+              <p className="text-xs text-[#B3B3B3] mb-2">
+                @{user?.username || "user"} · {formatRelativeTime(createdAt)}
+              </p>
+
+              {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && thread.starRating && (
+                <div className="flex items-center gap-0.5 mb-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={cn("h-3 w-3", i < (thread.starRating || 0) ? "text-[#c3f872] fill-[#c3f872]" : "text-[#3E3E3E]")}
+                    />
+                  ))}
+                </div>
               )}
-              {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && (artist?.name || thread.artistName) && (
-                <>
-                  <FollowArtistButton artistName={artist?.name || thread.artistName!} />
-                  <SaveArtistWishlistButton
-                    artistName={artist?.name || thread.artistName!}
-                    spotifyImageUrl={artist?.profilePicture ?? undefined}
+
+              {thread.threadType === "live_show_review" && thread.reviewImageUrl && (
+                <div className="mb-2">
+                  <img
+                    src={thread.reviewImageUrl}
+                    alt="Review artwork"
+                    className="w-16 h-16 rounded-lg object-cover border border-[#282828]"
                   />
-                </>
+                </div>
               )}
-            </div>
 
-            <p className="font-semibold text-white text-sm leading-snug mb-1">{thread.title}</p>
-
-            <p className="text-xs text-[#B3B3B3] mb-2">
-              @{user?.username || "user"} · {formatRelativeTime(createdAt)}
-            </p>
-
-            {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && thread.starRating && (
-              <div className="flex items-center gap-0.5 mb-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={cn("h-3 w-3", i < (thread.starRating || 0) ? "text-[#c3f872] fill-[#c3f872]" : "text-[#3E3E3E]")}
-                  />
-                ))}
-              </div>
-            )}
-
-            {thread.threadType === "live_show_review" && thread.reviewImageUrl && (
-              <div className="mb-2">
-                <img
-                  src={thread.reviewImageUrl}
-                  alt="Review artwork"
-                  className="w-16 h-16 rounded-lg object-cover border border-[#282828]"
-                />
-              </div>
-            )}
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <MessageCircleIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
-                <span className="text-xs text-[#B3B3B3]">{thread.commentsCount || 0}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <BookmarkIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
-                <span className="text-xs text-[#B3B3B3]">{thread.savesCount || 0}</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                  <MessageCircleIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  <span className="text-xs text-[#B3B3B3]">{thread.commentsCount || 0}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <BookmarkIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                  <span className="text-xs text-[#B3B3B3]">{thread.savesCount || 0}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+
+      <ThreadEditDialog
+        thread={thread}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onDeleted={() => navigate("/")}
+      />
+    </div>
   );
 }

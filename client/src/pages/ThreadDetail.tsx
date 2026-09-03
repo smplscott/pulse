@@ -9,20 +9,24 @@ import { Thread, User, Comment, SongRecommendation, Song, Artist, Venue, MusicSe
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ChevronLeft, ArrowUp, MessageCircle, Share2, Play, Music2, 
-  CheckCircle, MoreHorizontal, Heart, Repeat, Send, ThumbsUp
+  CheckCircle, MoreHorizontal, Heart, Repeat, Send, ThumbsUp, Pencil
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatRelativeTime, formatNumber, cn } from "@/lib/utils";
 import { useState } from "react";
 import { useMusic } from "@/hooks/useMusic";
+import { useAuth } from "@/context/AuthContext";
+import ThreadEditDialog from "@/components/threads/ThreadEditDialog";
 
 export default function ThreadDetail() {
   const params = useParams<{ id: string }>();
   const { toast } = useToast();
   const { upvoteSong } = useMusic();
+  const { user: currentUser } = useAuth();
   const [commentText, setCommentText] = useState("");
   const [artistContentTab, setArtistContentTab] = useState("singles");
+  const [editOpen, setEditOpen] = useState(false);
 
   // Handle different content types in thread ID format (e.g., "artist_1", "venue_2")
   const threadIdParam = params.id;
@@ -40,9 +44,6 @@ export default function ThreadDetail() {
     // Regular thread ID
     threadId = parseInt(threadIdParam);
   }
-  
-  // Mock user ID - in a real app this would come from auth context
-  const userId = 1;
 
   // Fetch content based on type if this is a content-specific thread
   const { data: artistContent } = useQuery<Artist>({
@@ -152,7 +153,6 @@ export default function ThreadDetail() {
       const result = await apiRequest('POST', `/api/comments`, {
         content,
         threadId: threadId,
-        userId: userId,
       });
       return result;
     },
@@ -226,9 +226,20 @@ export default function ThreadDetail() {
              isSongThread ? "Song Thread" :
              isSongRequest ? "What's This Song" : "Thread"}
           </h1>
-          <button className="text-[#b388eb]">
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
+          {thread && currentUser?.id === thread.userId ? (
+            <button
+              type="button"
+              className="text-[#c2f970]"
+              onClick={() => setEditOpen(true)}
+              aria-label="Edit or delete thread"
+            >
+              <Pencil className="h-5 w-5" />
+            </button>
+          ) : (
+            <button className="text-[#b388eb]">
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </header>
       
@@ -466,6 +477,13 @@ export default function ThreadDetail() {
       )}
       
       <BottomNav />
+
+      <ThreadEditDialog
+        thread={thread ?? null}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onDeleted={() => window.location.assign("/")}
+      />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import {
   MapPin, Calendar, Plus, AlertCircle, Music2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReviewImageUpload from "@/components/ReviewImageUpload";
 
 // ──────────────────────────────────────────────
 // Types
@@ -108,6 +109,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
   const [selectedShow, setSelectedShow] = useState<SetlistShow | null>(null);
   const [selectedAlbum, setSelectedAlbum] = useState<SpotifyAlbum | null>(null);
   const [starRating, setStarRating] = useState(0);
+  const [reviewImage, setReviewImage] = useState<string | null>(null);
 
   // Manual show form
   const [showManualForm, setShowManualForm] = useState(false);
@@ -205,6 +207,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
         albumId: selectedType === "album_review" ? (selectedAlbum?.spotifyId || null) : null,
         albumName: selectedType === "album_review" ? (selectedAlbum?.name || null) : null,
         artistName: artistDisplayName || null,
+        reviewImageUrl: selectedType === "live_show_review" ? reviewImage : null,
       });
       if (!res.ok) {
         const err = await res.json();
@@ -237,6 +240,7 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
     setSelectedShow(null);
     setSelectedAlbum(null);
     setStarRating(0);
+    setReviewImage(null);
     setShowManualForm(false);
     setManualShow({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
     form.reset();
@@ -294,6 +298,10 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
     if (!user) return;
     if (selectedType === "live_show_review" && !starRating) {
       toast({ title: "Rating required", description: "Please give a star rating for the show.", variant: "destructive" });
+      return;
+    }
+    if (selectedType === "live_show_review" && !reviewImage) {
+      toast({ title: "Photo required", description: "Live show reviews need a photo.", variant: "destructive" });
       return;
     }
     createThread.mutate(values);
@@ -673,6 +681,12 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
               </div>
             )}
 
+            {selectedType === "live_show_review" && (
+              <div className="mb-4">
+                <ReviewImageUpload value={reviewImage} onChange={setReviewImage} />
+              </div>
+            )}
+
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField control={form.control} name="title" render={({ field }) => (
@@ -704,7 +718,10 @@ export default function NewThreadDialog({ open, onOpenChange }: Props) {
                 <button
                   type="submit"
                   className="w-full py-2.5 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
-                  disabled={createThread.isPending}
+                  disabled={
+                    createThread.isPending ||
+                    (selectedType === "live_show_review" && (!starRating || !reviewImage))
+                  }
                 >
                   {createThread.isPending ? "Posting…" : "Post Thread"}
                 </button>
