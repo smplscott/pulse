@@ -14,7 +14,7 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx server/seed.ts",
     "audit:place-dedupe": "tsx server/jobs/auditPlaceDedupe.ts",
-    "test:google-places": "tsx --test server/googlePlaces.test.ts server/placeDedupe.test.ts server/ticketmaster.test.ts server/staticMap.test.ts shared/placeMaps.test.ts",
+    "test:google-places": "tsx --test server/googlePlaces.test.ts server/placeDedupe.test.ts server/ticketmaster.test.ts server/staticMap.test.ts shared/placeMaps.test.ts server/vercel.test.ts",
     "test:place-maps": "tsx --test server/staticMap.test.ts shared/placeMaps.test.ts",
     "jobs:scan-wishlist": "tsx server/jobs/run-scan.ts"
   },
