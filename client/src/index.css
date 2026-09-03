@@ -116,6 +116,12 @@
 
 .pulse-places-map .leaflet-popup-content-wrapper,
 .pulse-places-map .leaflet-popup-tip {
-  background: #f4f4f4;
-  color: #111;
+  background: #1a1a1a;
+  color: #f4f4f4;
+  border: 1px solid #333;
+}
+
+.pulse-places-map .leaflet-popup-content a,
+.pulse-places-map .leaflet-popup-content span {
+  color: inherit;
 }
