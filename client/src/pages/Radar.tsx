@@ -16,6 +16,7 @@ import {
   Ticket,
   Trash2,
   X,
+  RefreshCw,
 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
@@ -26,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 import type {
   UserShowWishlistItem,
   UserTravelPlan,
@@ -236,7 +238,7 @@ export default function Radar() {
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
       toast({
         title: editingTripId ? "Radar trip updated" : "Trip added to Radar",
-        description: "Matches refresh during the next scheduled scan.",
+        description: "Tap Scan now to look for shows immediately.",
       });
       resetTripForm();
     },
@@ -252,6 +254,31 @@ export default function Radar() {
       toast({ title: "Trip removed from Radar" });
     },
     onError: () => toast({ title: "Couldn't remove trip", variant: "destructive" }),
+  });
+
+  const scanNow = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/users/${userId}/scan-wishlist`);
+      return res.json() as Promise<{
+        usersScanned: number;
+        queries: number;
+        matchesCreated: number;
+        notificationsCreated: number;
+        errors: string[];
+      }>;
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      const extra = result.errors.length ? ` (${result.errors.length} warning${result.errors.length === 1 ? "" : "s"})` : "";
+      toast({
+        title: result.matchesCreated > 0
+          ? `Found ${result.matchesCreated} new show${result.matchesCreated === 1 ? "" : "s"}`
+          : "No new matches",
+        description: result.errors[0] || `Checked ${result.queries} artist × trip search${result.queries === 1 ? "" : "es"}${extra}`,
+      });
+    },
+    onError: (err: Error) => toast({ title: "Scan failed", description: err.message, variant: "destructive" }),
   });
 
   const isLoading = artistsLoading || tripsLoading || matchesLoading;
@@ -276,8 +303,19 @@ export default function Radar() {
             <p className="mt-1 text-sm text-[#888]">Your artists, trips, and shows—tuned to the same frequency.</p>
           </div>
           {!isLoading && (
-            <div className="rounded-full border border-[#333] bg-[#181818] px-3 py-1.5 text-xs font-semibold text-[#c2f970]">
-              {matches.length} match{matches.length === 1 ? "" : "es"}
+            <div className="flex flex-col items-end gap-2">
+              <div className="rounded-full border border-[#333] bg-[#181818] px-3 py-1.5 text-xs font-semibold text-[#c2f970]">
+                {matches.length} match{matches.length === 1 ? "" : "es"}
+              </div>
+              <button
+                type="button"
+                onClick={() => scanNow.mutate()}
+                disabled={scanNow.isPending || artists.length === 0 || trips.length === 0}
+                className="flex items-center gap-1.5 rounded-full border border-[#c2f970]/30 bg-[#c2f970]/10 px-3 py-1.5 text-xs font-semibold text-[#c2f970] hover:bg-[#c2f970]/20 disabled:opacity-40"
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5", scanNow.isPending && "animate-spin")} />
+                {scanNow.isPending ? "Scanning…" : "Scan now"}
+              </button>
             </div>
           )}
         </div>
@@ -341,7 +379,7 @@ export default function Radar() {
                     ? "Your trips are set. Add artists to start looking for shows."
                     : trips.length === 0
                       ? "Your artists are tuned in. Add a trip to start matching shows."
-                      : "Your artists and trips are set. New Ticketmaster matches appear here after the scheduled scan."}
+                      : "Your artists and trips are set. Tap Scan now to look for shows across every trip city."}
               </p>
               <div className="mt-5 grid grid-cols-2 gap-2">
                 <button onClick={() => setShowArtistForm(true)} className="rounded-xl bg-white/10 px-3 py-3 text-left text-sm font-semibold text-white hover:bg-white/15">

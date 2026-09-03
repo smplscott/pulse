@@ -28,10 +28,11 @@ function todayIso(): string {
 }
 
 /**
- * Weekly (or on-demand) job: for each user with wishlist + upcoming travel plans,
- * query Ticketmaster and upsert matches + notifications.
+ * Monthly (or on-demand) job: for each user with wishlist + upcoming travel plans,
+ * query Ticketmaster and upsert matches + notifications. Searches every wishlist
+ * artist against every trip (all artists × all trips).
  */
-export async function scanWishlistMatches(): Promise<ScanResult> {
+export async function scanWishlistMatches(options: { userId?: number } = {}): Promise<ScanResult> {
   const result: ScanResult = {
     usersScanned: 0,
     queries: 0,
@@ -47,17 +48,20 @@ export async function scanWishlistMatches(): Promise<ScanResult> {
 
   const today = todayIso();
 
+  const conditions = [
+    isNotNull(userTravelPlans.startDate),
+    isNotNull(userTravelPlans.endDate),
+    gte(userTravelPlans.endDate, today),
+  ];
+  if (options.userId) {
+    conditions.push(eq(userTravelPlans.userId, options.userId));
+  }
+
   // Users who have at least one upcoming travel plan with dates
   const plans = await db
     .select()
     .from(userTravelPlans)
-    .where(
-      and(
-        isNotNull(userTravelPlans.startDate),
-        isNotNull(userTravelPlans.endDate),
-        gte(userTravelPlans.endDate, today),
-      ),
-    );
+    .where(and(...conditions));
 
   const plansByUser = new Map<number, typeof plans>();
   for (const p of plans) {
