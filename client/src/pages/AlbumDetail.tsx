@@ -4,7 +4,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Disc3, ChevronLeft, Crown, Star, MessageCircle, Bookmark } from "lucide-react";
+import { Disc3, ChevronLeft, Crown, Star, MessageCircle, Bookmark, Pencil } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import FollowArtistButton from "@/components/FollowArtistButton";
 import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
@@ -12,6 +12,8 @@ import { useState } from "react";
 import type { Thread, User } from "@shared/schema";
 import { useQuery as useUserQuery } from "@tanstack/react-query";
 import { formatRelativeTime } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import ThreadEditDialog from "@/components/threads/ThreadEditDialog";
 
 interface AlbumStats {
   albumId: string;
@@ -70,6 +72,9 @@ function RatingDistribution({ reviews }: { reviews: Thread[] }) {
 }
 
 function ReviewCard({ thread }: { thread: Thread }) {
+  const { user: currentUser } = useAuth();
+  const [editOpen, setEditOpen] = useState(false);
+  const isOwner = !!currentUser && currentUser.id === thread.userId;
   const { data: user } = useUserQuery<User>({
     queryKey: [`/api/users/${thread.userId}`],
   });
@@ -77,41 +82,58 @@ function ReviewCard({ thread }: { thread: Thread }) {
   const createdAt = new Date(thread.createdAt || Date.now());
 
   return (
-    <Link href={`/thread/${thread.id}`}>
-      <div className="bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors">
-        <div className="flex items-start gap-3">
-          <Avatar className="w-8 h-8 rounded-full flex-shrink-0">
-            {user?.profilePicture
-              ? <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover rounded-full" />
-              : <AvatarFallback className="bg-[#3E3E3E] text-xs">
-                  {user?.username?.substring(0, 2).toUpperCase() ?? "U"}
-                </AvatarFallback>
-            }
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-              <span className="text-xs font-medium text-white">@{user?.username ?? "user"}</span>
-              <span className="text-[10px] text-[#555]">· {formatRelativeTime(createdAt)}</span>
-            </div>
-            {thread.starRating && (
-              <div className="mb-1.5">
-                <StarDisplay rating={thread.starRating} />
+    <div className="relative">
+      {isOwner && (
+        <button
+          type="button"
+          className="absolute right-3 top-3 z-10 rounded-full p-1 text-[#888] hover:bg-[#2a2a2a] hover:text-[#c2f970]"
+          onClick={event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setEditOpen(true);
+          }}
+          aria-label="Edit review"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+      )}
+      <Link href={`/thread/${thread.id}`}>
+        <div className="bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors">
+          <div className="flex items-start gap-3">
+            <Avatar className="w-8 h-8 rounded-full flex-shrink-0">
+              {user?.profilePicture
+                ? <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover rounded-full" />
+                : <AvatarFallback className="bg-[#3E3E3E] text-xs">
+                    {user?.username?.substring(0, 2).toUpperCase() ?? "U"}
+                  </AvatarFallback>
+              }
+            </Avatar>
+            <div className="flex-1 min-w-0 pr-6">
+              <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                <span className="text-xs font-medium text-white">@{user?.username ?? "user"}</span>
+                <span className="text-[10px] text-[#555]">· {formatRelativeTime(createdAt)}</span>
               </div>
-            )}
-            <p className="text-sm font-semibold text-white leading-snug mb-1">{thread.title}</p>
-            <p className="text-xs text-[#B3B3B3] line-clamp-2">{thread.content}</p>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="flex items-center gap-1 text-xs text-[#555]">
-                <MessageCircle className="h-3 w-3" />{thread.commentsCount ?? 0}
-              </span>
-              <span className="flex items-center gap-1 text-xs text-[#555]">
-                <Bookmark className="h-3 w-3" />{thread.savesCount ?? 0}
-              </span>
+              {thread.starRating && (
+                <div className="mb-1.5">
+                  <StarDisplay rating={thread.starRating} />
+                </div>
+              )}
+              <p className="text-sm font-semibold text-white leading-snug mb-1">{thread.title}</p>
+              <p className="text-xs text-[#B3B3B3] line-clamp-2">{thread.content}</p>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="flex items-center gap-1 text-xs text-[#555]">
+                  <MessageCircle className="h-3 w-3" />{thread.commentsCount ?? 0}
+                </span>
+                <span className="flex items-center gap-1 text-xs text-[#555]">
+                  <Bookmark className="h-3 w-3" />{thread.savesCount ?? 0}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+      <ThreadEditDialog thread={thread} open={editOpen} onOpenChange={setEditOpen} />
+    </div>
   );
 }
 

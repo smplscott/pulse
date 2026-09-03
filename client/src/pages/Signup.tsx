@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, Redirect } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,7 +27,7 @@ const signupSchema = z.object({
 type SignupForm = z.infer<typeof signupSchema>;
 
 export default function Signup() {
-  const { register: registerUser } = useAuth();
+  const { user, register: registerUser } = useAuth();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -44,6 +44,10 @@ export default function Signup() {
       toast({ title: "Sign up failed", description: message, variant: "destructive" });
     }
   };
+
+  if (user) {
+    return <Redirect to="/" />;
+  }
 
   return (
     <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center px-6 py-10">
@@ -63,7 +67,7 @@ export default function Signup() {
                 {...form.register("email")}
                 type="email"
                 placeholder="you@example.com"
-                className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#1DB954] h-11"
+                className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#c2f970] h-11"
                 autoComplete="email"
               />
               {form.formState.errors.email && (
@@ -76,7 +80,7 @@ export default function Signup() {
               <Input
                 {...form.register("username")}
                 placeholder="your_username"
-                className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#1DB954] h-11"
+                className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#c2f970] h-11"
                 autoCapitalize="none"
                 autoComplete="username"
               />
@@ -92,7 +96,7 @@ export default function Signup() {
                   {...form.register("password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="At least 6 characters"
-                  className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#1DB954] h-11 pr-10"
+                  className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#c2f970] h-11 pr-10"
                   autoComplete="new-password"
                 />
                 <button
@@ -114,7 +118,7 @@ export default function Signup() {
                 {...form.register("confirmPassword")}
                 type="password"
                 placeholder="Re-enter your password"
-                className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#1DB954] h-11"
+                className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#c2f970] h-11"
                 autoComplete="new-password"
               />
               {form.formState.errors.confirmPassword && (
@@ -125,7 +129,7 @@ export default function Signup() {
             <Button
               type="submit"
               disabled={form.formState.isSubmitting}
-              className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold h-11 rounded-full"
+              className="w-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] hover:opacity-90 text-black font-bold h-11 rounded-full"
             >
               {form.formState.isSubmitting ? "Creating account..." : "Create account"}
             </Button>
@@ -138,7 +142,7 @@ export default function Signup() {
 
         <p className="text-center text-[#B3B3B3] text-sm">
           Already have an account?{" "}
-          <Link href="/login" className="text-[#1DB954] hover:underline font-semibold">
+          <Link href="/login" className="text-[#c2f970] hover:underline font-semibold">
             Log in
           </Link>
         </p>

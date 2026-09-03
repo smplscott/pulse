@@ -49,6 +49,8 @@ export interface IStorage {
   getEngagedThreadsByUser(userId: number): Promise<Thread[]>;
   getThreadsByUser(userId: number): Promise<Thread[]>;
   createThread(thread: InsertThread): Promise<Thread>;
+  updateThread(id: number, updates: Partial<InsertThread>): Promise<Thread | undefined>;
+  deleteThread(id: number): Promise<void>;
 
   // Comment operations
   getCommentsByThread(threadId: number): Promise<Comment[]>;

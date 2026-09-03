@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, Redirect } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,7 +18,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
@@ -48,6 +48,10 @@ export default function Login() {
       toast({ title: "Login failed", description: message, variant: "destructive" });
     }
   };
+
+  if (user) {
+    return <Redirect to="/" />;
+  }
 
   if (forgotSent) {
     return (
@@ -83,7 +87,7 @@ export default function Login() {
               <Input
                 {...form.register("identifier")}
                 placeholder="you@example.com"
-                className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#1DB954] h-11"
+                className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#c2f970] h-11"
                 autoCapitalize="none"
                 autoComplete="username"
               />
@@ -99,7 +103,7 @@ export default function Login() {
                   {...form.register("password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#1DB954] h-11 pr-10"
+                  className="bg-[#2A2A2A] border-[#3E3E3E] text-white placeholder:text-[#666] focus:border-[#c2f970] h-11 pr-10"
                   autoComplete="current-password"
                 />
                 <button
@@ -118,7 +122,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setForgotSent(true)}
-              className="text-[#1DB954] text-xs hover:underline block"
+              className="text-[#c2f970] text-xs hover:underline block"
             >
               Forgot password?
             </button>
@@ -126,7 +130,7 @@ export default function Login() {
             <Button
               type="submit"
               disabled={form.formState.isSubmitting}
-              className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold h-11 rounded-full"
+              className="w-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] hover:opacity-90 text-black font-bold h-11 rounded-full"
             >
               {form.formState.isSubmitting ? "Logging in..." : "Log in"}
             </Button>
@@ -135,7 +139,7 @@ export default function Login() {
 
         <p className="text-center text-[#B3B3B3] text-sm">
           Don't have an account?{" "}
-          <Link href="/signup" className="text-[#1DB954] hover:underline font-semibold">
+          <Link href="/signup" className="text-[#c2f970] hover:underline font-semibold">
             Sign up
           </Link>
         </p>

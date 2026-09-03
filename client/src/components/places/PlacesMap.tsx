@@ -45,8 +45,8 @@ export default function PlacesMap({ places }: { places: MappablePlace[] }) {
       scrollWheelZoom
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
       <FitPins places={places} />
       {places.map(place => {
@@ -61,16 +61,16 @@ export default function PlacesMap({ places }: { places: MappablePlace[] }) {
             <Popup>
               <div className="min-w-[160px] space-y-1">
                 <Link href={`/places/${place.id}`}>
-                  <span className="block text-sm font-semibold text-[#111] hover:underline">
+                  <span className="block text-sm font-semibold text-white hover:underline">
                     {place.name}
                   </span>
                 </Link>
-                <p className="flex items-center gap-1 text-xs text-[#333]">
+                <p className="flex items-center gap-1 text-xs text-[#ccc]">
                   <Star className="h-3 w-3 fill-[#c2f970] text-[#c2f970]" />
                   {rating > 0 ? Number(rating).toFixed(1) : "–"}
                 </p>
                 {genre && (
-                  <p className="text-[11px] font-medium text-[#3a5a12]">{genre}</p>
+                  <p className="text-[11px] font-medium text-[#c2f970]">{genre}</p>
                 )}
               </div>
             </Popup>

@@ -11,7 +11,7 @@ const PgSessionStore = connectPgSimple(session);
 const app = express();
 // Required behind Railway (and similar) HTTPS proxies so secure cookies work.
 app.set("trust proxy", 1);
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false }));
 
 const sessionSecret = process.env.SESSION_SECRET || (

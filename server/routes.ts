@@ -8,6 +8,7 @@ import { z } from "zod";
 import { insertUserSchema, insertArtistSchema, insertThreadSchema, insertCommentSchema, insertSetSchema, insertTrackIdSchema, insertTrackIdVoteSchema, insertPlaceSchema, insertShowSchema, insertShowReviewSchema, insertShowCommentSchema, insertUserTravelPlanSchema, insertUserShowWishlistSchema, artistResponseSchema, songResponseSchema, musicSetResponseSchema, insertPlaceListSchema, insertPlaceListItemSchema } from "@shared/schema";
 import type { Artist, Song, MusicSet, ArtistResponse, SongResponse, MusicSetResponse, Badge } from "@shared/schema";
 import { scanWishlistMatches } from "./jobs/scanWishlistMatches";
+import { resolveTicketmasterCountryCode } from "./ticketmaster";
 import {
   autocompleteGooglePlaces,
   getGooglePlaceDetails,
@@ -106,6 +107,11 @@ function normalizeMusicSet(s: MusicSet): MusicSetResponse {
 }
 
 const scryptAsync = promisify(scrypt);
+
+// Live show reviews must include a photo (stored as a base64 data URL).
+function isLiveShowPhoto(value: unknown): value is string {
+  return typeof value === "string" && value.startsWith("data:image/");
+}
 
 // ── Spotify token cache (module-level so all routes share it) ──────────────
 let _spotifyTokenCache: { token: string; expiresAt: number } | null = null;
@@ -515,7 +521,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         albumName: z.string().optional().nullable(),
         artistName: z.string().optional().nullable(),
         reviewImageUrl: z.string().optional().nullable(),
-      });
+      }).refine(
+        (d) => d.threadType !== "live_show_review" || isLiveShowPhoto(d.reviewImageUrl),
+        { message: "A photo is required for live show reviews", path: ["reviewImageUrl"] },
+      );
       const threadData = schema.parse({ ...req.body, userId });
       const thread = await storage.createThread(threadData);
       // Auto-remove artist from wishlist when a live show review is posted
@@ -530,7 +539,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Failed to create thread" });
     }
   });
-  
+
+  // Author-only edit
+  app.patch("/api/threads/:id", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
+
+      const existing = await storage.getThread(id);
+      if (!existing) return res.status(404).json({ message: "Thread not found" });
+      if (existing.userId !== userId) return res.status(403).json({ message: "Not your thread" });
+
+      const schema = z.object({
+        title: z.string().min(3, "Title must be at least 3 characters").optional(),
+        content: z.string().min(1, "Content is required").optional(),
+        starRating: z.number().int().min(1).max(5).optional().nullable(),
+        reviewImageUrl: z.string().optional().nullable(),
+      });
+      const updates = schema.parse(req.body);
+
+      // Preserve the mandatory-photo rule when editing a live show review.
+      if (existing.threadType === "live_show_review") {
+        const nextImage = updates.reviewImageUrl !== undefined ? updates.reviewImageUrl : existing.reviewImageUrl;
+        if (!isLiveShowPhoto(nextImage)) {
+          return res.status(400).json({ message: "A photo is required for live show reviews" });
+        }
+      }
+
+      const updated = await storage.updateThread(id, updates);
+      return res.json(updated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Validation error" });
+      }
+      return res.status(500).json({ message: "Failed to update thread" });
+    }
+  });
+
+  // Author-only delete
+  app.delete("/api/threads/:id", async (req: Request, res: Response) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid thread ID" });
+
+      const existing = await storage.getThread(id);
+      if (!existing) return res.status(404).json({ message: "Thread not found" });
+      if (existing.userId !== userId) return res.status(403).json({ message: "Not your thread" });
+
+      await storage.deleteThread(id);
+      return res.json({ message: "Thread deleted" });
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to delete thread" });
+    }
+  });
+
   // Comments routes
   app.get("/api/threads/:threadId/comments", async (req: Request, res: Response) => {
     const threadId = parseInt(req.params.threadId);
@@ -1329,7 +1395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schema = insertShowReviewSchema.extend({
         rating: z.number().int().min(1).max(5),
         content: z.string().min(10, "Review must be at least 10 characters").max(1000),
-        imageUrl: z.string().optional().nullable(),
+        imageUrl: z.string().refine(isLiveShowPhoto, "A photo is required for show reviews"),
       });
       const reviewData = schema.parse({ ...req.body, showId, userId });
       const review = await storage.createShowReview(reviewData);
@@ -1368,6 +1434,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageUrl: z.string().nullable().optional(),
       });
       const data = schema.parse(req.body);
+      const nextImage = data.imageUrl !== undefined ? data.imageUrl : review.imageUrl;
+      if (!isLiveShowPhoto(nextImage)) {
+        return res.status(400).json({ message: "A photo is required for show reviews" });
+      }
       const updated = await storage.updateShowReview(reviewId, data.rating, data.content, data.imageUrl);
       if (!updated) return res.status(404).json({ message: "Review not found" });
       return res.json(updated);
@@ -1476,12 +1546,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (body.endDate < body.startDate) {
         return res.status(400).json({ message: "endDate must be on or after startDate" });
       }
+      const countryCode = resolveTicketmasterCountryCode({
+        countryCode: body.countryCode,
+        country: body.country,
+      });
       const targetDate = body.targetDate?.trim() || formatTripLabel(body.startDate, body.endDate);
       const plan = await storage.createUserTravelPlan({
         userId: id,
         city: body.city,
         country: body.country,
-        countryCode: body.countryCode,
+        countryCode,
         googlePlaceId: body.googlePlaceId,
         latitude: body.latitude,
         longitude: body.longitude,
@@ -1526,11 +1600,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (body.endDate < body.startDate) {
         return res.status(400).json({ message: "endDate must be on or after startDate" });
       }
+      const countryCode = resolveTicketmasterCountryCode({
+        countryCode: body.countryCode,
+        country: body.country,
+      });
 
       const plan = await storage.updateUserTravelPlan(planId, {
         city: body.city,
         country: body.country,
-        countryCode: body.countryCode,
+        countryCode,
         googlePlaceId: body.googlePlaceId,
         latitude: body.latitude,
         longitude: body.longitude,
@@ -1698,7 +1776,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return res.json(matches);
   });
 
-  // Weekly Ticketmaster scan — Railway cron / manual ops
+  app.post("/api/users/:id/scan-wishlist", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
+    try {
+      const result = await scanWishlistMatches({ userId: id });
+      return res.json(result);
+    } catch (err) {
+      console.error("[scan-wishlist]", err);
+      return res.status(500).json({ message: "Scan failed" });
+    }
+  });
+
+  // Monthly Ticketmaster scan — Railway cron / manual ops
   app.post("/api/internal/jobs/scan-wishlist-matches", async (req: Request, res: Response) => {
     const secret = process.env.CRON_SECRET;
     const header = req.header("x-cron-secret") || req.header("authorization")?.replace(/^Bearer\s+/i, "");
