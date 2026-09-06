@@ -37,6 +37,12 @@ function FitPins({ places }: { places: MappablePlace[] }) {
 
 export default function PlacesMap({ places }: { places: MappablePlace[] }) {
   const fallback: [number, number] = [51.5074, -0.1278];
+  const cartoKey = import.meta.env.VITE_CARTO_API_KEY as string | undefined;
+  const baseTileUrl =
+    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  const tileUrl = cartoKey
+    ? `${baseTileUrl}?key=${encodeURIComponent(cartoKey)}`
+    : baseTileUrl;
   return (
     <MapContainer
       center={fallback}
@@ -46,7 +52,7 @@ export default function PlacesMap({ places }: { places: MappablePlace[] }) {
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url={tileUrl}
       />
       <FitPins places={places} />
       {places.map(place => {
