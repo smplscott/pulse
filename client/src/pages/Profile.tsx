@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   MessageSquare, Music2, MapPin, Edit, Mic,
   Plus, Plane, Star, Trash2, ChevronRight,
-  CalendarDays, Bookmark, MoreHorizontal, UserCheck, List, Ticket,
+  CalendarDays, Bookmark, MoreHorizontal, UserCheck, List, Ticket, Camera,
 } from "lucide-react";
 import ThreadCard from "@/components/cards/ThreadCard";
 import { useAuth } from "@/context/AuthContext";
@@ -19,6 +19,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useRef, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
+import { compressImageFile } from "@/lib/compressImage";
 
 interface SpotifyArtist {
   spotifyId: string;
@@ -179,8 +180,9 @@ function ProfileOverflowMenu() {
 
 export default function Profile() {
   const { username } = useParams<{ username?: string }>();
-  const { user: authUser } = useAuth();
+  const { user: authUser, refreshUser } = useAuth();
   const { toast } = useToast();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const isOwnProfile = !username || username === authUser?.username;
   const resolvedUsername = username || authUser?.username;
@@ -223,7 +225,7 @@ export default function Profile() {
 
   const { data: travelPlans, isLoading: isLoadingPlans } = useQuery<UserTravelPlan[]>({
     queryKey: [`/api/users/${userId}/travel-plans`],
-    enabled: activeSection === "places" && !!userId,
+    enabled: isOwnProfile && activeSection === "places" && !!userId,
   });
 
   const { data: showReviews, isLoading: isLoadingShowReviews } = useQuery<ShowReviewWithShow[]>({
@@ -233,7 +235,7 @@ export default function Profile() {
 
   const { data: showWishlist, isLoading: isLoadingWishlist } = useQuery<UserShowWishlistItem[]>({
     queryKey: [`/api/users/${userId}/show-wishlist`],
-    enabled: activeSection === "shows" && !!userId,
+    enabled: isOwnProfile && activeSection === "shows" && !!userId,
   });
 
   const { data: wishlistMatches, isLoading: isLoadingMatches } = useQuery<WishlistEventMatch[]>({
@@ -283,7 +285,27 @@ export default function Profile() {
 
   const handleProfileUpdated = async () => {
     await queryClient.invalidateQueries({ queryKey: [`/api/users/username/${resolvedUsername}`] });
+    await refreshUser();
   };
+
+  const uploadAvatar = useMutation({
+    mutationFn: async (profilePicture: string) =>
+      apiRequest("PATCH", `/api/users/${profileUser!.id}`, { profilePicture }),
+    onSuccess: async () => {
+      await handleProfileUpdated();
+      toast({ title: "Photo updated" });
+    },
+    onError: () => toast({ title: "Failed to update photo", variant: "destructive" }),
+  });
+
+  async function handleAvatarFile(file: File) {
+    try {
+      const dataUrl = await compressImageFile(file);
+      uploadAvatar.mutate(dataUrl);
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Could not read image", variant: "destructive" });
+    }
+  }
 
   const addTravelPlan = useMutation({
     mutationFn: () =>
@@ -378,7 +400,12 @@ export default function Profile() {
             {/* Avatar + name row */}
             <div className="flex items-start gap-4 mb-4">
               <div className="p-[2px] rounded-full bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] flex-shrink-0">
-              <div className="w-20 h-20 rounded-full bg-[#282828] overflow-hidden">
+              <button
+                type="button"
+                className="relative w-20 h-20 rounded-full bg-[#282828] overflow-hidden"
+                onClick={() => isOwnProfile && avatarInputRef.current?.click()}
+                aria-label={isOwnProfile ? "Change profile photo" : profileUser.username}
+              >
                 {profileUser.profilePicture ? (
                   <img src={profileUser.profilePicture} alt={profileUser.username} className="w-full h-full object-cover" />
                 ) : (
@@ -388,7 +415,25 @@ export default function Profile() {
                     </span>
                   </div>
                 )}
-              </div>
+                {isOwnProfile && (
+                  <span className="absolute inset-x-0 bottom-0 bg-black/55 py-1 flex items-center justify-center">
+                    <Camera className="h-3.5 w-3.5 text-white" />
+                  </span>
+                )}
+              </button>
+              {isOwnProfile && (
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={event => {
+                    const file = event.target.files?.[0];
+                    if (file) handleAvatarFile(file);
+                    event.target.value = "";
+                  }}
+                />
+              )}
               </div>
               <div className="flex-1 min-w-0 pt-1">
                 <div className="flex items-center gap-2">
@@ -531,12 +576,14 @@ export default function Profile() {
                       Where I've Been
                     </span>
                   </button>
-                  <button className={subTabClass(placesTab === "going")} onClick={() => setPlacesTab("going")}>
-                    <span className="flex items-center justify-center gap-1.5">
-                      <Plane className="h-3 w-3" />
-                      Radar Trips
-                    </span>
-                  </button>
+                  {isOwnProfile && (
+                    <button className={subTabClass(placesTab === "going")} onClick={() => setPlacesTab("going")}>
+                      <span className="flex items-center justify-center gap-1.5">
+                        <Plane className="h-3 w-3" />
+                        Radar Trips
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {placesTab === "been" && (
@@ -749,12 +796,14 @@ export default function Profile() {
                       Attended
                     </span>
                   </button>
-                  <button className={subTabClass(showsTab === "wishlist")} onClick={() => setShowsTab("wishlist")}>
-                    <span className="flex items-center justify-center gap-1.5">
-                      <Bookmark className="h-3 w-3" />
-                      Radar Artists
-                    </span>
-                  </button>
+                  {isOwnProfile && (
+                    <button className={subTabClass(showsTab === "wishlist")} onClick={() => setShowsTab("wishlist")}>
+                      <span className="flex items-center justify-center gap-1.5">
+                        <Bookmark className="h-3 w-3" />
+                        Radar Artists
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {showsTab === "attended" && (

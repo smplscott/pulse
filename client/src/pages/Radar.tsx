@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CalendarDays,
@@ -21,6 +22,7 @@ import {
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
+import RadarCalendar from "@/components/radar/RadarCalendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -74,6 +76,13 @@ export default function Radar() {
   const [tripLocation, setTripLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [showAlwaysOnForm, setShowAlwaysOnForm] = useState(false);
+  const [alwaysOnLocation, setAlwaysOnLocation] = useState<SelectedCity>({ city: "", country: "" });
+  const [alwaysOnLabel, setAlwaysOnLabel] = useState("Home");
+  const [tripUi, setTripUi] = useState<"dates" | "calendar">(() => {
+    if (typeof window === "undefined") return "dates";
+    return window.localStorage.getItem("pulse.radarTripUi") === "calendar" ? "calendar" : "dates";
+  });
 
   const { data: artists = [], isLoading: artistsLoading } = useQuery<UserShowWishlistItem[]>({
     queryKey: [`/api/users/${userId}/show-wishlist`],
@@ -86,9 +95,16 @@ export default function Radar() {
   });
 
   const { data: matches = [], isLoading: matchesLoading } = useQuery<WishlistEventMatch[]>({
-    queryKey: [`/api/users/${userId}/wishlist-matches`],
+    queryKey: [`/api/users/${userId}/wishlist-matches`, "upcoming"],
+    queryFn: async () => {
+      const res = await fetch(`/api/users/${userId}/wishlist-matches?scope=upcoming`);
+      return res.json();
+    },
     enabled: !!userId,
   });
+
+  const datedTrips = useMemo(() => trips.filter(trip => trip.kind !== "always_on"), [trips]);
+  const alwaysOnCities = useMemo(() => trips.filter(trip => trip.kind === "always_on"), [trips]);
 
   const { data: spotifyData, isFetching: artistSearching } = useQuery<{
     results: SpotifyArtist[];
@@ -245,6 +261,27 @@ export default function Radar() {
     onError: () => toast({ title: "Couldn't save trip", variant: "destructive" }),
   });
 
+  const saveAlwaysOn = useMutation({
+    mutationFn: () => apiRequest("POST", `/api/users/${userId}/travel-plans`, {
+      city: alwaysOnLocation.city.trim(),
+      country: alwaysOnLocation.country.trim(),
+      countryCode: alwaysOnLocation.countryCode,
+      googlePlaceId: alwaysOnLocation.googlePlaceId,
+      latitude: alwaysOnLocation.latitude,
+      longitude: alwaysOnLocation.longitude,
+      kind: "always_on",
+      label: alwaysOnLabel.trim() || "Home",
+    }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
+      setShowAlwaysOnForm(false);
+      setAlwaysOnLocation({ city: "", country: "" });
+      setAlwaysOnLabel("Home");
+      toast({ title: "Always-on city added" });
+    },
+    onError: (err: Error) => toast({ title: "Couldn't save city", description: err.message, variant: "destructive" }),
+  });
+
   const removeTrip = useMutation({
     mutationFn: (tripId: number) =>
       apiRequest("DELETE", `/api/users/${userId}/travel-plans/${tripId}`),
@@ -282,7 +319,7 @@ export default function Radar() {
   });
 
   const isLoading = artistsLoading || tripsLoading || matchesLoading;
-  const isEmpty = artists.length === 0 && trips.length === 0;
+  const isEmpty = artists.length === 0 && datedTrips.length === 0 && alwaysOnCities.length === 0;
   const tripFormValid =
     tripLocation.city.trim() &&
     tripLocation.country.trim() &&
@@ -293,30 +330,34 @@ export default function Radar() {
     <div className="min-h-screen bg-[#121212] pb-32">
       <Header />
       <main className="mx-auto max-w-2xl px-4 pb-8 pt-5">
-        <div className="mb-5 flex items-start justify-between">
-          <div>
-            <div className="mb-1 flex items-center gap-2">
+        <div className="mb-5">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
               <RadarIcon className="h-5 w-5 text-[#ff6fae]" />
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8fbd]">Control board</p>
             </div>
-            <h1 className="text-3xl font-black text-white">Radar</h1>
-            <p className="mt-1 text-sm text-[#888]">Your artists, trips, and shows—tuned to the same frequency.</p>
+            {!isLoading && (
+              <Link href="/radar/matches">
+                <span className="rounded-full border border-[#333] bg-[#181818] px-3 py-1.5 text-xs font-semibold text-[#c2f970]">
+                  {matches.length} match{matches.length === 1 ? "" : "es"}
+                </span>
+              </Link>
+            )}
           </div>
+          <h1 className="text-3xl font-black text-white">Radar</h1>
+          <p className="mt-1 max-w-[22rem] text-sm leading-snug text-[#888]">
+            Scanning for artist appearances where you’ll be. Build your artist wishlist, add trip dates to your schedule, we’ll return any matches.
+          </p>
           {!isLoading && (
-            <div className="flex flex-col items-end gap-2">
-              <div className="rounded-full border border-[#333] bg-[#181818] px-3 py-1.5 text-xs font-semibold text-[#c2f970]">
-                {matches.length} match{matches.length === 1 ? "" : "es"}
-              </div>
-              <button
-                type="button"
-                onClick={() => scanNow.mutate()}
-                disabled={scanNow.isPending || artists.length === 0 || trips.length === 0}
-                className="flex items-center gap-1.5 rounded-full border border-[#c2f970]/30 bg-[#c2f970]/10 px-3 py-1.5 text-xs font-semibold text-[#c2f970] hover:bg-[#c2f970]/20 disabled:opacity-40"
-              >
-                <RefreshCw className={cn("h-3.5 w-3.5", scanNow.isPending && "animate-spin")} />
-                {scanNow.isPending ? "Scanning…" : "Scan now"}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => scanNow.mutate()}
+              disabled={scanNow.isPending || artists.length === 0 || (datedTrips.length === 0 && alwaysOnCities.length === 0)}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full border border-[#c2f970]/30 bg-[#c2f970]/10 px-3 py-2.5 text-sm font-semibold text-[#c2f970] hover:bg-[#c2f970]/20 disabled:opacity-40"
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5", scanNow.isPending && "animate-spin")} />
+              {scanNow.isPending ? "Scanning…" : "Scan now"}
+            </button>
           )}
         </div>
 
@@ -493,6 +534,60 @@ export default function Radar() {
           <section className="rounded-2xl border border-[#292929] bg-[#181818] p-4">
             <div className="mb-4 flex items-center justify-between">
               <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff8fbd]">Always on</p>
+                <h2 className="mt-1 text-lg font-bold text-white">Home bases</h2>
+              </div>
+              <button
+                onClick={() => setShowAlwaysOnForm(open => !open)}
+                disabled={!showAlwaysOnForm && alwaysOnCities.length >= 3}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff6fae]/12 text-[#ff8fbd] disabled:opacity-40"
+              >
+                {showAlwaysOnForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              </button>
+            </div>
+            {showAlwaysOnForm && (
+              <div className="mb-4 space-y-2 rounded-xl border border-[#333] bg-[#111] p-3">
+                <GoogleCityAutocomplete value={alwaysOnLocation} onChange={setAlwaysOnLocation} />
+                <Input
+                  value={alwaysOnLabel}
+                  onChange={event => setAlwaysOnLabel(event.target.value)}
+                  placeholder="Label — Home, School, Studio"
+                  className="bg-[#202020] text-white"
+                />
+                <Button
+                  onClick={() => saveAlwaysOn.mutate()}
+                  disabled={!alwaysOnLocation.city.trim() || !alwaysOnLocation.country.trim() || saveAlwaysOn.isPending}
+                  className="w-full bg-gradient-to-r from-[#ff4d8d] to-[#8f5cff] font-bold text-white"
+                >
+                  {saveAlwaysOn.isPending ? "Saving…" : "Add always-on city"}
+                </Button>
+              </div>
+            )}
+            {alwaysOnCities.length === 0 ? (
+              <p className="text-xs text-[#666]">Add up to 3 cities that stay open — every upcoming show for your artists will match there.</p>
+            ) : (
+              <div className="space-y-2">
+                {alwaysOnCities.map(city => (
+                  <div key={city.id} className="flex items-center gap-3 rounded-xl bg-[#222] p-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#ff6fae]/10">
+                      <MapPin className="h-4 w-4 text-[#ff8fbd]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-white">{city.label || "Home"}</p>
+                      <p className="text-xs text-[#777]">{city.city}, {city.country}</p>
+                    </div>
+                    <button onClick={() => removeTrip.mutate(city.id)} className="rounded-lg p-1.5 text-[#666] hover:text-rose-400">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-2xl border border-[#292929] bg-[#181818] p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#c2f970]">Travel windows</p>
                 <h2 className="mt-1 text-lg font-bold text-white">Radar trips</h2>
               </div>
@@ -507,6 +602,36 @@ export default function Radar() {
             {showTripForm && (
               <div className="mb-4 space-y-2 rounded-xl border border-[#333] bg-[#111] p-3">
                 <GoogleCityAutocomplete value={tripLocation} onChange={setTripLocation} />
+                <div className="flex gap-2">
+                  {(["dates", "calendar"] as const).map(mode => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => {
+                        setTripUi(mode);
+                        window.localStorage.setItem("pulse.radarTripUi", mode);
+                      }}
+                      className={cn(
+                        "rounded-full px-3 py-1 text-[11px] font-semibold capitalize",
+                        tripUi === mode ? "bg-[#c2f970] text-black" : "bg-[#222] text-[#888]",
+                      )}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+                {tripUi === "calendar" && (
+                  <RadarCalendar
+                    trips={datedTrips}
+                    matches={matches}
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={({ startDate: nextStart, endDate: nextEnd }) => {
+                      setStartDate(nextStart);
+                      setEndDate(nextEnd);
+                    }}
+                  />
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   <div><p className="mb-1 text-[10px] text-[#666]">Start</p><Input type="date" value={startDate} onChange={event => setStartDate(event.target.value)} className="bg-[#202020] text-white" /></div>
                   <div><p className="mb-1 text-[10px] text-[#666]">End</p><Input type="date" min={startDate || undefined} value={endDate} onChange={event => setEndDate(event.target.value)} className="bg-[#202020] text-white" /></div>
@@ -522,7 +647,7 @@ export default function Radar() {
               </div>
             )}
 
-            {trips.length === 0 ? (
+            {datedTrips.length === 0 ? (
               <button onClick={() => setShowTripForm(true)} className="w-full rounded-xl border border-dashed border-[#3a3a3a] p-6 text-center">
                 <Plane className="mx-auto mb-2 h-7 w-7 text-[#555]" />
                 <p className="text-sm text-[#aaa]">No trips yet</p>
@@ -530,7 +655,7 @@ export default function Radar() {
               </button>
             ) : (
               <div className="space-y-2">
-                {trips.map(trip => (
+                {datedTrips.map(trip => (
                   <div key={trip.id} className="rounded-xl bg-[#222] p-3">
                     <div className="flex items-start gap-3">
                       <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#c2f970]/10">

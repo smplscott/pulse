@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
+import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
 
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -30,6 +31,7 @@ export default function Signup() {
   const { user, register: registerUser } = useAuth();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [home, setHome] = useState<SelectedCity>({ city: "", country: "" });
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -38,7 +40,18 @@ export default function Signup() {
 
   const onSubmit = async (data: SignupForm) => {
     try {
-      await registerUser(data.username, data.email, data.password);
+      if (!home.city.trim() || !home.country.trim()) {
+        toast({ title: "Home city is required", variant: "destructive" });
+        return;
+      }
+      await registerUser(data.username, data.email, data.password, {
+        city: home.city.trim(),
+        country: home.country.trim(),
+        countryCode: home.countryCode,
+        googlePlaceId: home.googlePlaceId,
+        latitude: home.latitude,
+        longitude: home.longitude,
+      });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Sign up failed";
       toast({ title: "Sign up failed", description: message, variant: "destructive" });
@@ -87,6 +100,12 @@ export default function Signup() {
               {form.formState.errors.username && (
                 <p className="text-red-400 text-xs">{form.formState.errors.username.message}</p>
               )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[#B3B3B3] text-sm">Home</Label>
+              <GoogleCityAutocomplete value={home} onChange={setHome} />
+              <p className="text-[11px] text-[#666]">This becomes your first always-on Radar city.</p>
             </div>
 
             <div className="space-y-1.5">

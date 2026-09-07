@@ -15,6 +15,8 @@ import {
 import FollowArtistButton from "@/components/FollowArtistButton";
 import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
 import ThreadEditDialog from "@/components/threads/ThreadEditDialog";
+import UsernameLink from "@/components/UsernameLink";
+import ReviewEngagement from "@/components/reviews/ReviewEngagement";
 import { useAuth } from "@/context/AuthContext";
 
 const THREAD_TYPE_LABELS: Record<string, string> = {
@@ -169,7 +171,7 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
               <p className="font-semibold text-white text-sm leading-snug mb-1">{thread.title}</p>
 
               <p className="text-xs text-[#B3B3B3] mb-2">
-                @{user?.username || "user"} · {formatRelativeTime(createdAt)}
+                <UsernameLink username={user?.username} /> · {formatRelativeTime(createdAt)}
               </p>
 
               {(thread.threadType === "live_show_review" || thread.threadType === "album_review") && thread.starRating && (
@@ -193,16 +195,20 @@ export default function ThreadCard({ thread, className }: ThreadCardProps) {
                 </div>
               )}
 
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <MessageCircleIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
-                  <span className="text-xs text-[#B3B3B3]">{thread.commentsCount || 0}</span>
+              {thread.threadType === "album_review" ? (
+                <ReviewEngagement subjectType="album_thread" subjectId={thread.id} threadId={thread.id} />
+              ) : (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <MessageCircleIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                    <span className="text-xs text-[#B3B3B3]">{thread.commentsCount || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <BookmarkIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
+                    <span className="text-xs text-[#B3B3B3]">{thread.savesCount || 0}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <BookmarkIcon className="h-3.5 w-3.5 text-[#B3B3B3]" />
-                  <span className="text-xs text-[#B3B3B3]">{thread.savesCount || 0}</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

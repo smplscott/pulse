@@ -191,6 +191,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   const [debouncedPlaceQuery, setDebouncedPlaceQuery] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [placeRating, setPlaceRating] = useState(0);
+  const [soundSystem, setSoundSystem] = useState("");
   const [selectedGooglePlace, setSelectedGooglePlace] = useState<GooglePlaceDetails | null>(null);
   const placeSessionToken = useRef(crypto.randomUUID());
 
@@ -231,7 +232,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       setSelectedType(null); setSelectedShow(null); setSelectedAlbum(null);
       setStarRating(0); setReviewImage(null); setShowManualForm(false);
       setManualShow({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
-      setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0); setSelectedGooglePlace(null);
+      setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0); setSoundSystem(""); setSelectedGooglePlace(null);
       setRadarLocation({ city: "", country: "" }); setRadarStart(""); setRadarEnd("");
       threadForm.reset(); placeForm.reset();
     }, 300);
@@ -1402,7 +1403,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
               </div>
 
               <div>
-                <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">Genres <span className="text-[#555]">(optional)</span></p>
+                <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">Genres * <span className="text-[#555]">(pick at least one)</span></p>
                 <div className="flex flex-wrap gap-1.5">
                   {GENRE_OPTIONS.map(g => (
                     <button
@@ -1424,6 +1425,33 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">Sound system <span className="text-[#555]">(optional)</span></p>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {["Funktion-One", "Void", "Pioneer", "Custom"].map(option => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setSoundSystem(option === "Custom" ? "" : option)}
+                      className={cn(
+                        "text-xs px-2.5 py-1 rounded-full border",
+                        soundSystem === option
+                          ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black border-transparent"
+                          : "bg-[#282828] text-[#B3B3B3] border-[#3E3E3E]",
+                      )}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+                <Input
+                  value={soundSystem}
+                  onChange={event => setSoundSystem(event.target.value)}
+                  className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555]"
+                  placeholder="e.g. Funktion-One, or leave blank"
+                />
               </div>
 
               <div>
@@ -1473,10 +1501,10 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
               <button
                 onClick={placeForm.handleSubmit(vals => {
                   if (!user) return;
-                  if (placeRating === 0) return;
-                  placeMutation.mutate({ ...vals, genres: selectedGenres, rating: placeRating } as any);
+                  if (placeRating === 0 || selectedGenres.length === 0) return;
+                  placeMutation.mutate({ ...vals, genres: selectedGenres, rating: placeRating, soundSystem: soundSystem.trim() || null } as any);
                 })}
-                disabled={placeMutation.isPending || placeRating === 0}
+                disabled={placeMutation.isPending || placeRating === 0 || selectedGenres.length === 0}
                 className="w-full py-3 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-bold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"
               >
                 {placeMutation.isPending ? "Adding…" : "Add Place"}

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import Header from "@/components/layout/Header";
@@ -12,13 +12,15 @@ import { useAuth } from "@/context/AuthContext";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import {
   ChevronLeft, Ticket, MapPin, Calendar, Star, Crown,
-  ThumbsUp, MessageCircle, Send, CheckCircle, LogIn, Trash2, Pencil,
+  Send, CheckCircle, LogIn, Trash2, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Show, ShowReview, ShowComment } from "@shared/schema";
+import type { Show, ShowReview } from "@shared/schema";
 import FollowArtistButton from "@/components/FollowArtistButton";
 import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
 import ReviewImageUpload from "@/components/ReviewImageUpload";
+import ReviewEngagement from "@/components/reviews/ReviewEngagement";
+import UsernameLink from "@/components/UsernameLink";
 
 interface ShowWithStats extends Show {
   avgRating: number | null;
@@ -105,12 +107,9 @@ export default function ShowDetail() {
   const showId = parseInt(id);
   const { user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"reviews" | "discussion">("reviews");
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [reviewImage, setReviewImage] = useState<string | null>(null);
-  const [commentText, setCommentText] = useState("");
-  const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const [editing, setEditing] = useState(false);
   const [editRating, setEditRating] = useState(0);
   const [editText, setEditText] = useState("");
@@ -126,7 +125,7 @@ export default function ShowDetail() {
   });
 
   const { data: reviewData, isLoading: reviewsLoading } = useQuery<{
-    reviews: ShowReview[];
+    reviews: Array<ShowReview & { username?: string }>;
     userReview: ShowReview | null;
   }>({
     queryKey: ["/api/shows", showId, "reviews"],
@@ -134,15 +133,6 @@ export default function ShowDetail() {
       const res = await fetch(`/api/shows/${showId}/reviews`);
       return res.json();
     },
-  });
-
-  const { data: comments, isLoading: commentsLoading } = useQuery<ShowComment[]>({
-    queryKey: ["/api/shows", showId, "comments"],
-    queryFn: async () => {
-      const res = await fetch(`/api/shows/${showId}/comments`);
-      return res.json();
-    },
-    enabled: activeTab === "discussion",
   });
 
   const reviewMutation = useMutation({
@@ -225,36 +215,6 @@ export default function ShowDetail() {
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const commentMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/shows/${showId}/comments`, {
-        content: commentText,
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message);
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shows", showId, "comments"] });
-      setCommentText("");
-    },
-    onError: (err: Error) => {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const upvoteMutation = useMutation({
-    mutationFn: async (commentId: number) => {
-      const res = await apiRequest("POST", `/api/shows/${showId}/comments/${commentId}/upvote`, {});
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shows", showId, "comments"] });
     },
   });
 
@@ -343,7 +303,7 @@ export default function ShowDetail() {
               {show.firstReviewerUsername && (
                 <p className="text-[10px] text-[#555] mt-1 flex items-center gap-1">
                   <Crown className="h-2.5 w-2.5 text-[#c2f970] flex-shrink-0" />
-                  First reviewed by <span className="text-[#c2f970]">@{show.firstReviewerUsername}</span>
+                  First reviewed by <UsernameLink username={show.firstReviewerUsername} className="text-[#c2f970]" />
                 </p>
               )}
             </div>
@@ -353,29 +313,7 @@ export default function ShowDetail() {
           )}
         </div>
 
-        <div className="flex gap-1 mb-4 bg-[#181818] rounded-xl p-1">
-          {(["reviews", "discussion"] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize flex items-center justify-center gap-1.5",
-                activeTab === tab
-                  ? "bg-[#282828] text-white"
-                  : "text-[#555] hover:text-[#B3B3B3]"
-              )}
-            >
-              {tab === "reviews" ? <Star className="h-3.5 w-3.5 text-[#c3f872]" /> : <MessageCircle className="h-3.5 w-3.5" />}
-              {tab}
-              {tab === "reviews" && reviews.length > 0 && (
-                <span className="text-xs text-[#555] ml-0.5">({reviews.length})</span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === "reviews" && (
-          <div>
+        <div>
             {reviewsLoading ? (
               <div className="space-y-3">
                 {[1, 2].map(i => <Skeleton key={i} className="h-24 bg-[#181818] rounded-xl" />)}
@@ -505,6 +443,7 @@ export default function ShowDetail() {
                         className="w-16 h-16 rounded-lg object-cover mt-2 border border-[#282828]"
                       />
                     )}
+                    <ReviewEngagement subjectType="show_review" subjectId={userReview.id} />
                   </div>
                 )}
 
@@ -515,7 +454,7 @@ export default function ShowDetail() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {reviews.map(review => (
+                    {reviews.filter(review => review.id !== userReview?.id).map(review => (
                       <div key={review.id} className="bg-[#181818] rounded-xl p-4">
                         <div className="flex items-start gap-3">
                           <Avatar className="h-8 w-8 flex-shrink-0">
@@ -525,6 +464,9 @@ export default function ShowDetail() {
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
+                              {review.username && (
+                                <UsernameLink username={review.username} className="text-xs font-medium text-[#c2f970]" />
+                              )}
                               <StarRating value={review.rating} readonly size="sm" />
                               <span className="text-xs text-[#555]">
                                 {new Date(review.createdAt!).toLocaleDateString("en-GB", {
@@ -542,6 +484,7 @@ export default function ShowDetail() {
                               )}
                               <p className="text-sm text-[#B3B3B3] leading-relaxed">{review.content}</p>
                             </div>
+                            <ReviewEngagement subjectType="show_review" subjectId={review.id} />
                           </div>
                         </div>
                       </div>
@@ -551,92 +494,6 @@ export default function ShowDetail() {
               </>
             )}
           </div>
-        )}
-
-        {activeTab === "discussion" && (
-          <div>
-            {!user ? (
-              <div className="bg-[#181818] rounded-xl p-4 mb-4 flex items-center gap-3">
-                <LogIn className="h-4 w-4 text-[#b388eb] flex-shrink-0" />
-                <p className="text-sm text-[#B3B3B3]">
-                  <Link href="/login" className="text-[#b388eb] hover:underline font-medium">Log in</Link>{" "}
-                  to join the discussion
-                </p>
-              </div>
-            ) : (
-              <div className="flex gap-3 mb-4">
-                <Avatar className="h-8 w-8 flex-shrink-0 mt-0.5">
-                  <AvatarFallback className="bg-[#282828] text-[#B3B3B3] text-xs">
-                    {user?.username?.slice(0, 2).toUpperCase() ?? "?"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <Textarea
-                    ref={commentInputRef}
-                    value={commentText}
-                    onChange={e => setCommentText(e.target.value)}
-                    placeholder="Share a thought about this show..."
-                    className="bg-[#282828] border-[#3E3E3E] text-white placeholder:text-[#555] resize-none min-h-[72px] text-sm"
-                    maxLength={280}
-                    onKeyDown={e => {
-                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) commentMutation.mutate();
-                    }}
-                  />
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[10px] text-[#555]">{commentText.length}/280</span>
-                    <button
-                      onClick={() => commentMutation.mutate()}
-                      disabled={!commentText.trim() || commentMutation.isPending}
-                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black text-xs font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity"
-                    >
-                      <Send className="h-3 w-3" />
-                      {commentMutation.isPending ? "Posting..." : "Post"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {commentsLoading ? (
-              <div className="space-y-3">
-                {[1, 2].map(i => <Skeleton key={i} className="h-20 bg-[#181818] rounded-xl" />)}
-              </div>
-            ) : !comments || comments.length === 0 ? (
-              <div className="bg-[#181818] rounded-xl p-8 text-center">
-                <MessageCircle className="h-8 w-8 text-[#333] mx-auto mb-2" />
-                <p className="text-sm text-[#666]">No comments yet. Start the discussion!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {comments.map(comment => (
-                  <div key={comment.id} className="bg-[#181818] rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarFallback className="bg-[#282828] text-[#B3B3B3] text-xs">
-                          U{comment.userId}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="text-sm text-[#B3B3B3] leading-relaxed mb-2">{comment.content}</p>
-                        <button
-                          onClick={() => user && upvoteMutation.mutate(comment.id)}
-                          disabled={!user}
-                          className={cn(
-                            "flex items-center gap-1 text-xs transition-colors",
-                            user ? "text-[#555] hover:text-[#B3B3B3] cursor-pointer" : "text-[#444] cursor-default"
-                          )}
-                        >
-                          <ThumbsUp className="h-3 w-3" />
-                          {comment.upvotes || 0}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       <MusicPlayer />

@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Home from "@/pages/Home";
 import Profile from "@/pages/Profile";
 import Radar from "@/pages/Radar";
+import RadarMatches from "@/pages/RadarMatches";
 import Artists from "@/pages/Artists";
 import Shows from "@/pages/Shows";
 import ShowDetail from "@/pages/ShowDetail";
@@ -22,6 +23,8 @@ import CreateThread from "@/pages/CreateThread";
 import Notifications from "@/pages/Notifications";
 import AlbumPage from "@/pages/AlbumPage";
 import AlbumDetail from "@/pages/AlbumDetail";
+import Albums from "@/pages/Albums";
+import ReviewThread from "@/pages/ReviewThread";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import FollowedArtistsPage from "@/pages/FollowedArtistsPage";
@@ -53,6 +56,7 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/" component={() => <ProtectedRoute component={Home} />} />
       <Route path="/venues" component={() => <Redirect to="/places" />} />
+      <Route path="/radar/matches" component={() => <ProtectedRoute component={RadarMatches} />} />
       <Route path="/radar" component={() => <ProtectedRoute component={Radar} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/profile/artist-follows" component={() => <ProtectedRoute component={FollowedArtistsPage} />} />
@@ -67,8 +71,10 @@ function Router() {
       <Route path="/places/:id" component={() => <ProtectedRoute component={PlaceDetail} />} />
       {/* <Route path="/sets" component={() => <ProtectedRoute component={Sets} />} /> */}
       <Route path="/artist/:id" component={() => <Redirect to="/artists" />} />
+      <Route path="/albums" component={() => <ProtectedRoute component={Albums} />} />
       <Route path="/albums/:albumId" component={() => <ProtectedRoute component={AlbumDetail} />} />
       <Route path="/album/:spotifyId" component={() => <ProtectedRoute component={AlbumPage} />} />
+      <Route path="/reviews/:kind/:id" component={() => <ProtectedRoute component={ReviewThread} />} />
       <Route path="/thread/:id" component={() => <ProtectedRoute component={ThreadDetail} />} />
       <Route path="/venue/:id" component={() => <Redirect to="/places" />} />
       {/* <Route path="/sets/:id" component={() => <ProtectedRoute component={SetDetail} />} /> */}
