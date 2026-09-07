@@ -8,14 +8,21 @@ type User = {
   displayName?: string | null;
   bio?: string | null;
   profilePicture?: string | null;
+  city?: string | null;
 };
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   login: (identifier: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (
+    username: string,
+    email: string,
+    password: string,
+    home: { city: string; country: string; countryCode?: string; googlePlaceId?: string; latitude?: number; longitude?: number },
+  ) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -56,8 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate("/");
   };
 
-  const register = async (username: string, email: string, password: string) => {
-    const data = await apiFetch("POST", "/api/auth/register", { username, email, password });
+  const register = async (
+    username: string,
+    email: string,
+    password: string,
+    home: { city: string; country: string; countryCode?: string; googlePlaceId?: string; latitude?: number; longitude?: number },
+  ) => {
+    const data = await apiFetch("POST", "/api/auth/register", { username, email, password, ...home });
     setUser(data);
     navigate("/");
   };
@@ -68,8 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate("/login");
   };
 
+  const refreshUser = async () => {
+    const res = await fetch("/api/auth/me", { credentials: "include" });
+    if (res.ok) setUser(await res.json());
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

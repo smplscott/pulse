@@ -12,6 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ChevronLeft, MapPin, Star, PenLine, Trash2, Pencil, Crown, Navigation } from "lucide-react";
 import { hasStoredCoordinates, placeDirectionsUrl } from "@shared/placeMaps";
 import SaveToListButton from "@/components/SaveToListButton";
+import WantToGoButton from "@/components/places/WantToGoButton";
+import ReviewEngagement from "@/components/reviews/ReviewEngagement";
+import UsernameLink from "@/components/UsernameLink";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -228,7 +231,7 @@ export default function PlaceDetail() {
                   {place.firstReviewerUsername && (
                     <p className="text-[10px] text-[#555] mt-1.5 flex items-center gap-1">
                       <Crown className="h-2.5 w-2.5 text-[#c2f970] flex-shrink-0" />
-                      First reviewed by <span className="text-[#c2f970]">@{place.firstReviewerUsername}</span>
+                      First reviewed by <UsernameLink username={place.firstReviewerUsername} className="text-[#c2f970]" />
                     </p>
                   )}
                 </div>
@@ -244,6 +247,18 @@ export default function PlaceDetail() {
                       {g}
                     </span>
                   ))}
+                  {place.soundSystem && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
+                      {place.soundSystem}
+                    </span>
+                  )}
+                </div>
+              )}
+              {genres.length === 0 && place.soundSystem && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
+                    {place.soundSystem}
+                  </span>
                 </div>
               )}
 
@@ -270,6 +285,7 @@ export default function PlaceDetail() {
                   <PenLine className="h-4 w-4" />
                   Review
                 </button>
+                <WantToGoButton placeId={placeId} />
                 <SaveToListButton placeId={placeId} placeName={place.name} />
                 {directionsUrl && (
                   <a
@@ -312,7 +328,7 @@ export default function PlaceDetail() {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-medium text-[#c2f970] truncate">{review.username}</span>
+                          <UsernameLink username={review.username} className="text-xs font-medium text-[#c2f970] truncate" />
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <span className="text-[10px] text-[#555]">{timeAgo(review.createdAt)}</span>
                             {user && review.username === user.username && (
@@ -342,6 +358,7 @@ export default function PlaceDetail() {
                     {review.body && (
                       <p className="text-sm text-[#E0E0E0] leading-relaxed">{review.body}</p>
                     )}
+                    <ReviewEngagement subjectType="place_review" subjectId={review.id} />
                   </div>
                 ))}
               </div>

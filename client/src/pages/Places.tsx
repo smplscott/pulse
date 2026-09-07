@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { SearchIcon, MapPin, Star, List, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PlacesMap, { type MappablePlace } from "@/components/places/PlacesMap";
+import WantToGoButton from "@/components/places/WantToGoButton";
 
 const GENRE_OPTIONS = [
   "House", "Techno", "Drum & Bass", "Jungle", "Hip-Hop",
@@ -77,13 +78,21 @@ function PlaceCard({ place }: { place: Place }) {
             {genres.length > 2 && (
               <span className="text-[10px] text-[#666]">+{genres.length - 2}</span>
             )}
+            {place.soundSystem && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
+                {place.soundSystem}
+              </span>
+            )}
           </div>
-          <button
-            onClick={() => navigate(`/places/${place.id}`)}
-            className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold hover:opacity-90 transition-opacity flex-shrink-0 ml-2"
-          >
-            Review
-          </button>
+          <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+            <WantToGoButton placeId={place.id} compact />
+            <button
+              onClick={() => navigate(`/places/${place.id}`)}
+              className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-semibold hover:opacity-90 transition-opacity"
+            >
+              Review
+            </button>
+          </div>
         </div>
       </div>
     </div>

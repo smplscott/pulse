@@ -21,6 +21,8 @@ import type {
   WishlistEventMatch, InsertWishlistEventMatch,
   PlaceList, InsertPlaceList,
   PlaceListItem, InsertPlaceListItem,
+  ReviewReply, InsertReviewReply,
+  ReviewReaction,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -110,8 +112,19 @@ export interface IStorage {
   removeFromShowWishlistByArtist(userId: number, artistName: string): Promise<void>;
 
   // Wishlist × trip matches
-  getUserWishlistMatches(userId: number): Promise<WishlistEventMatch[]>;
+  getUserWishlistMatches(userId: number, scope?: "upcoming" | "past" | "all"): Promise<WishlistEventMatch[]>;
   createWishlistEventMatch(match: InsertWishlistEventMatch): Promise<WishlistEventMatch>;
+  setWishlistMatchAttending(userId: number, matchId: number, attending: boolean): Promise<WishlistEventMatch | undefined>;
+
+  getOrCreateWantToGoList(userId: number): Promise<PlaceList>;
+
+  getReviewReplies(subjectType: ReviewReply["subjectType"], subjectId: number): Promise<ReviewReply[]>;
+  createReviewReply(reply: InsertReviewReply): Promise<ReviewReply>;
+  getReviewReactionCounts(subjectType: ReviewReaction["subjectType"], subjectId: number): Promise<{ likes: number; repeats: number }>;
+  getReviewReactionCountsBulk(subjectType: ReviewReaction["subjectType"], subjectIds: number[]): Promise<Map<number, { likes: number; repeats: number }>>;
+  getReviewReplyCountsBulk(subjectType: ReviewReply["subjectType"], subjectIds: number[]): Promise<Map<number, number>>;
+  toggleReviewReaction(userId: number, subjectType: ReviewReaction["subjectType"], subjectId: number, kind: ReviewReaction["kind"]): Promise<{ active: boolean; likes: number; repeats: number }>;
+  getUserReviewReactions(userId: number, subjectType: ReviewReaction["subjectType"], subjectIds: number[]): Promise<Map<number, { liked: boolean; repeated: boolean }>>;
 
   // Place operations
   getPlace(id: number): Promise<Place | undefined>;
@@ -120,6 +133,7 @@ export interface IStorage {
   getAllPlaces(limit?: number): Promise<Place[]>;
   searchPlaces(query: string): Promise<Place[]>;
   createPlace(place: InsertPlace): Promise<Place>;
+  getPlaceReview(id: number): Promise<PlaceReview | undefined>;
   getPlaceReviews(placeId: number): Promise<PlaceReview[]>;
   createPlaceReview(review: InsertPlaceReview): Promise<PlaceReview>;
   updatePlaceReview(id: number, rating: number, body?: string): Promise<PlaceReview | undefined>;
@@ -141,6 +155,7 @@ export interface IStorage {
   getShowBySetlistfmId(setlistfmId: string): Promise<Show | undefined>;
   getAllShows(limit?: number): Promise<Show[]>;
   createShow(show: InsertShow): Promise<Show>;
+  getShowReview(id: number): Promise<ShowReview | undefined>;
   getShowReviews(showId: number): Promise<ShowReview[]>;
   getUserShowReview(userId: number, showId: number): Promise<ShowReview | undefined>;
   createShowReview(review: InsertShowReview): Promise<ShowReview>;

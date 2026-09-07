@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { and, eq, gte, isNotNull } from "drizzle-orm";
+import { and, eq, gte, isNotNull, or } from "drizzle-orm";
 import { db } from "../db";
 import {
   notifications,
@@ -27,6 +27,16 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+export function addMonthsIso(iso: string, months: number): string {
+  const date = new Date(`${iso}T00:00:00Z`);
+  date.setUTCMonth(date.getUTCMonth() + months);
+  return date.toISOString().slice(0, 10);
+}
+
+export function alwaysOnScanWindow(today = todayIso()): { startDate: string; endDate: string } {
+  return { startDate: today, endDate: addMonthsIso(today, 18) };
+}
+
 /**
  * Monthly (or on-demand) job: for each user with wishlist + upcoming travel plans,
  * query Ticketmaster and upsert matches + notifications. Searches every wishlist
@@ -48,16 +58,17 @@ export async function scanWishlistMatches(options: { userId?: number } = {}): Pr
 
   const today = todayIso();
 
-  const conditions = [
+  const upcomingTrip = and(
     isNotNull(userTravelPlans.startDate),
     isNotNull(userTravelPlans.endDate),
     gte(userTravelPlans.endDate, today),
-  ];
+  );
+  const alwaysOn = eq(userTravelPlans.kind, "always_on");
+  const conditions = [or(alwaysOn, upcomingTrip)];
   if (options.userId) {
     conditions.push(eq(userTravelPlans.userId, options.userId));
   }
 
-  // Users who have at least one upcoming travel plan with dates
   const plans = await db
     .select()
     .from(userTravelPlans)
@@ -83,10 +94,13 @@ export async function scanWishlistMatches(options: { userId?: number } = {}): Pr
     result.usersScanned += 1;
 
     for (const plan of userPlans) {
-      if (!plan.startDate || !plan.endDate) continue;
-      // Clamp start to today so we don't fetch past events in a long window
-      const startDate = plan.startDate < today ? today : plan.startDate;
-      if (startDate > plan.endDate) continue;
+      const window = plan.kind === "always_on"
+        ? alwaysOnScanWindow(today)
+        : plan.startDate && plan.endDate
+          ? { startDate: plan.startDate < today ? today : plan.startDate, endDate: plan.endDate }
+          : null;
+      if (!window || window.startDate > window.endDate) continue;
+      const { startDate, endDate } = window;
 
       for (const item of wishlist) {
         const cacheKey = [
@@ -94,7 +108,7 @@ export async function scanWishlistMatches(options: { userId?: number } = {}): Pr
           plan.city.toLowerCase(),
           (plan.countryCode ?? plan.country ?? "").toLowerCase(),
           startDate,
-          plan.endDate,
+          endDate,
         ].join("|");
 
         let events = queryCache.get(cacheKey);
@@ -107,7 +121,7 @@ export async function scanWishlistMatches(options: { userId?: number } = {}): Pr
               country: plan.country,
               countryCode: plan.countryCode ?? undefined,
               startDate,
-              endDate: plan.endDate,
+              endDate,
             });
             queryCache.set(cacheKey, events);
             // Stay under ~5 req/s

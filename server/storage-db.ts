@@ -5,6 +5,7 @@ import {
   trackIds, trackIdVotes, followedArtists, threadFollows, notifications,
   places, placeReviews, placeComments, placeLists, placeListItems,
   shows, showReviews, showComments, userTravelPlans, userShowWishlist, wishlistEventMatches,
+  reviewReplies, reviewReactions, WANT_TO_GO_LIST_NAME,
 } from "@shared/schema";
 import type {
   User, InsertUser,
@@ -29,9 +30,12 @@ import type {
   WishlistEventMatch, InsertWishlistEventMatch,
   PlaceList, InsertPlaceList,
   PlaceListItem, InsertPlaceListItem,
+  ReviewReply, InsertReviewReply,
+  ReviewReaction,
 } from "@shared/schema";
 import type { IStorage } from "./storage-interface";
 import { normalizePlaceDedupeKey } from "./placeDedupe";
+import { sortBySocialScoreThenRecency } from "@shared/socialSort";
 
 export { normalizePlaceDedupeKey };
 
@@ -128,7 +132,15 @@ export class DbStorage implements IStorage {
   }
 
   async getFeaturedThreads(limit: number = 20): Promise<Thread[]> {
-    return db.select().from(threads).orderBy(desc(threads.upvotes)).limit(limit);
+    const rows = await db.select().from(threads).orderBy(desc(threads.createdAt)).limit(Math.max(limit * 4, 80));
+    const ids = rows.map(row => row.id);
+    const reactions = await this.getReviewReactionCountsBulk("album_thread", ids);
+    const replies = await this.getReviewReplyCountsBulk("album_thread", ids);
+    const scores = new Map(ids.map(id => [
+      id,
+      (reactions.get(id)?.likes ?? 0) + (replies.get(id) ?? 0),
+    ]));
+    return sortBySocialScoreThenRecency(rows, scores).slice(0, limit);
   }
 
   async getEngagedThreadsByUser(userId: number): Promise<Thread[]> {
@@ -458,16 +470,150 @@ export class DbStorage implements IStorage {
     });
   }
 
-  async getUserWishlistMatches(userId: number): Promise<WishlistEventMatch[]> {
-    // Only surface upcoming (or undated) events; past shows drop off automatically.
+  async getUserWishlistMatches(userId: number, scope: "upcoming" | "past" | "all" = "upcoming"): Promise<WishlistEventMatch[]> {
+    const conditions = [eq(wishlistEventMatches.userId, userId)];
+    if (scope === "upcoming") {
+      conditions.push(sql`(${wishlistEventMatches.eventStartAt} is null or ${wishlistEventMatches.eventStartAt} >= now())`);
+    } else if (scope === "past") {
+      conditions.push(sql`${wishlistEventMatches.eventStartAt} < now()`);
+    }
     return db
       .select()
       .from(wishlistEventMatches)
+      .where(and(...conditions))
+      .orderBy(scope === "past" ? desc(wishlistEventMatches.eventStartAt) : asc(wishlistEventMatches.eventStartAt));
+  }
+
+  async setWishlistMatchAttending(userId: number, matchId: number, attending: boolean): Promise<WishlistEventMatch | undefined> {
+    const [row] = await db
+      .update(wishlistEventMatches)
+      .set({ attendingAt: attending ? new Date() : null })
+      .where(and(eq(wishlistEventMatches.id, matchId), eq(wishlistEventMatches.userId, userId)))
+      .returning();
+    return row;
+  }
+
+  async getOrCreateWantToGoList(userId: number): Promise<PlaceList> {
+    const existing = await db
+      .select()
+      .from(placeLists)
+      .where(and(eq(placeLists.userId, userId), eq(placeLists.name, WANT_TO_GO_LIST_NAME)))
+      .limit(1);
+    if (existing[0]) return existing[0];
+    const [row] = await db.insert(placeLists).values({ userId, name: WANT_TO_GO_LIST_NAME }).returning();
+    return row;
+  }
+
+  async getReviewReplies(subjectType: ReviewReply["subjectType"], subjectId: number): Promise<ReviewReply[]> {
+    return db
+      .select()
+      .from(reviewReplies)
+      .where(and(eq(reviewReplies.subjectType, subjectType), eq(reviewReplies.subjectId, subjectId)))
+      .orderBy(asc(reviewReplies.createdAt));
+  }
+
+  async createReviewReply(reply: InsertReviewReply): Promise<ReviewReply> {
+    const [row] = await db.insert(reviewReplies).values(reply).returning();
+    return row;
+  }
+
+  async getReviewReplyCountsBulk(subjectType: ReviewReply["subjectType"], subjectIds: number[]): Promise<Map<number, number>> {
+    const result = new Map<number, number>();
+    for (const id of subjectIds) result.set(id, 0);
+    if (subjectIds.length === 0) return result;
+    const rows = await db
+      .select({
+        subjectId: reviewReplies.subjectId,
+        total: count(),
+      })
+      .from(reviewReplies)
       .where(and(
-        eq(wishlistEventMatches.userId, userId),
-        sql`(${wishlistEventMatches.eventStartAt} is null or ${wishlistEventMatches.eventStartAt} >= now())`,
+        eq(reviewReplies.subjectType, subjectType),
+        sql`${reviewReplies.subjectId} in (${sql.join(subjectIds.map(id => sql`${id}`), sql`, `)})`,
       ))
-      .orderBy(asc(wishlistEventMatches.eventStartAt));
+      .groupBy(reviewReplies.subjectId);
+    for (const row of rows) result.set(row.subjectId, Number(row.total));
+    return result;
+  }
+
+  async getReviewReactionCounts(subjectType: ReviewReaction["subjectType"], subjectId: number): Promise<{ likes: number; repeats: number }> {
+    const map = await this.getReviewReactionCountsBulk(subjectType, [subjectId]);
+    return map.get(subjectId) ?? { likes: 0, repeats: 0 };
+  }
+
+  async getReviewReactionCountsBulk(subjectType: ReviewReaction["subjectType"], subjectIds: number[]): Promise<Map<number, { likes: number; repeats: number }>> {
+    const result = new Map<number, { likes: number; repeats: number }>();
+    for (const id of subjectIds) result.set(id, { likes: 0, repeats: 0 });
+    if (subjectIds.length === 0) return result;
+    const rows = await db
+      .select({
+        subjectId: reviewReactions.subjectId,
+        kind: reviewReactions.kind,
+        total: count(),
+      })
+      .from(reviewReactions)
+      .where(and(
+        eq(reviewReactions.subjectType, subjectType),
+        sql`${reviewReactions.subjectId} in (${sql.join(subjectIds.map(id => sql`${id}`), sql`, `)})`,
+      ))
+      .groupBy(reviewReactions.subjectId, reviewReactions.kind);
+    for (const row of rows) {
+      const current = result.get(row.subjectId) ?? { likes: 0, repeats: 0 };
+      if (row.kind === "like") current.likes = Number(row.total);
+      if (row.kind === "repeat") current.repeats = Number(row.total);
+      result.set(row.subjectId, current);
+    }
+    return result;
+  }
+
+  async toggleReviewReaction(
+    userId: number,
+    subjectType: ReviewReaction["subjectType"],
+    subjectId: number,
+    kind: ReviewReaction["kind"],
+  ): Promise<{ active: boolean; likes: number; repeats: number }> {
+    const [existing] = await db
+      .select()
+      .from(reviewReactions)
+      .where(and(
+        eq(reviewReactions.userId, userId),
+        eq(reviewReactions.subjectType, subjectType),
+        eq(reviewReactions.subjectId, subjectId),
+        eq(reviewReactions.kind, kind),
+      ))
+      .limit(1);
+    if (existing) {
+      await db.delete(reviewReactions).where(eq(reviewReactions.id, existing.id));
+    } else {
+      await db.insert(reviewReactions).values({ userId, subjectType, subjectId, kind });
+    }
+    const counts = await this.getReviewReactionCounts(subjectType, subjectId);
+    return { active: !existing, ...counts };
+  }
+
+  async getUserReviewReactions(
+    userId: number,
+    subjectType: ReviewReaction["subjectType"],
+    subjectIds: number[],
+  ): Promise<Map<number, { liked: boolean; repeated: boolean }>> {
+    const result = new Map<number, { liked: boolean; repeated: boolean }>();
+    for (const id of subjectIds) result.set(id, { liked: false, repeated: false });
+    if (subjectIds.length === 0) return result;
+    const rows = await db
+      .select()
+      .from(reviewReactions)
+      .where(and(
+        eq(reviewReactions.userId, userId),
+        eq(reviewReactions.subjectType, subjectType),
+        sql`${reviewReactions.subjectId} in (${sql.join(subjectIds.map(id => sql`${id}`), sql`, `)})`,
+      ));
+    for (const row of rows) {
+      const current = result.get(row.subjectId) ?? { liked: false, repeated: false };
+      if (row.kind === "like") current.liked = true;
+      if (row.kind === "repeat") current.repeated = true;
+      result.set(row.subjectId, current);
+    }
+    return result;
   }
 
   async createWishlistEventMatch(match: InsertWishlistEventMatch): Promise<WishlistEventMatch> {
@@ -559,6 +705,11 @@ export class DbStorage implements IStorage {
       if (duplicate) return duplicate;
       throw error;
     }
+  }
+
+  async getPlaceReview(id: number): Promise<PlaceReview | undefined> {
+    const [row] = await db.select().from(placeReviews).where(eq(placeReviews.id, id));
+    return row;
   }
 
   async getPlaceReviews(placeId: number): Promise<PlaceReview[]> {
@@ -685,6 +836,11 @@ export class DbStorage implements IStorage {
 
   async createShow(insertShow: InsertShow): Promise<Show> {
     const [row] = await db.insert(shows).values(insertShow).returning();
+    return row;
+  }
+
+  async getShowReview(id: number): Promise<ShowReview | undefined> {
+    const [row] = await db.select().from(showReviews).where(eq(showReviews.id, id));
     return row;
   }
 

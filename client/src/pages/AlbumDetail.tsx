@@ -4,7 +4,7 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Disc3, ChevronLeft, Crown, Star, MessageCircle, Bookmark, Pencil } from "lucide-react";
+import { Disc3, ChevronLeft, Crown, Star, Pencil } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import FollowArtistButton from "@/components/FollowArtistButton";
 import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
@@ -14,6 +14,8 @@ import { useQuery as useUserQuery } from "@tanstack/react-query";
 import { formatRelativeTime } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import ThreadEditDialog from "@/components/threads/ThreadEditDialog";
+import ReviewEngagement from "@/components/reviews/ReviewEngagement";
+import UsernameLink from "@/components/UsernameLink";
 
 interface AlbumStats {
   albumId: string;
@@ -110,7 +112,7 @@ function ReviewCard({ thread }: { thread: Thread }) {
             </Avatar>
             <div className="flex-1 min-w-0 pr-6">
               <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                <span className="text-xs font-medium text-white">@{user?.username ?? "user"}</span>
+                <UsernameLink username={user?.username} className="text-xs font-medium text-white" />
                 <span className="text-[10px] text-[#555]">· {formatRelativeTime(createdAt)}</span>
               </div>
               {thread.starRating && (
@@ -120,14 +122,7 @@ function ReviewCard({ thread }: { thread: Thread }) {
               )}
               <p className="text-sm font-semibold text-white leading-snug mb-1">{thread.title}</p>
               <p className="text-xs text-[#B3B3B3] line-clamp-2">{thread.content}</p>
-              <div className="flex items-center gap-3 mt-2">
-                <span className="flex items-center gap-1 text-xs text-[#555]">
-                  <MessageCircle className="h-3 w-3" />{thread.commentsCount ?? 0}
-                </span>
-                <span className="flex items-center gap-1 text-xs text-[#555]">
-                  <Bookmark className="h-3 w-3" />{thread.savesCount ?? 0}
-                </span>
-              </div>
+              <ReviewEngagement subjectType="album_thread" subjectId={thread.id} threadId={thread.id} />
             </div>
           </div>
         </div>
@@ -139,8 +134,6 @@ function ReviewCard({ thread }: { thread: Thread }) {
 
 export default function AlbumDetail() {
   const { albumId } = useParams<{ albumId: string }>();
-  const [activeTab, setActiveTab] = useState<"reviews" | "discussion">("reviews");
-
   const { data: album, isLoading: albumLoading } = useQuery<AlbumStats>({
     queryKey: ["/api/albums", albumId],
     queryFn: async () => {
@@ -228,79 +221,34 @@ export default function AlbumDetail() {
               {album.firstReviewerUsername && (
                 <p className="text-[10px] text-[#555] mt-1.5 flex items-center gap-1">
                   <Crown className="h-2.5 w-2.5 text-[#c2f970]" />
-                  First reviewed by <span className="text-[#c2f970]">@{album.firstReviewerUsername}</span>
+                  First reviewed by <UsernameLink username={album.firstReviewerUsername} className="text-[#c2f970]" />
                 </p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex gap-1 mb-4 bg-[#181818] rounded-xl p-1">
-          {(["reviews", "discussion"] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "flex-1 py-2 text-sm font-medium rounded-lg capitalize transition-colors",
-                activeTab === tab ? "bg-[#282828] text-white" : "text-[#666] hover:text-[#B3B3B3]"
-              )}
-            >
-              {tab}
-            </button>
-          ))}
+        <div>
+          {reviewsLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-28 w-full rounded-xl bg-[#181818]" />
+              ))}
+            </div>
+          ) : reviews && reviews.length > 0 ? (
+            <>
+              <RatingDistribution reviews={reviews} />
+              <div className="space-y-3">
+                {reviews.map(r => <ReviewCard key={r.id} thread={r} />)}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12 text-[#555]">
+              <Disc3 className="h-10 w-10 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">No reviews yet. Be the first to review this album.</p>
+            </div>
+          )}
         </div>
-
-        {activeTab === "reviews" && (
-          <div>
-            {reviewsLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-28 w-full rounded-xl bg-[#181818]" />
-                ))}
-              </div>
-            ) : reviews && reviews.length > 0 ? (
-              <>
-                <RatingDistribution reviews={reviews} />
-                <div className="space-y-3">
-                  {reviews.map(r => <ReviewCard key={r.id} thread={r} />)}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-12 text-[#555]">
-                <Disc3 className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                <p className="text-sm">No reviews yet. Be the first to review this album.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === "discussion" && (
-          <div>
-            {reviewsLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-24 w-full rounded-xl bg-[#181818]" />
-                ))}
-              </div>
-            ) : reviews && reviews.length > 0 ? (
-              <div className="space-y-3">
-                {reviews.map(r => (
-                  <Link key={r.id} href={`/thread/${r.id}`}>
-                    <div className="bg-[#181818] rounded-xl p-4 cursor-pointer hover:bg-[#1e1e1e] transition-colors">
-                      <p className="text-sm font-semibold text-white leading-snug">{r.title}</p>
-                      <p className="text-xs text-[#555] mt-1">{r.commentsCount ?? 0} comments · {r.savesCount ?? 0} saves</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-[#555]">
-                <MessageCircle className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                <p className="text-sm">No discussion threads yet.</p>
-              </div>
-            )}
-          </div>
-        )}
       </div>
       <BottomNav />
     </div>

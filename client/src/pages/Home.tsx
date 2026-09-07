@@ -5,11 +5,13 @@ import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import ThreadCard from "@/components/cards/ThreadCard";
 import { cn } from "@/lib/utils";
-import { MapPin, MessageCircle, Ticket, Disc3, Star, Calendar } from "lucide-react";
+import { MapPin, MessageCircle, Ticket, Disc3, Star, Calendar, Radar, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import FollowArtistButton from "@/components/FollowArtistButton";
 import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
-import type { Place, Thread } from "@shared/schema";
+import UsernameLink from "@/components/UsernameLink";
+import type { Artist, Place, Thread } from "@shared/schema";
+import { matchesFollowedArtist } from "@shared/socialSort";
 
 type PrimaryTab = "following" | "discover";
 type PillTab = "artists" | "albums" | "shows" | "places";
@@ -55,6 +57,44 @@ function EmptyState({ icon: Icon, message }: { icon: typeof MessageCircle; messa
   );
 }
 
+function FirstRunCtas() {
+  return (
+    <div className="mt-6 grid gap-2">
+      <Link href="/radar">
+        <button className="w-full rounded-xl border border-[#c2f970]/30 bg-[#c2f970]/10 px-4 py-3 text-left">
+          <p className="flex items-center gap-2 text-sm font-semibold text-[#c2f970]">
+            <Radar className="h-4 w-4" /> Add a Radar artist
+          </p>
+          <p className="mt-1 text-xs text-[#888]">Tell Pulse who you want to catch live.</p>
+        </button>
+      </Link>
+      <Link href="/places">
+        <button className="w-full rounded-xl border border-[#333] bg-[#181818] px-4 py-3 text-left">
+          <p className="flex items-center gap-2 text-sm font-semibold text-white">
+            <MapPin className="h-4 w-4 text-[#c2f970]" /> Rate a place
+          </p>
+          <p className="mt-1 text-xs text-[#888]">Drop a venue, shop, or room you trust.</p>
+        </button>
+      </Link>
+      <Link href="/shows">
+        <button className="w-full rounded-xl border border-[#333] bg-[#181818] px-4 py-3 text-left">
+          <p className="flex items-center gap-2 text-sm font-semibold text-white">
+            <Plus className="h-4 w-4 text-[#c2f970]" /> Review a show
+          </p>
+          <p className="mt-1 text-xs text-[#888]">Log a night out so others can find it.</p>
+        </button>
+      </Link>
+    </div>
+  );
+}
+
+function useFollowedArtistNames() {
+  const { data: followed = [] } = useQuery<Artist[]>({
+    queryKey: ["/api/users/me/followed-artists"],
+  });
+  return new Set(followed.map(artist => artist.name.trim().toLowerCase()).filter(Boolean));
+}
+
 function StarRow({ rating, size = "sm" }: { rating: number; size?: "sm" }) {
   return (
     <div className="flex gap-0.5">
@@ -69,7 +109,7 @@ function FirstReviewerChip({ username }: { username: string | null }) {
   if (!username) return null;
   return (
     <span className="text-[10px] text-[#555]">
-      First reviewed by <span className="text-[#c2f970]">@{username}</span>
+      First reviewed by <UsernameLink username={username} className="text-[#c2f970]" />
     </span>
   );
 }
@@ -130,15 +170,27 @@ function ShowCard({ show }: { show: ShowFeedItem }) {
   );
 }
 
-function ShowsFeed() {
+function ShowsFeed({ following }: { following: boolean }) {
+  const followed = useFollowedArtistNames();
   const { data: shows, isLoading } = useQuery<ShowFeedItem[]>({
     queryKey: ["/api/shows"],
   });
 
   if (isLoading) return <CardSkeleton />;
-  if (!shows || shows.length === 0) return <EmptyState icon={Ticket} message="No shows reviewed yet." />;
+  const visible = (shows ?? []).filter(show => !following || matchesFollowedArtist(show.artistName, followed));
+  if (visible.length === 0) {
+    return (
+      <>
+        <EmptyState
+          icon={Ticket}
+          message={following ? "No show reviews from artists you follow yet." : "No shows reviewed yet."}
+        />
+        <FirstRunCtas />
+      </>
+    );
+  }
 
-  const sorted = [...shows].sort((a, b) => b.reviewCount - a.reviewCount || b.eventDate.localeCompare(a.eventDate));
+  const sorted = [...visible].sort((a, b) => b.reviewCount - a.reviewCount || b.eventDate.localeCompare(a.eventDate));
   return (
     <div className="space-y-6">
       {sorted.map(show => <ShowCard key={show.id} show={show} />)}
@@ -197,17 +249,29 @@ function AlbumCard({ album }: { album: AlbumFeedItem }) {
   );
 }
 
-function AlbumsFeed() {
+function AlbumsFeed({ following }: { following: boolean }) {
+  const followed = useFollowedArtistNames();
   const { data: albums, isLoading } = useQuery<AlbumFeedItem[]>({
     queryKey: ["/api/albums"],
   });
 
   if (isLoading) return <CardSkeleton />;
-  if (!albums || albums.length === 0) return <EmptyState icon={Disc3} message="No album reviews yet." />;
+  const visible = (albums ?? []).filter(album => !following || matchesFollowedArtist(album.artistName, followed));
+  if (visible.length === 0) {
+    return (
+      <>
+        <EmptyState
+          icon={Disc3}
+          message={following ? "No album reviews from artists you follow yet." : "No album reviews yet."}
+        />
+        <FirstRunCtas />
+      </>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {albums.map(album => <AlbumCard key={album.albumId} album={album} />)}
+      {visible.map(album => <AlbumCard key={album.albumId} album={album} />)}
     </div>
   );
 }
@@ -260,13 +324,28 @@ function PlaceCard({ place }: { place: PlaceWithStats }) {
   );
 }
 
-function PlacesFeed() {
+function PlacesFeed({ following }: { following: boolean }) {
   const { data: places, isLoading } = useQuery<PlaceWithStats[]>({
     queryKey: ["/api/places"],
   });
 
   if (isLoading) return <CardSkeleton />;
-  if (!places || places.length === 0) return <EmptyState icon={MapPin} message="No places added yet." />;
+  if (following) {
+    return (
+      <>
+        <EmptyState icon={MapPin} message="Places aren’t tied to artist follows — browse Discover to find rooms." />
+        <FirstRunCtas />
+      </>
+    );
+  }
+  if (!places || places.length === 0) {
+    return (
+      <>
+        <EmptyState icon={MapPin} message="No places added yet." />
+        <FirstRunCtas />
+      </>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -287,7 +366,8 @@ function ThreadSkeleton() {
   );
 }
 
-function ArtistsFeed() {
+function ArtistsFeed({ following }: { following: boolean }) {
+  const followed = useFollowedArtistNames();
   const { data: threads, isLoading } = useQuery<Thread[]>({
     queryKey: ["/api/threads/featured", { threadType: "artist" }],
     queryFn: async () => {
@@ -297,13 +377,22 @@ function ArtistsFeed() {
   });
 
   if (isLoading) return <ThreadSkeleton />;
-  if (!threads || threads.length === 0) {
-    return <EmptyState icon={MessageCircle} message="No threads here yet." />;
+  const visible = (threads ?? []).filter(thread => !following || matchesFollowedArtist(thread.artistName, followed));
+  if (visible.length === 0) {
+    return (
+      <>
+        <EmptyState
+          icon={MessageCircle}
+          message={following ? "Follow artists to see their show and album reviews here." : "No threads here yet."}
+        />
+        <FirstRunCtas />
+      </>
+    );
   }
 
   return (
     <div className="space-y-6">
-      {threads.map(thread => (
+      {visible.map(thread => (
         <ThreadCard key={thread.id} thread={thread} />
       ))}
     </div>
@@ -313,7 +402,7 @@ function ArtistsFeed() {
 // ─── Main page ───────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const [primary, setPrimary] = useState<PrimaryTab>("following");
+  const [primary, setPrimary] = useState<PrimaryTab>("discover");
   const [pill, setPill] = useState<PillTab>("artists");
 
   const sectionLabel = SECTION_LABELS[primary][pill];
@@ -363,10 +452,10 @@ export default function Home() {
       </div>
 
       <main className="px-4">
-        {pill === "shows" && <ShowsFeed />}
-        {pill === "albums" && <AlbumsFeed />}
-        {pill === "places" && <PlacesFeed />}
-        {pill === "artists" && <ArtistsFeed />}
+        {pill === "shows" && <ShowsFeed following={primary === "following"} />}
+        {pill === "albums" && <AlbumsFeed following={primary === "following"} />}
+        {pill === "places" && <PlacesFeed following={primary === "following"} />}
+        {pill === "artists" && <ArtistsFeed following={primary === "following"} />}
       </main>
 
       <BottomNav />

@@ -89,9 +89,16 @@ export default function Notifications() {
           <div className="space-y-2">
             {notifications.map(n => {
               const isMatch = n.type === "wishlist_match";
+              const isReviewReply = n.type === "review_reply";
+              const [replyKind, ...replyTitleParts] = isReviewReply ? n.threadTitle.split("|") : [];
+              const replyTitle = replyTitleParts.join("|") || n.threadTitle;
               const href = isMatch
-                ? "/radar"
-                : `/thread/${n.threadId}`;
+                ? "/radar/matches"
+                : isReviewReply
+                  ? replyKind === "album_thread" || n.threadId
+                    ? `/thread/${n.threadId}`
+                    : `/reviews/${replyKind === "place_review" ? "place" : "show"}/${n.matchId}`
+                  : `/thread/${n.threadId}`;
               return (
                 <Link key={n.id} href={href}>
                   <div
@@ -107,7 +114,7 @@ export default function Notifications() {
                           ? "bg-[#c2f970]/15"
                           : "bg-emerald-500/20"
                     }`}>
-                      {n.type === "comment" ? (
+                      {n.type === "comment" || isReviewReply ? (
                         <MessageCircle className="h-4 w-4 text-[#b388eb]" />
                       ) : isMatch ? (
                         <Ticket className="h-4 w-4 text-[#c2f970]" />
@@ -121,6 +128,12 @@ export default function Notifications() {
                           <>
                             <span className="font-semibold">Radar match</span>
                             <span className="text-[#B3B3B3]"> — {n.threadTitle}</span>
+                          </>
+                        ) : isReviewReply ? (
+                          <>
+                            <span className="font-semibold">{n.actorUsername}</span>
+                            {" replied to "}
+                            <span className="text-[#B3B3B3] italic">"{replyTitle}"</span>
                           </>
                         ) : (
                           <>
