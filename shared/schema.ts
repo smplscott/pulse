@@ -46,6 +46,7 @@ export const users = pgTable("users", {
   displayName: text("display_name"),
   bio: text("bio"),
   city: text("city"),
+  country: text("country"),
   profilePicture: text("profile_picture"),
   favoriteSongs: jsonb("favorite_songs").$type<unknown[]>().default(sql`'[]'::jsonb`),
   favoriteGenres: jsonb("favorite_genres").$type<string[]>().default(sql`'[]'::jsonb`),
@@ -62,6 +63,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   displayName: true,
   bio: true,
   city: true,
+  country: true,
   profilePicture: true,
 });
 
@@ -332,6 +334,7 @@ export const places = pgTable("places", {
   longitude: doublePrecision("longitude"),
   formattedAddress: text("formatted_address"),
   googlePrimaryType: text("google_primary_type"),
+  soundSystem: text("sound_system"),
   dedupeKey: text("dedupe_key"),
   rating: integer("rating").default(0),
   reviewsCount: integer("reviews_count").default(0),
@@ -354,10 +357,12 @@ export const insertPlaceSchema = createInsertSchema(places).pick({
   longitude: true,
   formattedAddress: true,
   googlePrimaryType: true,
+  soundSystem: true,
   dedupeKey: true,
 }).extend({
-  genres: z.array(z.string()).optional().default([]),
+  genres: z.array(z.string()).min(1, "Pick at least one genre"),
   category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
+  soundSystem: z.string().max(80).optional().nullable(),
 });
 
 // Place reviews — one per user per place (upsert), star-rated
@@ -584,6 +589,8 @@ export const userTravelPlans = pgTable("user_travel_plans", {
   /** ISO date YYYY-MM-DD — required for Ticketmaster scans */
   endDate: text("end_date"),
   note: text("note"),
+  kind: text("kind").$type<"trip" | "always_on">().notNull().default("trip"),
+  label: text("label"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -599,6 +606,12 @@ export const insertUserTravelPlanSchema = createInsertSchema(userTravelPlans).pi
   startDate: true,
   endDate: true,
   note: true,
+  kind: true,
+  label: true,
+}).extend({
+  kind: z.enum(["trip", "always_on"]).optional(),
+  startDate: z.string().nullable().optional(),
+  endDate: z.string().nullable().optional(),
 });
 
 export type UserTravelPlan = typeof userTravelPlans.$inferSelect;
@@ -640,6 +653,7 @@ export const wishlistEventMatches = pgTable("wishlist_event_matches", {
   imageUrl: text("image_url"),
   firstSeenAt: timestamp("first_seen_at").defaultNow(),
   notifiedAt: timestamp("notified_at"),
+  attendingAt: timestamp("attending_at"),
 }, (t) => ({
   userEventUnique: unique("wishlist_matches_user_event").on(t.userId, t.ticketmasterEventId),
 }));
@@ -696,6 +710,53 @@ export type PlaceList = typeof placeLists.$inferSelect;
 export type InsertPlaceList = z.infer<typeof insertPlaceListSchema>;
 export type PlaceListItem = typeof placeListItems.$inferSelect;
 export type InsertPlaceListItem = z.infer<typeof insertPlaceListItemSchema>;
+
+export const WANT_TO_GO_LIST_NAME = "Want to go";
+
+export const reviewReplies = pgTable("review_replies", {
+  id: serial("id").primaryKey(),
+  subjectType: text("subject_type").$type<"place_review" | "show_review" | "album_thread">().notNull(),
+  subjectId: integer("subject_id").notNull(),
+  userId: integer("user_id").notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertReviewReplySchema = createInsertSchema(reviewReplies).pick({
+  subjectType: true,
+  subjectId: true,
+  userId: true,
+  body: true,
+}).extend({
+  subjectType: z.enum(["place_review", "show_review", "album_thread"]),
+});
+
+export type ReviewReply = typeof reviewReplies.$inferSelect;
+export type InsertReviewReply = z.infer<typeof insertReviewReplySchema>;
+
+export const reviewReactions = pgTable("review_reactions", {
+  id: serial("id").primaryKey(),
+  subjectType: text("subject_type").$type<"place_review" | "show_review" | "album_thread">().notNull(),
+  subjectId: integer("subject_id").notNull(),
+  userId: integer("user_id").notNull(),
+  kind: text("kind").$type<"like" | "repeat">().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  userReactionUnique: unique("review_reactions_user_subject_kind").on(t.userId, t.subjectType, t.subjectId, t.kind),
+}));
+
+export const insertReviewReactionSchema = createInsertSchema(reviewReactions).pick({
+  subjectType: true,
+  subjectId: true,
+  userId: true,
+  kind: true,
+}).extend({
+  subjectType: z.enum(["place_review", "show_review", "album_thread"]),
+  kind: z.enum(["like", "repeat"]),
+});
+
+export type ReviewReaction = typeof reviewReactions.$inferSelect;
+export type InsertReviewReaction = z.infer<typeof insertReviewReactionSchema>;
 
 // ─── Zod response schemas ────────────────────────────────────────────────────
 // These schemas describe the exact runtime shape returned by GET endpoints

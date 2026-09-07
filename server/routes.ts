@@ -15,8 +15,28 @@ import {
   GooglePlacesError,
 } from "./googlePlaces";
 import { fetchPlaceStaticMap, StaticMapError } from "./staticMap";
+import { sortByRepeatsThenRecency } from "@shared/socialSort";
+import type { ReviewReaction } from "@shared/schema";
 
 // ─── Runtime normalization helpers ───────────────────────────────────────────
+
+async function publicAuthor(userId: number) {
+  const user = await storage.getUser(userId);
+  return {
+    id: user?.id ?? userId,
+    username: user?.username ?? "unknown",
+    displayName: user?.displayName ?? null,
+    profilePicture: user?.profilePicture ?? null,
+  };
+}
+
+async function sortReviewsByRepeats<T extends { id: number; createdAt?: Date | string | null }>(
+  subjectType: ReviewReaction["subjectType"],
+  items: T[],
+): Promise<T[]> {
+  const counts = await storage.getReviewReactionCountsBulk(subjectType, items.map(item => item.id));
+  return sortByRepeatsThenRecency(items, new Map([...counts].map(([id, value]) => [id, value.repeats])));
+}
 
 function formatTripLabel(startDate: string, endDate: string): string {
   const fmt = (iso: string) => {
@@ -164,8 +184,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
         email: z.string().email("Invalid email address"),
         password: z.string().min(6, "Password must be at least 6 characters"),
+        city: z.string().min(1, "Home city is required").max(100),
+        country: z.string().min(1, "Home country is required").max(100),
+        countryCode: z.string().length(2).toUpperCase().optional(),
+        googlePlaceId: z.string().min(1).max(256).optional(),
+        latitude: z.number().min(-90).max(90).optional(),
+        longitude: z.number().min(-180).max(180).optional(),
       });
-      const { username, email, password, displayName } = schema.parse(req.body);
+      const { username, email, password, displayName, city, country, countryCode, googlePlaceId, latitude, longitude } = schema.parse(req.body);
 
       const existingByUsername = await storage.getUserByUsername(username);
       if (existingByUsername) {
@@ -178,7 +204,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const hashedPassword = await hashPassword(password);
-      const user = await storage.createUser({ username, email, password: hashedPassword, displayName: displayName || username });
+      const user = await storage.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        displayName: displayName || username,
+        city,
+        country,
+      });
+      await storage.createUserTravelPlan({
+        userId: user.id,
+        city,
+        country,
+        countryCode: resolveTicketmasterCountryCode({ countryCode, country }),
+        googlePlaceId,
+        latitude,
+        longitude,
+        targetDate: "Home",
+        kind: "always_on",
+        label: "Home",
+      });
 
       req.session.userId = user.id;
       const { password: _, ...userWithoutPassword } = user;
@@ -282,6 +327,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       displayName: z.string().max(50).optional(),
       bio: z.string().max(300).optional(),
       city: z.string().max(100).optional().nullable(),
+      country: z.string().max(100).optional().nullable(),
+      profilePicture: z.string().max(8_000_000).optional().nullable(),
     });
     try {
       const updates = schema.parse(req.body);
@@ -1047,7 +1094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/places/:id/reviews", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid place ID" });
-    const reviews = await storage.getPlaceReviews(id);
+    const reviews = await sortReviewsByRepeats("place_review", await storage.getPlaceReviews(id));
     // Attach username for each review
     const withUsers = await Promise.all(reviews.map(async r => {
       const u = await storage.getUser(r.userId);
@@ -1321,7 +1368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       reviewCount: albumThreads.length,
       avgRating,
       firstReviewerUsername,
-      reviews: albumThreads,
+      reviews: await sortReviewsByRepeats("album_thread", albumThreads),
     });
   });
 
@@ -1376,10 +1423,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/shows/:id/reviews", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid show ID" });
-    const reviews = await storage.getShowReviews(id);
+    const reviews = await sortReviewsByRepeats("show_review", await storage.getShowReviews(id));
     const userId = req.session.userId;
     const userReview = userId ? await storage.getUserShowReview(userId, id) : undefined;
-    return res.json({ reviews, userReview: userReview ?? null });
+    const withUsers = await Promise.all(reviews.map(async review => ({
+      ...review,
+      username: (await storage.getUser(review.userId))?.username ?? "unknown",
+    })));
+    return res.json({ reviews: withUsers, userReview: userReview ?? null });
   });
 
   app.post("/api/shows/:id/reviews", async (req: Request, res: Response) => {
@@ -1537,20 +1588,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         googlePlaceId: z.string().min(1).max(256).optional(),
         latitude: z.number().min(-90).max(90).optional(),
         longitude: z.number().min(-180).max(180).optional(),
-        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD"),
-        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be YYYY-MM-DD"),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD").optional(),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be YYYY-MM-DD").optional(),
         targetDate: z.string().max(50).optional(),
         note: z.string().max(200).optional(),
+        kind: z.enum(["trip", "always_on"]).optional(),
+        label: z.string().min(1).max(40).optional(),
       });
       const body = schema.parse(req.body);
-      if (body.endDate < body.startDate) {
-        return res.status(400).json({ message: "endDate must be on or after startDate" });
+      const kind = body.kind ?? "trip";
+      if (kind === "trip") {
+        if (!body.startDate || !body.endDate) {
+          return res.status(400).json({ message: "Trip dates are required" });
+        }
+        if (body.endDate < body.startDate) {
+          return res.status(400).json({ message: "endDate must be on or after startDate" });
+        }
+      } else {
+        const existing = await storage.getUserTravelPlans(id);
+        if (existing.filter(plan => plan.kind === "always_on").length >= 3) {
+          return res.status(400).json({ message: "You can keep up to 3 always-on cities" });
+        }
       }
       const countryCode = resolveTicketmasterCountryCode({
         countryCode: body.countryCode,
         country: body.country,
       });
-      const targetDate = body.targetDate?.trim() || formatTripLabel(body.startDate, body.endDate);
+      const targetDate = kind === "always_on"
+        ? (body.label?.trim() || "Home")
+        : (body.targetDate?.trim() || formatTripLabel(body.startDate!, body.endDate!));
       const plan = await storage.createUserTravelPlan({
         userId: id,
         city: body.city,
@@ -1560,9 +1626,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         latitude: body.latitude,
         longitude: body.longitude,
         targetDate,
-        startDate: body.startDate,
-        endDate: body.endDate,
+        startDate: kind === "trip" ? body.startDate : null,
+        endDate: kind === "trip" ? body.endDate : null,
         note: body.note,
+        kind,
+        label: kind === "always_on" ? (body.label?.trim() || "Home") : body.label,
       });
       return res.status(201).json(plan);
     } catch (error) {
@@ -1581,7 +1649,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(planId)) return res.status(400).json({ message: "Invalid plan ID" });
 
       const plans = await storage.getUserTravelPlans(id);
-      if (!plans.some(plan => plan.id === planId)) {
+      const existing = plans.find(plan => plan.id === planId);
+      if (!existing) {
         return res.status(404).json({ message: "Plan not found" });
       }
 
@@ -1592,13 +1661,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         googlePlaceId: z.string().min(1).max(256).optional(),
         latitude: z.number().min(-90).max(90).optional(),
         longitude: z.number().min(-180).max(180).optional(),
-        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD"),
-        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be YYYY-MM-DD"),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "startDate must be YYYY-MM-DD").optional(),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be YYYY-MM-DD").optional(),
         note: z.string().max(200).optional(),
+        kind: z.enum(["trip", "always_on"]).optional(),
+        label: z.string().min(1).max(40).optional(),
       });
       const body = schema.parse(req.body);
-      if (body.endDate < body.startDate) {
-        return res.status(400).json({ message: "endDate must be on or after startDate" });
+      const kind = body.kind ?? existing.kind ?? "trip";
+      if (kind === "trip") {
+        if (!body.startDate || !body.endDate) {
+          return res.status(400).json({ message: "Trip dates are required" });
+        }
+        if (body.endDate < body.startDate) {
+          return res.status(400).json({ message: "endDate must be on or after startDate" });
+        }
       }
       const countryCode = resolveTicketmasterCountryCode({
         countryCode: body.countryCode,
@@ -1612,10 +1689,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         googlePlaceId: body.googlePlaceId,
         latitude: body.latitude,
         longitude: body.longitude,
-        startDate: body.startDate,
-        endDate: body.endDate,
-        targetDate: formatTripLabel(body.startDate, body.endDate),
+        startDate: kind === "trip" ? body.startDate : null,
+        endDate: kind === "trip" ? body.endDate : null,
+        targetDate: kind === "always_on"
+          ? (body.label?.trim() || existing.label || "Home")
+          : formatTripLabel(body.startDate!, body.endDate!),
         note: body.note,
+        kind,
+        label: kind === "always_on" ? (body.label?.trim() || existing.label || "Home") : body.label,
       });
       return res.json(plan);
     } catch (error) {
@@ -1772,8 +1853,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:id/wishlist-matches", async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
-    const matches = await storage.getUserWishlistMatches(id);
+    const scope = z.enum(["upcoming", "past", "all"]).catch("upcoming").parse(req.query.scope);
+    const matches = await storage.getUserWishlistMatches(id, scope);
     return res.json(matches);
+  });
+
+  app.post("/api/users/:id/wishlist-matches/:matchId/attending", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
+    const matchId = parseInt(req.params.matchId);
+    if (isNaN(matchId)) return res.status(400).json({ message: "Invalid match ID" });
+    const attending = z.object({ attending: z.boolean() }).parse(req.body).attending;
+    const match = await storage.setWishlistMatchAttending(id, matchId, attending);
+    if (!match) return res.status(404).json({ message: "Match not found" });
+    return res.json(match);
   });
 
   app.post("/api/users/:id/scan-wishlist", async (req: Request, res: Response) => {
@@ -1804,6 +1899,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("[scan-wishlist-matches]", err);
       return res.status(500).json({ message: "Scan failed" });
     }
+  });
+
+  app.post("/api/places/:id/want-to-go", async (req: Request, res: Response) => {
+    const sessionUserId = req.session.userId;
+    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
+    const placeId = parseInt(req.params.id);
+    if (isNaN(placeId)) return res.status(400).json({ message: "Invalid place ID" });
+    const place = await storage.getPlace(placeId);
+    if (!place) return res.status(404).json({ message: "Place not found" });
+    const want = z.object({ want: z.boolean() }).parse(req.body).want;
+    const list = await storage.getOrCreateWantToGoList(sessionUserId);
+    if (want) {
+      await storage.addToPlaceList({ listId: list.id, placeId });
+    } else {
+      await storage.removeFromPlaceList(list.id, placeId);
+    }
+    const status = await storage.isPlaceInAnyList(sessionUserId, placeId);
+    return res.json({ wanted: status.lists.some(item => item.id === list.id), listId: list.id });
+  });
+
+  const reviewSubject = z.enum(["place_review", "show_review", "album_thread"]);
+
+  app.get("/api/reviews/:subjectType/:subjectId", async (req: Request, res: Response) => {
+    const subjectType = reviewSubject.parse(req.params.subjectType);
+    const subjectId = parseInt(req.params.subjectId);
+    if (isNaN(subjectId)) return res.status(400).json({ message: "Invalid id" });
+    const replies = await storage.getReviewReplies(subjectType, subjectId);
+    const repliesWithAuthors = await Promise.all(replies.map(async reply => ({
+      ...reply,
+      author: await publicAuthor(reply.userId),
+    })));
+    const counts = await storage.getReviewReactionCounts(subjectType, subjectId);
+    let mine = { liked: false, repeated: false };
+    if (req.session.userId) {
+      const map = await storage.getUserReviewReactions(req.session.userId, subjectType, [subjectId]);
+      mine = map.get(subjectId) ?? mine;
+    }
+
+    let review: Record<string, unknown> | null = null;
+    let author = null;
+    if (subjectType === "place_review") {
+      const placeReview = await storage.getPlaceReview(subjectId);
+      if (placeReview) {
+        const place = await storage.getPlace(placeReview.placeId);
+        author = await publicAuthor(placeReview.userId);
+        review = { ...placeReview, placeName: place?.name ?? null };
+      }
+    } else if (subjectType === "show_review") {
+      const showReview = await storage.getShowReview(subjectId);
+      if (showReview) {
+        const show = await storage.getShow(showReview.showId);
+        author = await publicAuthor(showReview.userId);
+        review = {
+          ...showReview,
+          artistName: show?.artistName ?? null,
+          venueName: show?.venueName ?? null,
+        };
+      }
+    } else {
+      const thread = await storage.getThread(subjectId);
+      if (thread) {
+        author = await publicAuthor(thread.userId);
+        review = thread;
+      }
+    }
+
+    return res.json({ review, author, replies: repliesWithAuthors, ...counts, ...mine });
+  });
+
+  app.post("/api/reviews/:subjectType/:subjectId/replies", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const subjectType = reviewSubject.parse(req.params.subjectType);
+    const subjectId = parseInt(req.params.subjectId);
+    if (isNaN(subjectId)) return res.status(400).json({ message: "Invalid id" });
+    const { body } = z.object({ body: z.string().min(1).max(280) }).parse(req.body);
+
+    let authorId: number | undefined;
+    let title = "your rating";
+    if (subjectType === "place_review") {
+      const review = await storage.getPlaceReview(subjectId);
+      if (!review) return res.status(404).json({ message: "Review not found" });
+      authorId = review.userId;
+      const place = await storage.getPlace(review.placeId);
+      title = place?.name ?? "your place rating";
+    } else if (subjectType === "show_review") {
+      const review = await storage.getShowReview(subjectId);
+      if (!review) return res.status(404).json({ message: "Review not found" });
+      authorId = review.userId;
+      const show = await storage.getShow(review.showId);
+      title = show ? `${show.artistName} at ${show.venueName}` : "your show rating";
+    } else {
+      const thread = await storage.getThread(subjectId);
+      if (!thread) return res.status(404).json({ message: "Review not found" });
+      authorId = thread.userId;
+      title = thread.title || thread.albumName || "your album rating";
+      await storage.createComment({ threadId: subjectId, userId, content: body });
+    }
+
+    const reply = await storage.createReviewReply({ subjectType, subjectId, userId, body });
+    if (authorId && authorId !== userId) {
+      const actor = await storage.getUser(userId);
+      await storage.createNotification({
+        userId: authorId,
+        type: "review_reply",
+        threadId: subjectType === "album_thread" ? subjectId : undefined,
+        threadTitle: `${subjectType}|${title}`,
+        actorId: userId,
+        actorUsername: actor?.username ?? "someone",
+        matchId: subjectType === "album_thread" ? undefined : subjectId,
+      });
+    }
+    return res.status(201).json(reply);
+  });
+
+  app.post("/api/reviews/:subjectType/:subjectId/reactions", async (req: Request, res: Response) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+    const subjectType = reviewSubject.parse(req.params.subjectType);
+    const subjectId = parseInt(req.params.subjectId);
+    if (isNaN(subjectId)) return res.status(400).json({ message: "Invalid id" });
+    const { kind } = z.object({ kind: z.enum(["like", "repeat"]) }).parse(req.body);
+    const result = await storage.toggleReviewReaction(userId, subjectType, subjectId, kind);
+    return res.json(result);
   });
 
   const httpServer = createServer(app);
