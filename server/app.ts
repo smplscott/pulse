@@ -6,6 +6,7 @@ import { type Server } from "http";
 import { registerRoutes } from "./routes";
 import { log } from "./log";
 import { pool } from "./db";
+import { ensurePlaceTagColumns } from "./ensurePlaceColumns";
 
 const PgSessionStore = connectPgSimple(session);
 
@@ -65,6 +66,7 @@ export async function createApp(): Promise<{ app: Express; server: Server }> {
     next();
   });
 
+  await ensurePlaceTagColumns();
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

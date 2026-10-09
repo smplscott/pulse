@@ -110,6 +110,63 @@ test("invalid featured limit and review type do not 500", async () => {
   }
 });
 
+test("creating a place requires a genre and accepts expanded tags", async () => {
+  const { base, close } = await listen();
+  try {
+    const { cookie } = await login(base);
+    const stamp = Date.now();
+    const missingGenre = await fetch(`${base}/api/places`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie },
+      body: JSON.stringify({
+        name: `Tag Test ${stamp}`,
+        city: "London",
+        country: "United Kingdom",
+        category: "listening_bar",
+        description: "A quiet room for deep cuts and long nights.",
+        genres: [],
+        rating: 4,
+      }),
+    });
+    assert.equal(missingGenre.status, 400);
+
+    const created = await fetch(`${base}/api/places`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie },
+      body: JSON.stringify({
+        name: `Tag Test ${stamp}-ok`,
+        city: "London",
+        country: "United Kingdom",
+        category: "listening_bar",
+        description: "A quiet room for deep cuts and long nights.",
+        genres: ["Jazz"],
+        hostsLiveMusic: true,
+        brandsTourHere: true,
+        contentRating: "clean",
+        playedArtists: [{ spotifyId: "abc123", name: "Four Tet", imageUrl: null }],
+        rating: 5,
+      }),
+    });
+    assert.equal(created.status, 201);
+    const place = await created.json() as {
+      category: string;
+      genres: string[];
+      hostsLiveMusic: boolean;
+      brandsTourHere: boolean;
+      contentRating: string | null;
+      playedArtists: Array<{ name: string }>;
+    };
+    assert.equal(place.category, "listening_bar");
+    assert.deepEqual(place.genres, ["Jazz"]);
+    assert.equal(place.hostsLiveMusic, true);
+    assert.equal(place.brandsTourHere, true);
+    assert.equal(place.contentRating, "clean");
+    assert.equal(place.playedArtists[0]?.name, "Four Tet");
+  } finally {
+    await close();
+  }
+});
+
 test("signup can search cities without a session; venue search stays private", async () => {
   const { base, close } = await listen();
   try {

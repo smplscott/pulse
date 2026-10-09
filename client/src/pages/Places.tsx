@@ -13,28 +13,24 @@ import { SearchIcon, MapPin, Star, List, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PlacesMap, { type MappablePlace } from "@/components/places/PlacesMap";
 import WantToGoButton from "@/components/places/WantToGoButton";
-
-const GENRE_OPTIONS = [
-  "House", "Techno", "Drum & Bass", "Jungle", "Hip-Hop",
-  "R&B", "Soul", "Jazz", "Electronic", "Disco", "Funk",
-  "Rock", "Indie", "Pop", "Ambient", "Experimental", "All Genres",
-];
+import { PlaceMetaChips } from "@/components/places/PlaceMetaChips";
+import {
+  DEFAULT_PLACE_CATEGORY_IDS,
+  MORE_PLACE_CATEGORY_IDS,
+  placeCategoryFilterLabel,
+} from "@shared/placeCategories";
 
 const CATEGORIES = [
   { id: "all", label: "All" },
-  { id: "bar", label: "Bars" },
-  { id: "club", label: "Clubs" },
-  { id: "record_store", label: "Record Stores" },
-  { id: "coffee_shop", label: "Coffee Shops" },
+  ...DEFAULT_PLACE_CATEGORY_IDS.map(id => ({ id, label: placeCategoryFilterLabel(id) })),
+];
+
+const MORE_CATEGORIES = [
+  ...MORE_PLACE_CATEGORY_IDS.map(id => ({ id, label: placeCategoryFilterLabel(id) })),
   { id: "other", label: "Other" },
 ];
 
-function categoryLabel(cat: string) {
-  return CATEGORIES.find(c => c.id === cat)?.label ?? cat;
-}
-
 function PlaceCard({ place }: { place: Place }) {
-  const genres = place.genres ?? [];
   const [, navigate] = useLocation();
   return (
     <div className="bg-[#181818] rounded-xl p-4 flex gap-3">
@@ -62,25 +58,10 @@ function PlaceCard({ place }: { place: Place }) {
         </Link>
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
-              {categoryLabel(place.category)}
-            </span>
+            <PlaceMetaChips place={place} />
             {place.googlePlaceId && (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#8ab4f8]/10 text-[#8ab4f8]">
                 Maps
-              </span>
-            )}
-            {genres.slice(0, 2).map(g => (
-              <span key={g} className="text-[10px] px-2 py-0.5 rounded-full bg-[#1a2a1a] text-[#c2f970]">
-                {g}
-              </span>
-            ))}
-            {genres.length > 2 && (
-              <span className="text-[10px] text-[#666]">+{genres.length - 2}</span>
-            )}
-            {place.soundSystem && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
-                {place.soundSystem}
               </span>
             )}
           </div>
@@ -104,7 +85,9 @@ type PlaceListItem = MappablePlace;
 export default function Places() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [showMoreCategories, setShowMoreCategories] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
+  const moreSelected = MORE_CATEGORIES.some(cat => cat.id === activeCategory);
 
   const { data: places, isLoading } = useQuery<PlaceListItem[]>({
     queryKey: ["/api/places"],
@@ -164,6 +147,32 @@ export default function Places() {
 
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-4">
           {CATEGORIES.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                activeCategory === cat.id
+                  ? "bg-gradient-to-r from-[#b388eb] to-[#ff6fd8] text-white border-transparent"
+                  : "bg-[#181818] text-[#B3B3B3] border border-[#3E3E3E]"
+              )}
+            >
+              {cat.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setShowMoreCategories(open => !open)}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+              showMoreCategories || moreSelected
+                ? "bg-[#8ab4f8]/15 text-[#8ab4f8] border border-[#8ab4f8]/40"
+                : "bg-[#181818] text-[#B3B3B3] border border-[#3E3E3E]"
+            )}
+          >
+            {showMoreCategories ? "Less" : "More"}
+          </button>
+          {(showMoreCategories || moreSelected) && MORE_CATEGORIES.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}

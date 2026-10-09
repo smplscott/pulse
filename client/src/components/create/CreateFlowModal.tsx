@@ -16,13 +16,24 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import ReviewImageUpload from "@/components/ReviewImageUpload";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
 import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
 import { DEFAULT_RADIUS_KM } from "@shared/searchRadius";
+import {
+  PLACE_CATEGORY_IDS,
+  googleTypeToPlaceCategory,
+  type PlaceCategory,
+  type PlaceContentRating,
+  type PlacePlayedArtist,
+} from "@shared/placeCategories";
+import {
+  PlaceCategoryPicker,
+  PlaceContentRatingPicker,
+  PlaceGenrePicker,
+  PlacePlayedArtistPicker,
+  PlaceSpecialtyPicker,
+} from "@/components/places/PlaceCreateFields";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -102,27 +113,13 @@ const placeFormSchema = z.object({
   name: z.string().min(2, "Name required"),
   city: z.string().min(1, "City required"),
   country: z.string().min(1, "Country required"),
-  category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
+  category: z.enum(PLACE_CATEGORY_IDS),
   description: z.string().min(10, "Min 10 characters").max(280, "Max 280 characters"),
   mapsLink: z.string().optional(),
 });
 type PlaceFormValues = z.infer<typeof placeFormSchema>;
 
 const RATING_LABELS = ["", "Poor", "Below average", "Average", "Good", "Excellent"];
-
-const GENRE_OPTIONS = [
-  "House", "Techno", "Drum & Bass", "Jungle", "Hip-Hop",
-  "R&B", "Soul", "Jazz", "Electronic", "Disco", "Funk",
-  "Rock", "Indie", "Pop", "Ambient", "Experimental",
-];
-
-function googleTypeToCategory(primaryType: string | null): PlaceFormValues["category"] {
-  if (primaryType === "bar") return "bar";
-  if (primaryType === "night_club") return "club";
-  if (primaryType === "record_store") return "record_store";
-  if (primaryType === "cafe" || primaryType === "coffee_shop") return "coffee_shop";
-  return "other";
-}
 
 function formatDate(dateStr: string) {
   if (!dateStr) return "";
@@ -194,6 +191,10 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [placeRating, setPlaceRating] = useState(0);
   const [soundSystem, setSoundSystem] = useState("");
+  const [playedArtists, setPlayedArtists] = useState<PlacePlayedArtist[]>([]);
+  const [hostsLiveMusic, setHostsLiveMusic] = useState(false);
+  const [brandsTourHere, setBrandsTourHere] = useState(false);
+  const [contentRating, setContentRating] = useState<PlaceContentRating | null>(null);
   const [selectedGooglePlace, setSelectedGooglePlace] = useState<GooglePlaceDetails | null>(null);
   const placeSessionToken = useRef(crypto.randomUUID());
 
@@ -219,7 +220,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   const placeForm = useForm<PlaceFormValues>({
     resolver: zodResolver(placeFormSchema),
     defaultValues: {
-      name: "", city: "", country: "", category: "club", description: "", mapsLink: "",
+      name: "", city: "", country: "", category: "bar", description: "", mapsLink: "",
     },
   });
 
@@ -235,7 +236,9 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       setSelectedType(null); setSelectedShow(null); setSelectedAlbum(null);
       setStarRating(0); setReviewImage(null); setShowManualForm(false);
       setManualShow({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
-      setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0); setSoundSystem(""); setSelectedGooglePlace(null);
+      setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0); setSoundSystem("");
+      setPlayedArtists([]); setHostsLiveMusic(false); setBrandsTourHere(false); setContentRating(null);
+      setSelectedGooglePlace(null);
       setRadarLocation({ city: "", country: "" }); setRadarStart(""); setRadarEnd(""); setRadarRadiusKm(DEFAULT_RADIUS_KM);
       threadForm.reset(); placeForm.reset();
     }, 300);
@@ -451,7 +454,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       placeForm.setValue("city", details.city);
       placeForm.setValue("country", details.country);
       placeForm.setValue("mapsLink", details.googleMapsUri);
-      placeForm.setValue("category", googleTypeToCategory(details.primaryType));
+      placeForm.setValue("category", googleTypeToPlaceCategory(details.primaryType));
       setStep("place_form");
     },
     onError: (error: Error) =>
@@ -1388,49 +1391,32 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 </div>
               </div>
 
-              <div>
-                <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">Category *</p>
-                <Select
-                  value={placeForm.watch("category")}
-                  onValueChange={v => placeForm.setValue("category", v as PlaceFormValues["category"])}
-                >
-                  <SelectTrigger className="bg-[#282828] border-[#3E3E3E] text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#282828] border-[#3E3E3E]">
-                    <SelectItem value="bar">Bar</SelectItem>
-                    <SelectItem value="club">Club</SelectItem>
-                    <SelectItem value="record_store">Record Store</SelectItem>
-                    <SelectItem value="coffee_shop">Coffee Shop</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <PlaceCategoryPicker
+                value={placeForm.watch("category") as PlaceCategory}
+                onChange={category => placeForm.setValue("category", category)}
+              />
 
-              <div>
-                <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">Genres * <span className="text-[#555]">(pick at least one)</span></p>
-                <div className="flex flex-wrap gap-1.5">
-                  {GENRE_OPTIONS.map(g => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() =>
-                        setSelectedGenres(prev =>
-                          prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]
-                        )
-                      }
-                      className={cn(
-                        "text-xs px-2.5 py-1 rounded-full border transition-colors",
-                        selectedGenres.includes(g)
-                          ? "bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black border-transparent"
-                          : "bg-[#282828] text-[#B3B3B3] border-[#3E3E3E] hover:border-[#555]"
-                      )}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <PlaceGenrePicker
+                selected={selectedGenres}
+                onToggle={genre =>
+                  setSelectedGenres(prev =>
+                    prev.includes(genre) ? prev.filter(item => item !== genre) : [...prev, genre]
+                  )
+                }
+              />
+
+              <PlaceSpecialtyPicker
+                hostsLiveMusic={hostsLiveMusic}
+                brandsTourHere={brandsTourHere}
+                onChange={next => {
+                  setHostsLiveMusic(next.hostsLiveMusic);
+                  setBrandsTourHere(next.brandsTourHere);
+                }}
+              />
+
+              <PlaceContentRatingPicker value={contentRating} onChange={setContentRating} />
+
+              <PlacePlayedArtistPicker artists={playedArtists} onChange={setPlayedArtists} />
 
               <div>
                 <p className="text-xs text-[#B3B3B3] mb-1.5 font-medium">Sound system <span className="text-[#555]">(optional)</span></p>
@@ -1507,7 +1493,16 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 onClick={placeForm.handleSubmit(vals => {
                   if (!user) return;
                   if (placeRating === 0 || selectedGenres.length === 0) return;
-                  placeMutation.mutate({ ...vals, genres: selectedGenres, rating: placeRating, soundSystem: soundSystem.trim() || null } as any);
+                  placeMutation.mutate({
+                    ...vals,
+                    genres: selectedGenres,
+                    rating: placeRating,
+                    soundSystem: soundSystem.trim() || null,
+                    playedArtists,
+                    hostsLiveMusic,
+                    brandsTourHere,
+                    contentRating,
+                  } as any);
                 })}
                 disabled={placeMutation.isPending || placeRating === 0 || selectedGenres.length === 0}
                 className="w-full py-3 rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] text-black font-bold text-sm disabled:opacity-40 hover:opacity-90 transition-opacity"

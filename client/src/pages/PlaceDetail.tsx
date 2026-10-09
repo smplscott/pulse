@@ -19,14 +19,8 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/context/AuthContext";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  bar: "Bar",
-  club: "Club",
-  record_store: "Record Store",
-  coffee_shop: "Coffee Shop",
-  other: "Other",
-};
+import { PlaceMetaChips } from "@/components/places/PlaceMetaChips";
+import { placeCategoryLabel } from "@shared/placeCategories";
 
 function timeAgo(date: Date | string | null | undefined): string {
   if (!date) return "";
@@ -212,7 +206,7 @@ export default function PlaceDetail() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
-                      {CATEGORY_LABELS[place.category] ?? place.category}
+                      {placeCategoryLabel(place.category)}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-[#B3B3B3]">
                       <Star className="h-3 w-3 text-[#c3f872] fill-[#c3f872]" />
@@ -240,25 +234,22 @@ export default function PlaceDetail() {
                 </div>
               </div>
 
-              {genres.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {genres.map(g => (
-                    <span key={g} className="text-xs px-2 py-0.5 rounded-full bg-[#1a2a1a] text-[#c2f970]">
-                      {g}
-                    </span>
-                  ))}
-                  {place.soundSystem && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
-                      {place.soundSystem}
-                    </span>
-                  )}
-                </div>
-              )}
-              {genres.length === 0 && place.soundSystem && (
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3]">
-                    {place.soundSystem}
-                  </span>
+              <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                <PlaceMetaChips place={place} showCategory={false} maxGenres={genres.length} />
+              </div>
+              {(place.playedArtists ?? []).length > 0 && (
+                <div className="mb-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#666] mb-1.5">Played here</p>
+                  <div className="flex flex-wrap gap-2">
+                    {place.playedArtists!.map(artist => (
+                      <span key={artist.spotifyId} className="inline-flex items-center gap-1.5 rounded-full bg-[#282828] px-2 py-1 text-xs text-[#B3B3B3]">
+                        {artist.imageUrl ? (
+                          <img src={artist.imageUrl} alt="" className="h-4 w-4 rounded-full object-cover" />
+                        ) : null}
+                        {artist.name}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 

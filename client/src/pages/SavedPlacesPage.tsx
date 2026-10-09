@@ -12,16 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import ReviewImageUpload from "@/components/ReviewImageUpload";
 import type { PlaceList, Place, PlaceListItem } from "@shared/schema";
+import { placeCategoryLabel } from "@shared/placeCategories";
 
 type PlaceListItemWithPlace = PlaceListItem & { place: Place };
-
-const CATEGORY_LABELS: Record<string, string> = {
-  bar: "Bar",
-  club: "Club",
-  record_store: "Record Store",
-  coffee_shop: "Café",
-  other: "Other",
-};
 
 function ListDetail({ list, onBack }: { list: PlaceList; userId: number; onBack: () => void }) {
   const { toast } = useToast();
@@ -85,7 +78,7 @@ function ListDetail({ list, onBack }: { list: PlaceList; userId: number; onBack:
                     <p className="text-xs text-[#888] mt-0.5">{item.place.city}, {item.place.country}</p>
                   </div>
                   <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#252525] text-[#888] flex-shrink-0">
-                    {CATEGORY_LABELS[item.place.category] ?? item.place.category}
+                    {placeCategoryLabel(item.place.category)}
                   </span>
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeMutation.mutate(item.place.id); }}

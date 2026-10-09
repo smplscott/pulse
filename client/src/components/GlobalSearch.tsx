@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
+import { placeCategoryLabel } from "@shared/placeCategories";
 
 interface SpotifyArtist { spotifyId: string; name: string; imageUrl: string | null; genres: string[]; }
 interface SetlistShow { setlistfmId: string; artistName: string; venueName: string; city: string; country: string; eventDate: string; source?: "ticketmaster" | "setlistfm"; }
@@ -210,7 +211,7 @@ export default function GlobalSearch() {
                     avatar={<MapPin className="h-5 w-5 text-[#666]" />}
                     avatarClass="rounded-lg"
                     title={p.name}
-                    sub={`${p.city}, ${p.country} · ${p.category.replace("_", " ")}`}
+                    sub={`${p.city}, ${p.country} · ${placeCategoryLabel(p.category)}`}
                   />
                 ))}
               </section>
