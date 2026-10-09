@@ -22,7 +22,10 @@ import {
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
+import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
 import RadarCalendar from "@/components/radar/RadarCalendar";
+import { DEFAULT_RADIUS_KM, formatRadius } from "@shared/searchRadius";
+import { useDistanceUnit } from "@/hooks/useDistanceUnit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,6 +82,9 @@ export default function Signal() {
   const [showAlwaysOnForm, setShowAlwaysOnForm] = useState(false);
   const [alwaysOnLocation, setAlwaysOnLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [alwaysOnLabel, setAlwaysOnLabel] = useState("Home");
+  const [alwaysOnRadiusKm, setAlwaysOnRadiusKm] = useState(DEFAULT_RADIUS_KM);
+  const [tripRadiusKm, setTripRadiusKm] = useState(DEFAULT_RADIUS_KM);
+  const { unit } = useDistanceUnit();
   const [tripUi, setTripUi] = useState<"dates" | "calendar">(() => {
     if (typeof window === "undefined") return "dates";
     return window.localStorage.getItem("pulse.radarTripUi") === "calendar" ? "calendar" : "dates";
@@ -182,6 +188,7 @@ export default function Signal() {
     setTripLocation({ city: "", country: "" });
     setStartDate("");
     setEndDate("");
+    setTripRadiusKm(DEFAULT_RADIUS_KM);
     setEditingTripId(null);
     setShowTripForm(false);
   }
@@ -198,6 +205,7 @@ export default function Signal() {
     });
     setStartDate(trip.startDate ?? "");
     setEndDate(trip.endDate ?? trip.startDate ?? "");
+    setTripRadiusKm(trip.radiusKm ?? DEFAULT_RADIUS_KM);
     setShowTripForm(true);
   }
 
@@ -245,6 +253,7 @@ export default function Signal() {
         longitude: tripLocation.longitude,
         startDate,
         endDate: endDate || startDate,
+        radiusKm: tripRadiusKm,
       };
       return editingTripId
         ? apiRequest("PATCH", `/api/users/${userId}/travel-plans/${editingTripId}`, payload)
@@ -272,15 +281,39 @@ export default function Signal() {
       longitude: alwaysOnLocation.longitude,
       kind: "always_on",
       label: alwaysOnLabel.trim() || "Home",
+      radiusKm: alwaysOnRadiusKm,
     }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
       setShowAlwaysOnForm(false);
       setAlwaysOnLocation({ city: "", country: "" });
       setAlwaysOnLabel("Home");
+      setAlwaysOnRadiusKm(DEFAULT_RADIUS_KM);
       toast({ title: "Always-on city added" });
     },
     onError: (err: Error) => toast({ title: "Couldn't save city", description: err.message, variant: "destructive" }),
+  });
+
+  const updateRadius = useMutation({
+    mutationFn: ({ plan, radiusKm }: { plan: UserTravelPlan; radiusKm: number }) =>
+      apiRequest("PATCH", `/api/users/${userId}/travel-plans/${plan.id}`, {
+        city: plan.city,
+        country: plan.country,
+        countryCode: plan.countryCode ?? undefined,
+        googlePlaceId: plan.googlePlaceId ?? undefined,
+        latitude: plan.latitude ?? undefined,
+        longitude: plan.longitude ?? undefined,
+        kind: plan.kind,
+        label: plan.label ?? undefined,
+        startDate: plan.startDate ?? undefined,
+        endDate: plan.endDate ?? undefined,
+        radiusKm,
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
+    },
+    onError: () => toast({ title: "Couldn't update radius", variant: "destructive" }),
   });
 
   const removeTrip = useMutation({
@@ -555,6 +588,7 @@ export default function Signal() {
                   placeholder="Label — Home, School, Studio"
                   className="bg-[#202020] text-white"
                 />
+                <SearchRadiusPicker valueKm={alwaysOnRadiusKm} onChange={setAlwaysOnRadiusKm} />
                 <Button
                   onClick={() => saveAlwaysOn.mutate()}
                   disabled={!alwaysOnLocation.city.trim() || !alwaysOnLocation.country.trim() || saveAlwaysOn.isPending}
@@ -575,7 +609,13 @@ export default function Signal() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-white">{city.label || "Home"}</p>
-                      <p className="text-xs text-[#777]">{city.city}, {city.country}</p>
+                      <p className="text-xs text-[#777]">{city.city}, {city.country} · {formatRadius(city.radiusKm ?? DEFAULT_RADIUS_KM, unit)}</p>
+                      <SearchRadiusPicker
+                        compact
+                        className="mt-2"
+                        valueKm={city.radiusKm ?? DEFAULT_RADIUS_KM}
+                        onChange={radiusKm => updateRadius.mutate({ plan: city, radiusKm })}
+                      />
                     </div>
                     <button onClick={() => removeTrip.mutate(city.id)} className="rounded-lg p-1.5 text-[#666] hover:text-rose-400">
                       <Trash2 className="h-3.5 w-3.5" />
@@ -603,6 +643,7 @@ export default function Signal() {
             {showTripForm && (
               <div className="mb-4 space-y-2 rounded-xl border border-[#333] bg-[#111] p-3">
                 <GoogleCityAutocomplete value={tripLocation} onChange={setTripLocation} />
+                <SearchRadiusPicker valueKm={tripRadiusKm} onChange={setTripRadiusKm} />
                 <div className="flex gap-2">
                   {(["dates", "calendar"] as const).map(mode => (
                     <button
@@ -664,7 +705,7 @@ export default function Signal() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-white">{trip.city}, {trip.country}</p>
-                        <p className="mt-0.5 text-xs text-[#777]">{tripDates(trip)}</p>
+                        <p className="mt-0.5 text-xs text-[#777]">{tripDates(trip)} · {formatRadius(trip.radiusKm ?? DEFAULT_RADIUS_KM, unit)}</p>
                       </div>
                       <button onClick={() => editTrip(trip)} className="rounded-lg p-1.5 text-[#777] hover:bg-white/5 hover:text-white" aria-label={`Edit trip to ${trip.city}`}>
                         <Pencil className="h-3.5 w-3.5" />

@@ -107,6 +107,9 @@ export async function scanWishlistMatches(options: { userId?: number } = {}): Pr
           item.artistName.toLowerCase(),
           plan.city.toLowerCase(),
           (plan.countryCode ?? plan.country ?? "").toLowerCase(),
+          plan.latitude ?? "",
+          plan.longitude ?? "",
+          plan.radiusKm ?? "",
           startDate,
           endDate,
         ].join("|");
@@ -122,6 +125,9 @@ export async function scanWishlistMatches(options: { userId?: number } = {}): Pr
               countryCode: plan.countryCode ?? undefined,
               startDate,
               endDate,
+              latitude: plan.latitude,
+              longitude: plan.longitude,
+              radiusKm: plan.radiusKm,
             });
             queryCache.set(cacheKey, events);
             // Stay under ~5 req/s

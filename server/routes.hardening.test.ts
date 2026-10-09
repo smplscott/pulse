@@ -109,3 +109,25 @@ test("invalid featured limit and review type do not 500", async () => {
     await close();
   }
 });
+
+test("signup can search cities without a session; venue search stays private", async () => {
+  const { base, close } = await listen();
+  try {
+    const sessionToken = "11111111-1111-4111-8111-111111111111";
+    const city = await fetch(`${base}/api/google-places/autocomplete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ input: "Berlin", mode: "city", sessionToken }),
+    });
+    assert.notEqual(city.status, 401);
+
+    const venue = await fetch(`${base}/api/google-places/autocomplete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ input: "Fabric", mode: "place", sessionToken }),
+    });
+    assert.equal(venue.status, 401);
+  } finally {
+    await close();
+  }
+});

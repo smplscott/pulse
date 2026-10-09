@@ -19,6 +19,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useRef, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
+import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
+import { DEFAULT_RADIUS_KM, formatRadius } from "@shared/searchRadius";
+import { useDistanceUnit } from "@/hooks/useDistanceUnit";
 import { compressImageFile } from "@/lib/compressImage";
 
 interface SpotifyArtist {
@@ -182,6 +185,7 @@ export default function Profile() {
   const { username } = useParams<{ username?: string }>();
   const { user: authUser, refreshUser } = useAuth();
   const { toast } = useToast();
+  const { unit } = useDistanceUnit();
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const isOwnProfile = !username || username === authUser?.username;
@@ -195,6 +199,7 @@ export default function Profile() {
   const [tpLocation, setTpLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [tpStart, setTpStart] = useState(""); // YYYY-MM-DD
   const [tpEnd, setTpEnd] = useState("");
+  const [tpRadiusKm, setTpRadiusKm] = useState(DEFAULT_RADIUS_KM);
   const [wlArtist, setWlArtist] = useState("");
   const [wlArtistQuery, setWlArtistQuery] = useState("");
   const [wlSpotifyImageUrl, setWlSpotifyImageUrl] = useState<string | null>(null);
@@ -318,12 +323,14 @@ export default function Profile() {
         longitude: tpLocation.longitude,
         startDate: tpStart,
         endDate: tpEnd || tpStart,
+        radiusKm: tpRadiusKm,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
       setTpLocation({ city: "", country: "" });
       setTpStart("");
       setTpEnd("");
+      setTpRadiusKm(DEFAULT_RADIUS_KM);
       toast({ title: "Trip added to Signal", description: "We'll scan for your wishlist artists during these dates." });
     },
     onError: () => toast({ title: "Failed to add plan", variant: "destructive" }),
@@ -646,6 +653,7 @@ export default function Profile() {
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
                         <p className="text-xs text-[#888] font-medium mb-3">Add a trip to Signal</p>
                         <GoogleCityAutocomplete value={tpLocation} onChange={setTpLocation} className="mb-2" />
+                        <SearchRadiusPicker valueKm={tpRadiusKm} onChange={setTpRadiusKm} className="mb-3" />
                         <div className="grid grid-cols-2 gap-2 mb-2">
                           <div>
                             <p className="text-[10px] text-[#666] mb-1">Start</p>
@@ -664,7 +672,7 @@ export default function Profile() {
                         >
                           Add trip
                         </Button>
-                        <p className="text-[10px] text-[#555] mt-2">Signal scans for wishlist artists playing in this city during your dates.</p>
+                        <p className="text-[10px] text-[#555] mt-2">Signal scans for wishlist artists inside this radius during your dates.</p>
                       </div>
                     )}
                     {isLoadingPlans ? (
@@ -682,6 +690,7 @@ export default function Profile() {
                                     ? plan.startDate
                                     : `${plan.startDate} → ${plan.endDate}`
                                   : plan.targetDate}
+                                {` · ${formatRadius(plan.radiusKm ?? DEFAULT_RADIUS_KM, unit)}`}
                               </p>
                             </div>
                             {isOwnProfile && (

@@ -1,3 +1,5 @@
+import { DEFAULT_RADIUS_KM, clampRadiusKm } from "@shared/searchRadius";
+
 /** Ticketmaster Discovery API client (events search for wishlist × trip matching). */
 
 const TM_BASE = "https://app.ticketmaster.com/discovery/v2";
@@ -144,6 +146,9 @@ export interface SearchEventsParams {
   startDate: string;
   /** ISO date YYYY-MM-DD */
   endDate: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  radiusKm?: number | null;
 }
 
 export interface SearchEventsByArtistParams {
@@ -230,31 +235,45 @@ export async function searchEventsByArtist(
  * Search Ticketmaster events. Throttles ~5 req/s via optional pre-call delay
  * when `throttleMs` is set by the caller between requests.
  */
-export async function searchEvents(
-  params: SearchEventsParams,
-  apiKey = process.env.TICKETMASTER_API_KEY,
-): Promise<TicketmasterEvent[]> {
-  if (!apiKey) {
-    throw new Error("TICKETMASTER_API_KEY is not configured");
-  }
-
+export function buildEventsSearchUrl(params: SearchEventsParams, apiKey: string): URL {
   const url = new URL(`${TM_BASE}/events.json`);
   url.searchParams.set("apikey", apiKey);
   url.searchParams.set("keyword", params.keyword);
-  url.searchParams.set("city", params.city);
   url.searchParams.set("startDateTime", `${params.startDate}T00:00:00Z`);
   url.searchParams.set("endDateTime", `${params.endDate}T23:59:59Z`);
   url.searchParams.set("size", "50");
   url.searchParams.set("sort", "date,asc");
   url.searchParams.set("classificationSegment", "Music");
 
-  const countryCode = resolveTicketmasterCountryCode(params);
-  if (countryCode) url.searchParams.set("countryCode", countryCode);
+  const hasPoint = Number.isFinite(params.latitude) && Number.isFinite(params.longitude);
+  if (hasPoint) {
+    url.searchParams.set("latlong", `${params.latitude},${params.longitude}`);
+    url.searchParams.set("radius", String(clampRadiusKm(params.radiusKm ?? DEFAULT_RADIUS_KM)));
+    url.searchParams.set("unit", "km");
+  } else {
+    url.searchParams.set("city", params.city);
+    const countryCode = resolveTicketmasterCountryCode(params);
+    if (countryCode) url.searchParams.set("countryCode", countryCode);
+  }
 
-  const res = await fetch(url.toString());
+  return url;
+}
+
+export async function searchEvents(
+  params: SearchEventsParams,
+  apiKey = process.env.TICKETMASTER_API_KEY,
+  fetchImpl: typeof fetch = fetch,
+): Promise<TicketmasterEvent[]> {
+  if (!apiKey) {
+    throw new Error("TICKETMASTER_API_KEY is not configured");
+  }
+
+  const url = buildEventsSearchUrl(params, apiKey);
+
+  const res = await fetchImpl(url.toString());
   if (res.status === 429) {
     await sleep(1000);
-    const retry = await fetch(url.toString());
+    const retry = await fetchImpl(url.toString());
     if (!retry.ok) {
       console.warn("[ticketmaster] rate limited / failed", retry.status);
       return [];

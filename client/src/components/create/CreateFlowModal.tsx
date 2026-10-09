@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import ReviewImageUpload from "@/components/ReviewImageUpload";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
+import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
+import { DEFAULT_RADIUS_KM } from "@shared/searchRadius";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -204,6 +206,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
   const [radarLocation, setRadarLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [radarStart, setRadarStart] = useState("");
   const [radarEnd, setRadarEnd] = useState("");
+  const [radarRadiusKm, setRadarRadiusKm] = useState(DEFAULT_RADIUS_KM);
 
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -233,7 +236,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       setStarRating(0); setReviewImage(null); setShowManualForm(false);
       setManualShow({ artistName: "", venueName: "", city: "", country: "", eventDate: "" });
       setPlaceQuery(""); setSelectedGenres([]); setPlaceRating(0); setSoundSystem(""); setSelectedGooglePlace(null);
-      setRadarLocation({ city: "", country: "" }); setRadarStart(""); setRadarEnd("");
+      setRadarLocation({ city: "", country: "" }); setRadarStart(""); setRadarEnd(""); setRadarRadiusKm(DEFAULT_RADIUS_KM);
       threadForm.reset(); placeForm.reset();
     }, 300);
   }
@@ -490,6 +493,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
         longitude: radarLocation.longitude,
         startDate: radarStart,
         endDate: radarEnd || radarStart,
+        radiusKm: radarRadiusKm,
       });
       return res.json();
     },
@@ -888,6 +892,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 </div>
               </div>
               <GoogleCityAutocomplete value={radarLocation} onChange={setRadarLocation} className="mb-3" />
+              <SearchRadiusPicker valueKm={radarRadiusKm} onChange={setRadarRadiusKm} className="mb-3" />
               <div className="mb-5 grid grid-cols-2 gap-2">
                 <div>
                   <p className="mb-1 text-[10px] text-[#666]">Start</p>

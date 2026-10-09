@@ -591,6 +591,8 @@ export const userTravelPlans = pgTable("user_travel_plans", {
   note: text("note"),
   kind: text("kind").$type<"trip" | "always_on">().notNull().default("trip"),
   label: text("label"),
+  /** Ticketmaster search radius around the city, stored in kilometers (1–250). */
+  radiusKm: integer("radius_km").notNull().default(50),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -608,10 +610,12 @@ export const insertUserTravelPlanSchema = createInsertSchema(userTravelPlans).pi
   note: true,
   kind: true,
   label: true,
+  radiusKm: true,
 }).extend({
   kind: z.enum(["trip", "always_on"]).optional(),
   startDate: z.string().nullable().optional(),
   endDate: z.string().nullable().optional(),
+  radiusKm: z.number().int().min(1).max(250).optional(),
 });
 
 export type UserTravelPlan = typeof userTravelPlans.$inferSelect;

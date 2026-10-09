@@ -17,6 +17,7 @@ import {
 import { fetchPlaceStaticMap, StaticMapError } from "./staticMap";
 import { sortByRepeatsThenRecency } from "@shared/socialSort";
 import type { ReviewReaction } from "@shared/schema";
+import { DEFAULT_RADIUS_KM, clampRadiusKm } from "@shared/searchRadius";
 
 // ─── Runtime normalization helpers ───────────────────────────────────────────
 
@@ -220,8 +221,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         googlePlaceId: z.string().min(1).max(256).optional(),
         latitude: z.number().min(-90).max(90).optional(),
         longitude: z.number().min(-180).max(180).optional(),
+        radiusKm: z.number().int().min(1).max(250).optional(),
       });
-      const { username, email, password, displayName, city, country, countryCode, googlePlaceId, latitude, longitude } = schema.parse(req.body);
+      const { username, email, password, displayName, city, country, countryCode, googlePlaceId, latitude, longitude, radiusKm } = schema.parse(req.body);
 
       const existingByUsername = await storage.getUserByUsername(username);
       if (existingByUsername) {
@@ -253,6 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         targetDate: "Home",
         kind: "always_on",
         label: "Home",
+        radiusKm: clampRadiusKm(radiusKm ?? DEFAULT_RADIUS_KM),
       });
 
       req.session.userId = user.id;
@@ -959,13 +962,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/google-places/autocomplete", async (req: Request, res: Response) => {
     try {
-      if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
       const schema = z.object({
         input: z.string().trim().min(2).max(120),
         mode: z.enum(["city", "place"]),
         sessionToken: z.string().uuid(),
       });
       const { input, mode, sessionToken } = schema.parse(req.body);
+      if (mode === "place" && !req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const results = await autocompleteGooglePlaces(input, mode, sessionToken);
       return res.json({ results, configured: true });
     } catch (error) {
@@ -986,7 +991,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/google-places/:placeId/details", async (req: Request, res: Response) => {
     try {
-      if (!req.session.userId) return res.status(401).json({ message: "Not authenticated" });
       const schema = z.object({
         placeId: z.string().min(1).max(256),
         mode: z.enum(["city", "place"]),
@@ -997,6 +1001,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mode: req.query.mode,
         sessionToken: req.query.sessionToken,
       });
+      if (mode === "place" && !req.session.userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const details = await getGooglePlaceDetails(placeId, mode, sessionToken);
       return res.json(details);
     } catch (error) {
@@ -1626,6 +1633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         note: z.string().max(200).optional(),
         kind: z.enum(["trip", "always_on"]).optional(),
         label: z.string().min(1).max(40).optional(),
+        radiusKm: z.number().int().min(1).max(250).optional(),
       });
       const body = schema.parse(req.body);
       const kind = body.kind ?? "trip";
@@ -1663,6 +1671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         note: body.note,
         kind,
         label: kind === "always_on" ? (body.label?.trim() || "Home") : body.label,
+        radiusKm: clampRadiusKm(body.radiusKm ?? DEFAULT_RADIUS_KM),
       });
       return res.status(201).json(plan);
     } catch (error) {
@@ -1698,6 +1707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         note: z.string().max(200).optional(),
         kind: z.enum(["trip", "always_on"]).optional(),
         label: z.string().min(1).max(40).optional(),
+        radiusKm: z.number().int().min(1).max(250).optional(),
       });
       const body = schema.parse(req.body);
       const kind = body.kind ?? existing.kind ?? "trip";
@@ -1729,6 +1739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         note: body.note,
         kind,
         label: kind === "always_on" ? (body.label?.trim() || existing.label || "Home") : body.label,
+        radiusKm: clampRadiusKm(body.radiusKm ?? existing.radiusKm ?? DEFAULT_RADIUS_KM),
       });
       return res.json(plan);
     } catch (error) {
