@@ -60,10 +60,10 @@ function EmptyState({ icon: Icon, message }: { icon: typeof MessageCircle; messa
 function FirstRunCtas() {
   return (
     <div className="mt-6 grid gap-2">
-      <Link href="/radar">
+      <Link href="/signal">
         <button className="w-full rounded-xl border border-[#c2f970]/30 bg-[#c2f970]/10 px-4 py-3 text-left">
           <p className="flex items-center gap-2 text-sm font-semibold text-[#c2f970]">
-            <Radar className="h-4 w-4" /> Add a Radar artist
+            <Radar className="h-4 w-4" /> Add a Signal artist
           </p>
           <p className="mt-1 text-xs text-[#888]">Tell Pulse who you want to catch live.</p>
         </button>

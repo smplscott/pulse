@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
+import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
+import { DEFAULT_RADIUS_KM } from "@shared/searchRadius";
 
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -32,6 +34,7 @@ export default function Signup() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [home, setHome] = useState<SelectedCity>({ city: "", country: "" });
+  const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -51,6 +54,7 @@ export default function Signup() {
         googlePlaceId: home.googlePlaceId,
         latitude: home.latitude,
         longitude: home.longitude,
+        radiusKm,
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Sign up failed";
@@ -105,7 +109,8 @@ export default function Signup() {
             <div className="space-y-1.5">
               <Label className="text-[#B3B3B3] text-sm">Home</Label>
               <GoogleCityAutocomplete value={home} onChange={setHome} />
-              <p className="text-[11px] text-[#666]">This becomes your first always-on Radar city.</p>
+              <SearchRadiusPicker valueKm={radiusKm} onChange={setRadiusKm} />
+              <p className="text-[11px] text-[#666]">This becomes your first always-on Signal city. We'll look for shows inside this radius.</p>
             </div>
 
             <div className="space-y-1.5">

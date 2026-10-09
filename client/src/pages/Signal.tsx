@@ -22,7 +22,10 @@ import {
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
+import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
 import RadarCalendar from "@/components/radar/RadarCalendar";
+import { DEFAULT_RADIUS_KM, formatRadius } from "@shared/searchRadius";
+import { useDistanceUnit } from "@/hooks/useDistanceUnit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -58,7 +61,7 @@ function tripDates(trip: UserTravelPlan) {
   return `${formatDate(`${trip.startDate}T12:00:00`)} – ${formatDate(`${trip.endDate}T12:00:00`)}`;
 }
 
-export default function Radar() {
+export default function Signal() {
   const { user } = useAuth();
   const { toast } = useToast();
   const userId = user?.id;
@@ -79,6 +82,9 @@ export default function Radar() {
   const [showAlwaysOnForm, setShowAlwaysOnForm] = useState(false);
   const [alwaysOnLocation, setAlwaysOnLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [alwaysOnLabel, setAlwaysOnLabel] = useState("Home");
+  const [alwaysOnRadiusKm, setAlwaysOnRadiusKm] = useState(DEFAULT_RADIUS_KM);
+  const [tripRadiusKm, setTripRadiusKm] = useState(DEFAULT_RADIUS_KM);
+  const { unit } = useDistanceUnit();
   const [tripUi, setTripUi] = useState<"dates" | "calendar">(() => {
     if (typeof window === "undefined") return "dates";
     return window.localStorage.getItem("pulse.radarTripUi") === "calendar" ? "calendar" : "dates";
@@ -97,7 +103,8 @@ export default function Radar() {
   const { data: matches = [], isLoading: matchesLoading } = useQuery<WishlistEventMatch[]>({
     queryKey: [`/api/users/${userId}/wishlist-matches`, "upcoming"],
     queryFn: async () => {
-      const res = await fetch(`/api/users/${userId}/wishlist-matches?scope=upcoming`);
+      const res = await fetch(`/api/users/${userId}/wishlist-matches?scope=upcoming`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load matches");
       return res.json();
     },
     enabled: !!userId,
@@ -181,6 +188,7 @@ export default function Radar() {
     setTripLocation({ city: "", country: "" });
     setStartDate("");
     setEndDate("");
+    setTripRadiusKm(DEFAULT_RADIUS_KM);
     setEditingTripId(null);
     setShowTripForm(false);
   }
@@ -197,6 +205,7 @@ export default function Radar() {
     });
     setStartDate(trip.startDate ?? "");
     setEndDate(trip.endDate ?? trip.startDate ?? "");
+    setTripRadiusKm(trip.radiusKm ?? DEFAULT_RADIUS_KM);
     setShowTripForm(true);
   }
 
@@ -217,7 +226,7 @@ export default function Radar() {
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
       const wasReplacing = replacingArtistId !== null;
       resetArtistForm();
-      toast({ title: wasReplacing ? "Radar artist updated" : "Artist added to Radar" });
+      toast({ title: wasReplacing ? "Signal artist updated" : "Artist added to Signal" });
     },
     onError: () => toast({ title: "Couldn't add artist", variant: "destructive" }),
   });
@@ -228,7 +237,7 @@ export default function Radar() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/show-wishlist`] });
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
-      toast({ title: "Artist removed from Radar" });
+      toast({ title: "Artist removed from Signal" });
     },
     onError: () => toast({ title: "Couldn't remove artist", variant: "destructive" }),
   });
@@ -244,6 +253,7 @@ export default function Radar() {
         longitude: tripLocation.longitude,
         startDate,
         endDate: endDate || startDate,
+        radiusKm: tripRadiusKm,
       };
       return editingTripId
         ? apiRequest("PATCH", `/api/users/${userId}/travel-plans/${editingTripId}`, payload)
@@ -253,7 +263,7 @@ export default function Radar() {
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
       toast({
-        title: editingTripId ? "Radar trip updated" : "Trip added to Radar",
+        title: editingTripId ? "Signal trip updated" : "Trip added to Signal",
         description: "Tap Scan now to look for shows immediately.",
       });
       resetTripForm();
@@ -271,15 +281,39 @@ export default function Radar() {
       longitude: alwaysOnLocation.longitude,
       kind: "always_on",
       label: alwaysOnLabel.trim() || "Home",
+      radiusKm: alwaysOnRadiusKm,
     }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
       setShowAlwaysOnForm(false);
       setAlwaysOnLocation({ city: "", country: "" });
       setAlwaysOnLabel("Home");
+      setAlwaysOnRadiusKm(DEFAULT_RADIUS_KM);
       toast({ title: "Always-on city added" });
     },
     onError: (err: Error) => toast({ title: "Couldn't save city", description: err.message, variant: "destructive" }),
+  });
+
+  const updateRadius = useMutation({
+    mutationFn: ({ plan, radiusKm }: { plan: UserTravelPlan; radiusKm: number }) =>
+      apiRequest("PATCH", `/api/users/${userId}/travel-plans/${plan.id}`, {
+        city: plan.city,
+        country: plan.country,
+        countryCode: plan.countryCode ?? undefined,
+        googlePlaceId: plan.googlePlaceId ?? undefined,
+        latitude: plan.latitude ?? undefined,
+        longitude: plan.longitude ?? undefined,
+        kind: plan.kind,
+        label: plan.label ?? undefined,
+        startDate: plan.startDate ?? undefined,
+        endDate: plan.endDate ?? undefined,
+        radiusKm,
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
+    },
+    onError: () => toast({ title: "Couldn't update radius", variant: "destructive" }),
   });
 
   const removeTrip = useMutation({
@@ -288,7 +322,7 @@ export default function Radar() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/travel-plans`] });
       await queryClient.invalidateQueries({ queryKey: [`/api/users/${userId}/wishlist-matches`] });
-      toast({ title: "Trip removed from Radar" });
+      toast({ title: "Trip removed from Signal" });
     },
     onError: () => toast({ title: "Couldn't remove trip", variant: "destructive" }),
   });
@@ -337,14 +371,14 @@ export default function Radar() {
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8fbd]">Control board</p>
             </div>
             {!isLoading && (
-              <Link href="/radar/matches">
+              <Link href="/signal/matches">
                 <span className="rounded-full border border-[#333] bg-[#181818] px-3 py-1.5 text-xs font-semibold text-[#c2f970]">
                   {matches.length} match{matches.length === 1 ? "" : "es"}
                 </span>
               </Link>
             )}
           </div>
-          <h1 className="text-3xl font-black text-white">Radar</h1>
+          <h1 className="text-3xl font-black text-white">Signal</h1>
           <p className="mt-1 max-w-[22rem] text-sm leading-snug text-[#888]">
             Scanning for artist appearances where you’ll be. Build your artist wishlist, add trip dates to your schedule, we’ll return any matches.
           </p>
@@ -380,7 +414,7 @@ export default function Radar() {
             <div className="relative flex min-h-[280px] flex-col justify-end p-5">
               <div className="mb-auto flex items-center justify-between">
                 <span className="rounded-full border border-white/20 bg-black/35 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur-md">
-                  Next on your Radar
+                  Next on your Signal
                 </span>
                 <span className="rounded-full bg-[#c2f970] px-2.5 py-1 text-[10px] font-bold text-black">Ticketmaster</span>
               </div>
@@ -411,7 +445,7 @@ export default function Radar() {
                 {isEmpty ? <Sparkles className="h-6 w-6 text-[#ff83ba]" /> : <RadarIcon className="h-6 w-6 text-[#c2f970]" />}
               </div>
               <h2 className="text-2xl font-black text-white">
-                {isEmpty ? "Build your Radar" : "Radar is scanning"}
+                {isEmpty ? "Build your Signal" : "Signal is scanning"}
               </h2>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-[#b9aeb7]">
                 {isEmpty
@@ -439,7 +473,7 @@ export default function Radar() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff83ba]">Watching</p>
-                <h2 className="mt-1 text-lg font-bold text-white">Artists on Radar</h2>
+                <h2 className="mt-1 text-lg font-bold text-white">Artists on Signal</h2>
               </div>
               <button onClick={() => setShowArtistForm(value => !value)} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff6fae]/12 text-[#ff83ba]">
                 {showArtistForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -489,7 +523,7 @@ export default function Radar() {
                   disabled={!artistInput.trim() || addArtist.isPending}
                   className="mt-2 w-full bg-gradient-to-r from-[#ff4d8d] to-[#8f5cff] font-bold text-white"
                 >
-                  {addArtist.isPending ? "Saving…" : replacingArtistId ? "Replace artist" : "Add to Radar"}
+                  {addArtist.isPending ? "Saving…" : replacingArtistId ? "Replace artist" : "Add to Signal"}
                 </Button>
               </div>
             )}
@@ -513,7 +547,7 @@ export default function Radar() {
                     <button
                       onClick={() => replaceArtist(artist)}
                       className="rounded-lg p-2 text-[#666] hover:bg-white/5 hover:text-white"
-                      aria-label={`Replace ${artist.artistName} on Radar`}
+                      aria-label={`Replace ${artist.artistName} on Signal`}
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -521,7 +555,7 @@ export default function Radar() {
                       onClick={() => removeArtist.mutate(artist.id)}
                       disabled={removeArtist.isPending}
                       className="rounded-lg p-2 text-[#666] hover:bg-rose-500/10 hover:text-rose-400"
-                      aria-label={`Remove ${artist.artistName} from Radar`}
+                      aria-label={`Remove ${artist.artistName} from Signal`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -554,6 +588,7 @@ export default function Radar() {
                   placeholder="Label — Home, School, Studio"
                   className="bg-[#202020] text-white"
                 />
+                <SearchRadiusPicker valueKm={alwaysOnRadiusKm} onChange={setAlwaysOnRadiusKm} />
                 <Button
                   onClick={() => saveAlwaysOn.mutate()}
                   disabled={!alwaysOnLocation.city.trim() || !alwaysOnLocation.country.trim() || saveAlwaysOn.isPending}
@@ -574,7 +609,13 @@ export default function Radar() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-white">{city.label || "Home"}</p>
-                      <p className="text-xs text-[#777]">{city.city}, {city.country}</p>
+                      <p className="text-xs text-[#777]">{city.city}, {city.country} · {formatRadius(city.radiusKm ?? DEFAULT_RADIUS_KM, unit)}</p>
+                      <SearchRadiusPicker
+                        compact
+                        className="mt-2"
+                        valueKm={city.radiusKm ?? DEFAULT_RADIUS_KM}
+                        onChange={radiusKm => updateRadius.mutate({ plan: city, radiusKm })}
+                      />
                     </div>
                     <button onClick={() => removeTrip.mutate(city.id)} className="rounded-lg p-1.5 text-[#666] hover:text-rose-400">
                       <Trash2 className="h-3.5 w-3.5" />
@@ -589,7 +630,7 @@ export default function Radar() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#c2f970]">Travel windows</p>
-                <h2 className="mt-1 text-lg font-bold text-white">Radar trips</h2>
+                <h2 className="mt-1 text-lg font-bold text-white">Signal trips</h2>
               </div>
               <button
                 onClick={() => showTripForm ? resetTripForm() : setShowTripForm(true)}
@@ -602,6 +643,7 @@ export default function Radar() {
             {showTripForm && (
               <div className="mb-4 space-y-2 rounded-xl border border-[#333] bg-[#111] p-3">
                 <GoogleCityAutocomplete value={tripLocation} onChange={setTripLocation} />
+                <SearchRadiusPicker valueKm={tripRadiusKm} onChange={setTripRadiusKm} />
                 <div className="flex gap-2">
                   {(["dates", "calendar"] as const).map(mode => (
                     <button
@@ -663,7 +705,7 @@ export default function Radar() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-white">{trip.city}, {trip.country}</p>
-                        <p className="mt-0.5 text-xs text-[#777]">{tripDates(trip)}</p>
+                        <p className="mt-0.5 text-xs text-[#777]">{tripDates(trip)} · {formatRadius(trip.radiusKm ?? DEFAULT_RADIUS_KM, unit)}</p>
                       </div>
                       <button onClick={() => editTrip(trip)} className="rounded-lg p-1.5 text-[#777] hover:bg-white/5 hover:text-white" aria-label={`Edit trip to ${trip.city}`}>
                         <Pencil className="h-3.5 w-3.5" />

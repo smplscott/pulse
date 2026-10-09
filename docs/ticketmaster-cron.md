@@ -1,6 +1,6 @@
 # Railway cron: monthly Ticketmaster wishlist × trip scan
 #
-# Radar scans every wishlisted artist against every upcoming trip
+# Signal scans every wishlisted artist against every upcoming trip
 # (all artists × all trips, not one-artist-one-trip).
 #
 # In Railway dashboard → project pulse → create a Cron Job (or use an external cron)
@@ -9,7 +9,7 @@
 #   POST https://pulse-production-38eb.up.railway.app/api/internal/jobs/scan-wishlist-matches
 #   Header: x-cron-secret: <CRON_SECRET>
 #
-# Users can also trigger a personal scan from the Radar page ("Scan now"),
+# Users can also trigger a personal scan from the Signal page ("Scan now"),
 # which POSTs /api/users/:id/scan-wishlist (session auth, own user only).
 #
 # Required Railway env vars on the Pulse service:

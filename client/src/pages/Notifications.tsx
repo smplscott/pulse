@@ -93,7 +93,7 @@ export default function Notifications() {
               const [replyKind, ...replyTitleParts] = isReviewReply ? n.threadTitle.split("|") : [];
               const replyTitle = replyTitleParts.join("|") || n.threadTitle;
               const href = isMatch
-                ? "/radar/matches"
+                ? "/signal/matches"
                 : isReviewReply
                   ? replyKind === "album_thread" || n.threadId
                     ? `/thread/${n.threadId}`
@@ -126,7 +126,7 @@ export default function Notifications() {
                       <p className="text-sm text-white leading-snug">
                         {isMatch ? (
                           <>
-                            <span className="font-semibold">Radar match</span>
+                            <span className="font-semibold">Signal match</span>
                             <span className="text-[#B3B3B3]"> — {n.threadTitle}</span>
                           </>
                         ) : isReviewReply ? (

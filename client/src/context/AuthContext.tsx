@@ -19,7 +19,7 @@ type AuthContextType = {
     username: string,
     email: string,
     password: string,
-    home: { city: string; country: string; countryCode?: string; googlePlaceId?: string; latitude?: number; longitude?: number },
+    home: { city: string; country: string; countryCode?: string; googlePlaceId?: string; latitude?: number; longitude?: number; radiusKm?: number },
   ) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: string,
     email: string,
     password: string,
-    home: { city: string; country: string; countryCode?: string; googlePlaceId?: string; latitude?: number; longitude?: number },
+    home: { city: string; country: string; countryCode?: string; googlePlaceId?: string; latitude?: number; longitude?: number; radiusKm?: number },
   ) => {
     const data = await apiFetch("POST", "/api/auth/register", { username, email, password, ...home });
     setUser(data);
