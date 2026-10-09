@@ -105,7 +105,7 @@ export default function Signup() {
             <div className="space-y-1.5">
               <Label className="text-[#B3B3B3] text-sm">Home</Label>
               <GoogleCityAutocomplete value={home} onChange={setHome} />
-              <p className="text-[11px] text-[#666]">This becomes your first always-on Radar city.</p>
+              <p className="text-[11px] text-[#666]">This becomes your first always-on Signal city.</p>
             </div>
 
             <div className="space-y-1.5">

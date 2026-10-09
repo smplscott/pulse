@@ -8,8 +8,8 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 import Home from "@/pages/Home";
 import Profile from "@/pages/Profile";
-import Radar from "@/pages/Radar";
-import RadarMatches from "@/pages/RadarMatches";
+import Signal from "@/pages/Signal";
+import SignalMatches from "@/pages/SignalMatches";
 import Artists from "@/pages/Artists";
 import Shows from "@/pages/Shows";
 import ShowDetail from "@/pages/ShowDetail";
@@ -56,8 +56,10 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/" component={() => <ProtectedRoute component={Home} />} />
       <Route path="/venues" component={() => <Redirect to="/places" />} />
-      <Route path="/radar/matches" component={() => <ProtectedRoute component={RadarMatches} />} />
-      <Route path="/radar" component={() => <ProtectedRoute component={Radar} />} />
+      <Route path="/signal/matches" component={() => <ProtectedRoute component={SignalMatches} />} />
+      <Route path="/signal" component={() => <ProtectedRoute component={Signal} />} />
+      <Route path="/radar/matches" component={() => <Redirect to="/signal/matches" />} />
+      <Route path="/radar" component={() => <Redirect to="/signal" />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
       <Route path="/profile/artist-follows" component={() => <ProtectedRoute component={FollowedArtistsPage} />} />
       <Route path="/profile/saved-places" component={() => <ProtectedRoute component={SavedPlacesPage} />} />

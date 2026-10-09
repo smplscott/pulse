@@ -11,7 +11,7 @@ export default function BottomNav() {
   const navItems = [
     { icon: MessageCircle, label: "Threads", path: "/" },
     { icon: MapPin, label: "Places", path: "/places" },
-    { icon: Radar, label: "Radar", path: "/radar" },
+    { icon: Radar, label: "Signal", path: "/signal" },
     { icon: Ticket, label: "Shows", path: "/shows" },
     { icon: Disc3, label: "Albums", path: "/albums" },
   ];
@@ -29,12 +29,12 @@ export default function BottomNav() {
                 className={cn(
                   "flex min-w-[58px] flex-col items-center justify-center px-1 py-1",
                   active
-                    ? item.path === "/radar" ? "text-[#ff83ba]" : "green-gradient-text"
+                    ? item.path === "/signal" ? "text-[#ff83ba]" : "green-gradient-text"
                     : "text-[#B3B3B3]"
                 )}
               >
                 {active
-                  ? <item.icon className={cn("h-5 w-5", item.path === "/radar" ? "text-[#ff6fae]" : "text-[#c2f970]")} />
+                  ? <item.icon className={cn("h-5 w-5", item.path === "/signal" ? "text-[#ff6fae]" : "text-[#c2f970]")} />
                   : <item.icon className="h-5 w-5" />
                 }
                 <span className="text-xs mt-1">{item.label}</span>

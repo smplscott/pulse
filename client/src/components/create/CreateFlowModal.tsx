@@ -200,7 +200,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
     return () => clearTimeout(timeout);
   }, [placeQuery]);
 
-  // Radar-path state
+  // Signal-path state
   const [radarLocation, setRadarLocation] = useState<SelectedCity>({ city: "", country: "" });
   const [radarStart, setRadarStart] = useState("");
   const [radarEnd, setRadarEnd] = useState("");
@@ -457,7 +457,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
 
   const radarWishlistMutation = useMutation({
     mutationFn: async (artist: SpotifyArtist | { name: string; imageUrl: null }) => {
-      if (!user) throw new Error("Sign in to use Radar");
+      if (!user) throw new Error("Sign in to use Signal");
       const res = await apiRequest("POST", `/api/users/${user.id}/show-wishlist`, {
         artistName: artist.name,
         ...(artist.imageUrl ? { spotifyImageUrl: artist.imageUrl } : {}),
@@ -472,7 +472,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
       setArtistQuery("");
       setSelectedArtist(null);
       setFreeformArtist(null);
-      toast({ title: "Added to Radar", description: "Add another artist or continue to your trip." });
+      toast({ title: "Added to Signal", description: "Add another artist or continue to your trip." });
     },
     onError: (err: Error) =>
       toast({ title: "Couldn't add artist", description: err.message, variant: "destructive" }),
@@ -480,7 +480,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
 
   const radarTripMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Sign in to use Radar");
+      if (!user) throw new Error("Sign in to use Signal");
       const res = await apiRequest("POST", `/api/users/${user.id}/travel-plans`, {
         city: radarLocation.city.trim(),
         country: radarLocation.country.trim(),
@@ -567,9 +567,9 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
     thread_form: "Write your thread",
     place_search: "Find a place",
     place_form: "Add a place",
-    radar_artist: "Artists on your Radar",
+    radar_artist: "Artists on your Signal",
     radar_trip: "Where are you going?",
-    radar_complete: "Radar is on",
+    radar_complete: "Signal is on",
   };
 
   if (!open) return null;
@@ -621,7 +621,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 {[
                   {
                     id: "radar" as const,
-                    title: "Radar",
+                    title: "Signal",
                     eyebrow: "Find shows while you travel",
                     description: "Match wishlist artists with your next trip.",
                     Icon: RadarIcon,
@@ -752,7 +752,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
             </div>
           )}
 
-          {/* ── RADAR ARTIST SETUP ── */}
+          {/* ── SIGNAL ARTIST SETUP ── */}
           {step === "radar_artist" && (
             <div>
               <div className="relative overflow-hidden rounded-2xl border border-[#ff6fae]/35 bg-gradient-to-br from-[#35152a] to-[#24183e] p-4 mb-4">
@@ -762,7 +762,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                     <RadarIcon className="h-5 w-5 text-[#ff83ba]" />
                   </div>
                   <div>
-                    <p className="font-bold text-white">Who is on your Radar?</p>
+                    <p className="font-bold text-white">Who is on your Signal?</p>
                     <p className="mt-1 text-xs leading-relaxed text-[#c9b7c3]">
                       Add artists you want to see. Next, tell us where you're going.
                     </p>
@@ -801,7 +801,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">
-                      {radarWishlist.length} artist{radarWishlist.length === 1 ? "" : "s"} on your Radar
+                      {radarWishlist.length} artist{radarWishlist.length === 1 ? "" : "s"} on your Signal
                     </p>
                     <p className="text-xs text-[#888]">Search to add another, or continue to your trip.</p>
                   </div>
@@ -853,7 +853,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                   disabled={radarWishlistMutation.isPending || radarWishlist.some(item => item.artistName.toLowerCase() === artistInput.trim().toLowerCase())}
                   className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#3E3E3E] py-2.5 text-sm text-[#B3B3B3] hover:border-[#ff6fae]/60 disabled:opacity-40"
                 >
-                  <Plus className="h-4 w-4" /> Add "{artistInput.trim()}" to Radar
+                  <Plus className="h-4 w-4" /> Add "{artistInput.trim()}" to Signal
                 </button>
               )}
 
@@ -869,12 +869,12 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
             </div>
           )}
 
-          {/* ── RADAR TRIP SETUP ── */}
+          {/* ── SIGNAL TRIP SETUP ── */}
           {step === "radar_trip" && (
             <div>
               {radarTrips.length > 0 && (
                 <div className="mb-4 rounded-xl border border-[#333] bg-[#181818] p-3">
-                  <p className="text-xs font-semibold text-[#B3B3B3]">Radar is already checking {radarTrips.length} trip{radarTrips.length === 1 ? "" : "s"}.</p>
+                  <p className="text-xs font-semibold text-[#B3B3B3]">Signal is already checking {radarTrips.length} trip{radarTrips.length === 1 ? "" : "s"}.</p>
                   <p className="mt-1 text-xs text-[#666]">Add another destination below.</p>
                 </div>
               )}
@@ -884,7 +884,7 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 </div>
                 <div>
                   <p className="font-bold text-white">Add your next trip</p>
-                  <p className="mt-1 text-xs leading-relaxed text-[#888]">We'll look for your Radar artists in this city during your dates.</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[#888]">We'll look for your Signal artists in this city during your dates.</p>
                 </div>
               </div>
               <GoogleCityAutocomplete value={radarLocation} onChange={setRadarLocation} className="mb-3" />
@@ -904,19 +904,19 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 disabled={!radarLocation.city.trim() || !radarLocation.country.trim() || !radarStart || (!!radarEnd && radarEnd < radarStart) || radarTripMutation.isPending}
                 className="w-full rounded-full bg-gradient-to-r from-[#c2f970] to-[#ecffa1] py-3 text-sm font-bold text-black disabled:opacity-35"
               >
-                {radarTripMutation.isPending ? "Turning on Radar…" : "Turn on Radar"}
+                {radarTripMutation.isPending ? "Turning on Signal…" : "Turn on Signal"}
               </button>
             </div>
           )}
 
-          {/* ── RADAR COMPLETE ── */}
+          {/* ── SIGNAL COMPLETE ── */}
           {step === "radar_complete" && (
             <div className="py-4 text-center">
               <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#ff4d8d] to-[#8f5cff] shadow-[0_0_45px_rgba(255,77,141,0.25)]">
                 <RadarIcon className="h-9 w-9 text-white" />
                 <Sparkles className="absolute -right-1 -top-1 h-6 w-6 text-[#c2f970]" />
               </div>
-              <h3 className="text-2xl font-black text-white">You're on the Radar</h3>
+              <h3 className="text-2xl font-black text-white">You're on Signal</h3>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[#B3B3B3]">
                 We'll scan for your wishlist artists around {radarLocation.city} during your trip and notify you when we find a match.
               </p>

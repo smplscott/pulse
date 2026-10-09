@@ -20,7 +20,7 @@ function formatDate(value: string | Date | null | undefined) {
   });
 }
 
-export default function RadarMatches() {
+export default function SignalMatches() {
   const { user } = useAuth();
   const { toast } = useToast();
   const userId = user?.id;
@@ -30,7 +30,8 @@ export default function RadarMatches() {
   const { data: matches = [], isLoading } = useQuery<WishlistEventMatch[]>({
     queryKey: [`/api/users/${userId}/wishlist-matches`, scope],
     queryFn: async () => {
-      const res = await fetch(`/api/users/${userId}/wishlist-matches?scope=${scope}`);
+      const res = await fetch(`/api/users/${userId}/wishlist-matches?scope=${scope}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load matches");
       return res.json();
     },
     enabled: !!userId,
@@ -80,7 +81,7 @@ export default function RadarMatches() {
     <div className="min-h-screen bg-[#121212] pb-32">
       <Header />
       <main className="mx-auto max-w-2xl px-4 pb-8 pt-5">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8fbd]">Radar</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8fbd]">Signal</p>
         <h1 className="mt-1 text-3xl font-black text-white">Matches</h1>
         <p className="mt-1 text-sm text-[#888]">Shows that line up with your artists and cities.</p>
 
@@ -130,7 +131,7 @@ export default function RadarMatches() {
           </div>
         ) : visible.length === 0 ? (
           <p className="mt-10 text-center text-sm text-[#777]">
-            {attendingOnly ? "No attending shows in this tab." : "No matches yet. Scan from Radar."}
+            {attendingOnly ? "No attending shows in this tab." : "No matches yet. Scan from Signal."}
           </p>
         ) : (
           <div className="mt-5 space-y-3">

@@ -324,7 +324,7 @@ export default function Profile() {
       setTpLocation({ city: "", country: "" });
       setTpStart("");
       setTpEnd("");
-      toast({ title: "Trip added to Radar", description: "We'll scan for your wishlist artists during these dates." });
+      toast({ title: "Trip added to Signal", description: "We'll scan for your wishlist artists during these dates." });
     },
     onError: () => toast({ title: "Failed to add plan", variant: "destructive" }),
   });
@@ -580,7 +580,7 @@ export default function Profile() {
                     <button className={subTabClass(placesTab === "going")} onClick={() => setPlacesTab("going")}>
                       <span className="flex items-center justify-center gap-1.5">
                         <Plane className="h-3 w-3" />
-                        Radar Trips
+                        Signal Trips
                       </span>
                     </button>
                   )}
@@ -632,10 +632,10 @@ export default function Profile() {
                 {placesTab === "going" && (
                   <div className="pb-4">
                     {isOwnProfile && (
-                      <Link href="/radar">
+                      <Link href="/signal">
                         <button className="mb-4 flex w-full items-center justify-between rounded-xl border border-[#ff6fae]/25 bg-gradient-to-r from-[#35152a] to-[#24183e] px-4 py-3 text-left">
                           <span>
-                            <span className="block text-sm font-bold text-white">Open Radar control board</span>
+                            <span className="block text-sm font-bold text-white">Open Signal control board</span>
                             <span className="mt-0.5 block text-xs text-[#a998a4]">Manage trips, artists, and show matches</span>
                           </span>
                           <ChevronRight className="h-4 w-4 text-[#ff83ba]" />
@@ -644,7 +644,7 @@ export default function Profile() {
                     )}
                     {isOwnProfile && (
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
-                        <p className="text-xs text-[#888] font-medium mb-3">Add a trip to Radar</p>
+                        <p className="text-xs text-[#888] font-medium mb-3">Add a trip to Signal</p>
                         <GoogleCityAutocomplete value={tpLocation} onChange={setTpLocation} className="mb-2" />
                         <div className="grid grid-cols-2 gap-2 mb-2">
                           <div>
@@ -664,7 +664,7 @@ export default function Profile() {
                         >
                           Add trip
                         </Button>
-                        <p className="text-[10px] text-[#555] mt-2">Radar scans for wishlist artists playing in this city during your dates.</p>
+                        <p className="text-[10px] text-[#555] mt-2">Signal scans for wishlist artists playing in this city during your dates.</p>
                       </div>
                     )}
                     {isLoadingPlans ? (
@@ -709,7 +709,7 @@ export default function Profile() {
                       <div className="mt-6">
                         <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
                           <Ticket className="h-4 w-4 text-[#c2f970]" />
-                          On your Radar
+                          On your Signal
                         </h3>
                         <p className="text-[11px] text-[#666] mb-3">Wishlist artists with shows during your travel dates</p>
                         {isLoadingMatches ? (
@@ -717,7 +717,7 @@ export default function Profile() {
                         ) : !wishlistMatches || wishlistMatches.length === 0 ? (
                           <div className="bg-[#181818] rounded-lg p-6 text-center">
                             <p className="text-sm text-[#B3B3B3]">No matches yet</p>
-                            <p className="text-xs text-[#555] mt-1">Add a Radar artist and trip to start matching</p>
+                            <p className="text-xs text-[#555] mt-1">Add a Signal artist and trip to start matching</p>
                           </div>
                         ) : (
                           <div className="space-y-4">
@@ -800,7 +800,7 @@ export default function Profile() {
                     <button className={subTabClass(showsTab === "wishlist")} onClick={() => setShowsTab("wishlist")}>
                       <span className="flex items-center justify-center gap-1.5">
                         <Bookmark className="h-3 w-3" />
-                        Radar Artists
+                        Signal Artists
                       </span>
                     </button>
                   )}
@@ -846,10 +846,10 @@ export default function Profile() {
                 {showsTab === "wishlist" && (
                   <div className="pb-4">
                     {isOwnProfile && (
-                      <Link href="/radar">
+                      <Link href="/signal">
                         <button className="mb-4 flex w-full items-center justify-between rounded-xl border border-[#ff6fae]/25 bg-gradient-to-r from-[#35152a] to-[#24183e] px-4 py-3 text-left">
                           <span>
-                            <span className="block text-sm font-bold text-white">Open Radar control board</span>
+                            <span className="block text-sm font-bold text-white">Open Signal control board</span>
                             <span className="mt-0.5 block text-xs text-[#a998a4]">See trips and matches for these artists</span>
                           </span>
                           <ChevronRight className="h-4 w-4 text-[#ff83ba]" />
@@ -858,7 +858,7 @@ export default function Profile() {
                     )}
                     {isOwnProfile && (
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
-                        <p className="text-xs text-[#888] font-medium mb-3">Artists you want on your Radar</p>
+                        <p className="text-xs text-[#888] font-medium mb-3">Artists you want on your Signal</p>
                         <div className="flex gap-2">
                           <div className="relative flex-1">
                             <Input
