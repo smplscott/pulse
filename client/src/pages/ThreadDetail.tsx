@@ -52,8 +52,8 @@ export default function ThreadDetail() {
   });
 
   const { data: venueContent } = useQuery<Venue>({
-    queryKey: [`/api/venues/${contentId}`],
-    enabled: !!contentId && contentType === 'venue',
+    queryKey: [`/api/places/${contentId}`],
+    enabled: !!contentId && (contentType === "venue" || contentType === "place"),
   });
 
   const { data: playlistContent } = useQuery<MusicSet>({

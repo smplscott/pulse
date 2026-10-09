@@ -47,6 +47,36 @@ function formatTripLabel(startDate: string, endDate: string): string {
   if (startDate.slice(0, 7) === endDate.slice(0, 7)) return fmt(startDate);
   return `${fmt(startDate)} – ${fmt(endDate)}`;
 }
+
+function parsePositiveInt(value: unknown, fallback: number, max = 100): number {
+  const n = typeof value === "number" ? value : parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(n) || n < 1) return fallback;
+  return Math.min(Math.trunc(n), max);
+}
+
+function requireSessionUser(req: Request, res: Response): number | null {
+  const userId = req.session.userId;
+  if (!userId) {
+    res.status(401).json({ message: "Not authenticated" });
+    return null;
+  }
+  return userId;
+}
+
+function requireOwnUser(req: Request, res: Response): number | null {
+  const sessionUserId = requireSessionUser(req, res);
+  if (sessionUserId == null) return null;
+  const id = parseInt(req.params.id);
+  if (Number.isNaN(id) || id !== sessionUserId) {
+    res.status(403).json({ message: "Forbidden" });
+    return null;
+  }
+  return id;
+}
+
+function zodErrorMessage(error: z.ZodError): string {
+  return error.errors[0]?.message || "Validation error";
+}
 // These coerce jsonb fields to their expected shapes, then validate against the
 // Zod response schemas.  Element-level filtering removes entries that don't fit
 // the declared type (e.g. non-string genres, malformed streaming links).
@@ -313,8 +343,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "User not found" });
     }
     
-    const { password, ...userWithoutPassword } = user;
-    return res.json(userWithoutPassword);
+    const { password, email, ...publicProfile } = user;
+    return res.json(publicProfile);
   });
 
   app.patch("/api/users/:id", async (req: Request, res: Response) => {
@@ -492,7 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Threads routes
   app.get("/api/threads/featured", async (req: Request, res: Response) => {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+    const limit = parsePositiveInt(req.query.limit, 20);
     const threadType = req.query.threadType as string | undefined;
     let threads = await storage.getFeaturedThreads(limit * 3);
     if (threadType) {
@@ -695,6 +725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.post("/api/comments/:id/upvote", async (req: Request, res: Response) => {
+    if (!requireSessionUser(req, res)) return;
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ message: "Invalid comment ID" });
@@ -1397,6 +1428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/shows", async (req: Request, res: Response) => {
     try {
+      if (!requireSessionUser(req, res)) return;
       const schema = insertShowSchema.extend({
         artistName: z.string().min(1, "Artist name required"),
         venueName: z.string().min(1, "Venue name required"),
@@ -1569,8 +1601,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/users/:id/travel-plans", async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    const id = requireOwnUser(req, res);
+    if (id == null) return;
     const plans = await storage.getUserTravelPlans(id);
     return res.json(plans);
   });
@@ -1720,8 +1752,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/users/:id/show-wishlist", async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    const id = requireOwnUser(req, res);
+    if (id == null) return;
     const wishlist = await storage.getUserShowWishlist(id);
     return res.json(wishlist);
   });
@@ -1819,6 +1851,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!lists.find(l => l.id === listId)) return res.status(403).json({ message: "Forbidden" });
       const schema = z.object({ placeId: z.number().int().positive() });
       const { placeId } = schema.parse(req.body);
+      const place = await storage.getPlace(placeId);
+      if (!place) return res.status(404).json({ message: "Place not found" });
       const item = await storage.addToPlaceList({ listId, placeId });
       return res.status(201).json(item);
     } catch (error) {
@@ -1851,24 +1885,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/users/:id/wishlist-matches", async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ message: "Invalid user ID" });
+    const id = requireOwnUser(req, res);
+    if (id == null) return;
     const scope = z.enum(["upcoming", "past", "all"]).catch("upcoming").parse(req.query.scope);
     const matches = await storage.getUserWishlistMatches(id, scope);
     return res.json(matches);
   });
 
   app.post("/api/users/:id/wishlist-matches/:matchId/attending", async (req: Request, res: Response) => {
-    const sessionUserId = req.session.userId;
-    if (!sessionUserId) return res.status(401).json({ message: "Not authenticated" });
-    const id = parseInt(req.params.id);
-    if (isNaN(id) || id !== sessionUserId) return res.status(403).json({ message: "Forbidden" });
-    const matchId = parseInt(req.params.matchId);
-    if (isNaN(matchId)) return res.status(400).json({ message: "Invalid match ID" });
-    const attending = z.object({ attending: z.boolean() }).parse(req.body).attending;
-    const match = await storage.setWishlistMatchAttending(id, matchId, attending);
-    if (!match) return res.status(404).json({ message: "Match not found" });
-    return res.json(match);
+    try {
+      const id = requireOwnUser(req, res);
+      if (id == null) return;
+      const matchId = parseInt(req.params.matchId);
+      if (isNaN(matchId)) return res.status(400).json({ message: "Invalid match ID" });
+      const attending = z.object({ attending: z.boolean() }).parse(req.body).attending;
+      const match = await storage.setWishlistMatchAttending(id, matchId, attending);
+      if (!match) return res.status(404).json({ message: "Match not found" });
+      return res.json(match);
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: zodErrorMessage(error) });
+      return res.status(500).json({ message: "Failed to update attending" });
+    }
   });
 
   app.post("/api/users/:id/scan-wishlist", async (req: Request, res: Response) => {
@@ -1908,7 +1945,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (isNaN(placeId)) return res.status(400).json({ message: "Invalid place ID" });
     const place = await storage.getPlace(placeId);
     if (!place) return res.status(404).json({ message: "Place not found" });
-    const want = z.object({ want: z.boolean() }).parse(req.body).want;
+    let want: boolean;
+    try {
+      want = z.object({ want: z.boolean() }).parse(req.body).want;
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: zodErrorMessage(error) });
+      return res.status(400).json({ message: "Invalid request" });
+    }
     const list = await storage.getOrCreateWantToGoList(sessionUserId);
     if (want) {
       await storage.addToPlaceList({ listId: list.id, placeId });
@@ -1922,7 +1965,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const reviewSubject = z.enum(["place_review", "show_review", "album_thread"]);
 
   app.get("/api/reviews/:subjectType/:subjectId", async (req: Request, res: Response) => {
-    const subjectType = reviewSubject.parse(req.params.subjectType);
+    const parsedSubject = reviewSubject.safeParse(req.params.subjectType);
+    if (!parsedSubject.success) return res.status(400).json({ message: "Invalid review type" });
+    const subjectType = parsedSubject.data;
     const subjectId = parseInt(req.params.subjectId);
     if (isNaN(subjectId)) return res.status(400).json({ message: "Invalid id" });
     const replies = await storage.getReviewReplies(subjectType, subjectId);
@@ -1971,10 +2016,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/reviews/:subjectType/:subjectId/replies", async (req: Request, res: Response) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const subjectType = reviewSubject.parse(req.params.subjectType);
+    const parsedSubject = reviewSubject.safeParse(req.params.subjectType);
+    if (!parsedSubject.success) return res.status(400).json({ message: "Invalid review type" });
+    const subjectType = parsedSubject.data;
     const subjectId = parseInt(req.params.subjectId);
     if (isNaN(subjectId)) return res.status(400).json({ message: "Invalid id" });
-    const { body } = z.object({ body: z.string().min(1).max(280) }).parse(req.body);
+    let body: string;
+    try {
+      body = z.object({ body: z.string().min(1).max(280) }).parse(req.body).body;
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: zodErrorMessage(error) });
+      return res.status(400).json({ message: "Invalid request" });
+    }
 
     let authorId: number | undefined;
     let title = "your rating";
@@ -2017,10 +2070,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/reviews/:subjectType/:subjectId/reactions", async (req: Request, res: Response) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const subjectType = reviewSubject.parse(req.params.subjectType);
+    const parsedSubject = reviewSubject.safeParse(req.params.subjectType);
+    if (!parsedSubject.success) return res.status(400).json({ message: "Invalid review type" });
+    const subjectType = parsedSubject.data;
     const subjectId = parseInt(req.params.subjectId);
     if (isNaN(subjectId)) return res.status(400).json({ message: "Invalid id" });
-    const { kind } = z.object({ kind: z.enum(["like", "repeat"]) }).parse(req.body);
+    let kind: "like" | "repeat";
+    try {
+      kind = z.object({ kind: z.enum(["like", "repeat"]) }).parse(req.body).kind;
+    } catch (error) {
+      if (error instanceof z.ZodError) return res.status(400).json({ message: zodErrorMessage(error) });
+      return res.status(400).json({ message: "Invalid request" });
+    }
     const result = await storage.toggleReviewReaction(userId, subjectType, subjectId, kind);
     return res.json(result);
   });
