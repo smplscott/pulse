@@ -23,6 +23,7 @@ import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
 import { DEFAULT_RADIUS_KM, formatRadius } from "@shared/searchRadius";
 import { useDistanceUnit } from "@/hooks/useDistanceUnit";
 import { compressImageFile } from "@/lib/compressImage";
+import { placeCategoryLabel } from "@shared/placeCategories";
 
 interface SpotifyArtist {
   spotifyId: string;
@@ -56,14 +57,6 @@ const TASTE_COLORS: Record<string, string> = {
   "Techno": "bg-cyan-500/20 text-cyan-400",
   "Jazz": "bg-orange-500/20 text-orange-400",
   "Soul": "bg-violet-500/20 text-violet-400",
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  bar: "Bar",
-  club: "Club",
-  record_store: "Record Store",
-  coffee_shop: "Café",
-  other: "Other",
 };
 
 function tasteColor(genre: string): string {
@@ -613,7 +606,7 @@ export default function Profile() {
                                     <p className="text-xs text-[#888] mt-0.5">{p.city}, {p.country}</p>
                                   </div>
                                   <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#252525] text-[#888] flex-shrink-0">
-                                    {CATEGORY_LABELS[p.category] ?? p.category}
+                                    {placeCategoryLabel(p.category)}
                                   </span>
                                   <ChevronRight className="h-4 w-4 text-[#444] flex-shrink-0" />
                                 </div>

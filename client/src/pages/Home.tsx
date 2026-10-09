@@ -12,6 +12,7 @@ import SaveArtistWishlistButton from "@/components/SaveArtistWishlistButton";
 import UsernameLink from "@/components/UsernameLink";
 import type { Artist, Place, Thread } from "@shared/schema";
 import { matchesFollowedArtist } from "@shared/socialSort";
+import { placeCategoryLabel } from "@shared/placeCategories";
 
 type PrimaryTab = "following" | "discover";
 type PillTab = "artists" | "albums" | "shows" | "places";
@@ -278,14 +279,6 @@ function AlbumsFeed({ following }: { following: boolean }) {
 
 // ─── Places Feed ─────────────────────────────────────────────────────────────
 
-const CATEGORY_LABELS: Record<string, string> = {
-  bar: "Bar",
-  club: "Club",
-  record_store: "Record Store",
-  coffee_shop: "Coffee Shop",
-  other: "Other",
-};
-
 type PlaceWithStats = Place & {
   firstReviewerUsername: string | null;
   reviewCount: number;
@@ -304,7 +297,7 @@ function PlaceCard({ place }: { place: PlaceWithStats }) {
             <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
               <p className="text-sm font-semibold text-white truncate">{place.name}</p>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#282828] text-[#B3B3B3] flex-shrink-0">
-                {CATEGORY_LABELS[place.category] ?? place.category}
+                {placeCategoryLabel(place.category)}
               </span>
             </div>
             <p className="text-xs text-[#B3B3B3] mb-1.5">{place.city}, {place.country}</p>

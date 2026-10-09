@@ -1098,7 +1098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         city: z.string().min(1, "City is required"),
         country: z.string().min(1, "Country is required"),
         description: z.string().min(10, "Description must be at least 10 characters").max(280, "Max 280 characters"),
-        category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
+        category: insertPlaceSchema.shape.category,
         googlePlaceId: z.string().min(1).max(256).nullish(),
         latitude: z.number().min(-90).max(90).nullish(),
         longitude: z.number().min(-180).max(180).nullish(),

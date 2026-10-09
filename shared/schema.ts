@@ -2,6 +2,14 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, unique, doub
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import {
+  MAX_PLAYED_ARTISTS,
+  PLACE_CATEGORY_IDS,
+  PLACE_CONTENT_RATINGS,
+  type PlaceCategory,
+  type PlaceContentRating,
+  type PlacePlayedArtist,
+} from "./placeCategories";
 
 // ─── Shared jsonb sub-types ──────────────────────────────────────────────────
 
@@ -325,7 +333,7 @@ export const places = pgTable("places", {
   name: text("name").notNull(),
   city: text("city").notNull(),
   country: text("country").notNull(),
-  category: text("category").$type<"bar" | "club" | "record_store" | "coffee_shop" | "other">().notNull(),
+  category: text("category").$type<PlaceCategory>().notNull(),
   genres: text("genres").array(),
   description: text("description").notNull(),
   mapsLink: text("maps_link"),
@@ -335,6 +343,10 @@ export const places = pgTable("places", {
   formattedAddress: text("formatted_address"),
   googlePrimaryType: text("google_primary_type"),
   soundSystem: text("sound_system"),
+  playedArtists: jsonb("played_artists").$type<PlacePlayedArtist[]>().default(sql`'[]'::jsonb`),
+  hostsLiveMusic: boolean("hosts_live_music").default(false),
+  brandsTourHere: boolean("brands_tour_here").default(false),
+  contentRating: text("content_rating").$type<PlaceContentRating>(),
   dedupeKey: text("dedupe_key"),
   rating: integer("rating").default(0),
   reviewsCount: integer("reviews_count").default(0),
@@ -343,6 +355,12 @@ export const places = pgTable("places", {
   googlePlaceUnique: unique("places_google_place_id_unique").on(t.googlePlaceId),
   dedupeKeyUnique: unique("places_dedupe_key_unique").on(t.dedupeKey),
 }));
+
+export const placePlayedArtistSchema = z.object({
+  spotifyId: z.string().min(1).max(64),
+  name: z.string().min(1).max(200),
+  imageUrl: z.string().max(500).nullable().optional().transform(value => value ?? null),
+});
 
 export const insertPlaceSchema = createInsertSchema(places).pick({
   userId: true,
@@ -361,8 +379,12 @@ export const insertPlaceSchema = createInsertSchema(places).pick({
   dedupeKey: true,
 }).extend({
   genres: z.array(z.string()).min(1, "Pick at least one genre"),
-  category: z.enum(["bar", "club", "record_store", "coffee_shop", "other"]),
+  category: z.enum(PLACE_CATEGORY_IDS),
   soundSystem: z.string().max(80).optional().nullable(),
+  playedArtists: z.array(placePlayedArtistSchema).max(MAX_PLAYED_ARTISTS).optional().default([]),
+  hostsLiveMusic: z.boolean().optional().default(false),
+  brandsTourHere: z.boolean().optional().default(false),
+  contentRating: z.enum(PLACE_CONTENT_RATINGS).nullable().optional(),
 });
 
 // Place reviews — one per user per place (upsert), star-rated
