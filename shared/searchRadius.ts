@@ -1,4 +1,4 @@
-export const DEFAULT_RADIUS_KM = 50;
+export const DEFAULT_RADIUS_KM = 25;
 export const MIN_RADIUS_KM = 1;
 export const MAX_RADIUS_KM = 250;
 export const RADIUS_KM_PRESETS = [25, 50, 100, 150, 250] as const;

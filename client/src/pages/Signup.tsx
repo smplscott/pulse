@@ -111,7 +111,7 @@ export default function Signup() {
             <div className="space-y-1.5">
               <Label className="text-[#B3B3B3] text-sm">Home</Label>
               <GoogleCityAutocomplete value={home} onChange={setHome} />
-              <SearchRadiusPicker valueKm={radiusKm} onChange={setRadiusKm} />
+              <SearchRadiusPicker variant="inline" valueKm={radiusKm} onChange={setRadiusKm} />
               <p className="text-[11px] text-[#666]">This becomes your first always-on Signal city. We'll look for shows inside this radius.</p>
             </div>
 

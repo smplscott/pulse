@@ -26,6 +26,11 @@ test("mile conversion stays inside the 250km cap", () => {
   assert.equal(milesToKm(200), MAX_RADIUS_KM);
 });
 
+test("default search radius is 25km", () => {
+  assert.equal(DEFAULT_RADIUS_KM, 25);
+  assert.equal(formatRadius(DEFAULT_RADIUS_KM, "km"), "25 km");
+});
+
 test("formatRadius and nearest preset keep Signal chips aligned", () => {
   assert.equal(formatRadius(50, "km"), "50 km");
   assert.equal(formatRadius(50, "mi"), "31 mi");
