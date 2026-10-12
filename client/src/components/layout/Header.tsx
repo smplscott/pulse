@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import GlobalSearch from "@/components/GlobalSearch";
+import { PulseLogo } from "@/components/brand/PulseLogo";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -31,7 +32,10 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-[#121212] border-b border-[#3E3E3E] px-4 py-3 flex justify-between items-center">
       <div className="flex items-center space-x-2">
         <Link href="/">
-          <h1 className="font-bold text-xl cursor-pointer green-gradient-text">PULSE</h1>
+          <div className="flex items-center gap-2 cursor-pointer">
+            <PulseLogo size={28} alt="" />
+            <h1 className="font-bold text-xl green-gradient-text">PULSE</h1>
+          </div>
         </Link>
       </div>
 

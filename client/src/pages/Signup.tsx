@@ -12,6 +12,7 @@ import { Eye, EyeOff } from "lucide-react";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
 import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
 import { DEFAULT_RADIUS_KM } from "@shared/searchRadius";
+import { PulseLogo } from "@/components/brand/PulseLogo";
 
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -70,6 +71,7 @@ export default function Signup() {
     <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center px-6 py-10">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
+          <PulseLogo size={72} className="mx-auto" />
           <h1 className="font-bold text-3xl green-gradient-text">PULSE</h1>
           <p className="text-[#B3B3B3] text-sm">Join the community.</p>
         </div>

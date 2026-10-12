@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Zap } from "lucide-react";
+import { PulseLogo } from "@/components/brand/PulseLogo";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Email or username is required"),
@@ -57,6 +58,7 @@ export default function Login() {
     return (
       <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm text-center space-y-4">
+          <PulseLogo size={72} className="mx-auto" />
           <h1 className="font-bold text-2xl green-gradient-text">PULSE</h1>
           <div className="bg-[#1A1A1A] rounded-2xl p-6 space-y-4 border border-[#2A2A2A]">
             <p className="text-white font-semibold text-lg">Check your inbox</p>
@@ -74,6 +76,7 @@ export default function Login() {
     <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
+          <PulseLogo size={72} className="mx-auto" />
           <h1 className="font-bold text-3xl green-gradient-text">PULSE</h1>
           <p className="text-[#B3B3B3] text-sm">Your music. Your community.</p>
         </div>
