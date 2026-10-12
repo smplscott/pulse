@@ -32,10 +32,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-[#121212] border-b border-[#3E3E3E] px-4 py-3 flex justify-between items-center">
       <div className="flex items-center space-x-2">
         <Link href="/">
-          <div className="flex items-center gap-2 cursor-pointer">
-            <PulseLogo size={28} alt="" />
-            <h1 className="font-bold text-xl green-gradient-text">PULSE</h1>
-          </div>
+          <PulseLogo variant="wordmark" size={22} className="cursor-pointer" />
         </Link>
       </div>
 

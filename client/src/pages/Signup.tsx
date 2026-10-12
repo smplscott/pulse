@@ -71,9 +71,8 @@ export default function Signup() {
     <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center px-6 py-10">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <PulseLogo size={72} className="mx-auto" />
-          <h1 className="font-bold text-3xl green-gradient-text">PULSE</h1>
-          <p className="text-[#B3B3B3] text-sm">Join the community.</p>
+          <PulseLogo variant="wordmark" size={42} className="mx-auto" />
+          <p className="text-[#B3B3B3] text-sm">An experiment for music heads. Join the community to rate and share your opinion.</p>
         </div>
 
         <div className="bg-[#1A1A1A] rounded-2xl p-6 space-y-5 border border-[#2A2A2A]">
