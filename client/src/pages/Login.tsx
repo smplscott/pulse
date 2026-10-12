@@ -58,8 +58,7 @@ export default function Login() {
     return (
       <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm text-center space-y-4">
-          <PulseLogo size={72} className="mx-auto" />
-          <h1 className="font-bold text-2xl green-gradient-text">PULSE</h1>
+          <PulseLogo variant="wordmark" size={36} className="mx-auto" />
           <div className="bg-[#1A1A1A] rounded-2xl p-6 space-y-4 border border-[#2A2A2A]">
             <p className="text-white font-semibold text-lg">Check your inbox</p>
             <p className="text-[#B3B3B3] text-sm">If an account exists with that email, we've sent a password reset link.</p>
@@ -76,9 +75,8 @@ export default function Login() {
     <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <PulseLogo size={72} className="mx-auto" />
-          <h1 className="font-bold text-3xl green-gradient-text">PULSE</h1>
-          <p className="text-[#B3B3B3] text-sm">Your music. Your community.</p>
+          <PulseLogo variant="wordmark" size={42} className="mx-auto" />
+          <p className="text-[#B3B3B3] text-sm">An experiment for music heads. Join the community to rate and share your opinion.</p>
         </div>
 
         <div className="bg-[#1A1A1A] rounded-2xl p-6 space-y-5 border border-[#2A2A2A]">

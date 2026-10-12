@@ -470,8 +470,8 @@ export default function Signal() {
           <section className="rounded-2xl border border-[#292929] bg-[#181818] p-4">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff83ba]">Watching</p>
-                <h2 className="mt-1 text-lg font-bold text-white">Artists on Signal</h2>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff83ba]">Tracking</p>
+                <h2 className="mt-1 text-lg font-bold text-white">Artist Wishlist</h2>
               </div>
               <button onClick={() => setShowArtistForm(value => !value)} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff6fae]/12 text-[#ff83ba]">
                 {showArtistForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -567,7 +567,7 @@ export default function Signal() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff8fbd]">Always on</p>
-                <h2 className="mt-1 text-lg font-bold text-white">Home bases</h2>
+                <h2 className="mt-1 text-lg font-bold text-white">Frequented Locations</h2>
               </div>
               <button
                 onClick={() => setShowAlwaysOnForm(open => !open)}
@@ -629,7 +629,7 @@ export default function Signal() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#c2f970]">Travel windows</p>
-                <h2 className="mt-1 text-lg font-bold text-white">Signal trips</h2>
+                <h2 className="mt-1 text-lg font-bold text-white">Trip Dates</h2>
               </div>
               <button
                 onClick={() => showTripForm ? resetTripForm() : setShowTripForm(true)}

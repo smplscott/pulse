@@ -16,6 +16,7 @@ const requiredFiles = [
   "public/android-chrome-512x512.png",
   "public/og-image.png",
   "public/pulse-icon.png",
+  "public/pulse-wordmark.png",
   "public/site.webmanifest",
 ];
 
