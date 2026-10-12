@@ -646,7 +646,10 @@ export default function Profile() {
                       <div className="bg-[#181818] rounded-lg p-4 mb-4">
                         <p className="text-xs text-[#888] font-medium mb-3">Add a trip to Signal</p>
                         <GoogleCityAutocomplete value={tpLocation} onChange={setTpLocation} className="mb-2" />
-                        <SearchRadiusPicker valueKm={tpRadiusKm} onChange={setTpRadiusKm} className="mb-3" />
+                        <div className="mb-3 flex items-center justify-between gap-2">
+                          <p className="text-xs text-[#888]">Search radius</p>
+                          <SearchRadiusPicker valueKm={tpRadiusKm} onChange={setTpRadiusKm} />
+                        </div>
                         <div className="grid grid-cols-2 gap-2 mb-2">
                           <div>
                             <p className="text-[10px] text-[#666] mb-1">Start</p>

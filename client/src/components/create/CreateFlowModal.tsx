@@ -895,7 +895,10 @@ export default function CreateFlowModal({ open, onOpenChange }: Props) {
                 </div>
               </div>
               <GoogleCityAutocomplete value={radarLocation} onChange={setRadarLocation} className="mb-3" />
-              <SearchRadiusPicker valueKm={radarRadiusKm} onChange={setRadarRadiusKm} className="mb-3" />
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="text-xs text-[#888]">Search radius</p>
+                <SearchRadiusPicker valueKm={radarRadiusKm} onChange={setRadarRadiusKm} />
+              </div>
               <div className="mb-5 grid grid-cols-2 gap-2">
                 <div>
                   <p className="mb-1 text-[10px] text-[#666]">Start</p>

@@ -614,7 +614,7 @@ export const userTravelPlans = pgTable("user_travel_plans", {
   kind: text("kind").$type<"trip" | "always_on">().notNull().default("trip"),
   label: text("label"),
   /** Ticketmaster search radius around the city, stored in kilometers (1–250). */
-  radiusKm: integer("radius_km").notNull().default(50),
+  radiusKm: integer("radius_km").notNull().default(25),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

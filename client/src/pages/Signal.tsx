@@ -24,8 +24,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import GoogleCityAutocomplete, { type SelectedCity } from "@/components/locations/GoogleCityAutocomplete";
 import SearchRadiusPicker from "@/components/locations/SearchRadiusPicker";
 import RadarCalendar from "@/components/radar/RadarCalendar";
-import { DEFAULT_RADIUS_KM, formatRadius } from "@shared/searchRadius";
-import { useDistanceUnit } from "@/hooks/useDistanceUnit";
+import { DEFAULT_RADIUS_KM } from "@shared/searchRadius";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -84,7 +83,6 @@ export default function Signal() {
   const [alwaysOnLabel, setAlwaysOnLabel] = useState("Home");
   const [alwaysOnRadiusKm, setAlwaysOnRadiusKm] = useState(DEFAULT_RADIUS_KM);
   const [tripRadiusKm, setTripRadiusKm] = useState(DEFAULT_RADIUS_KM);
-  const { unit } = useDistanceUnit();
   const [tripUi, setTripUi] = useState<"dates" | "calendar">(() => {
     if (typeof window === "undefined") return "dates";
     return window.localStorage.getItem("pulse.radarTripUi") === "calendar" ? "calendar" : "dates";
@@ -588,7 +586,10 @@ export default function Signal() {
                   placeholder="Label — Home, School, Studio"
                   className="bg-[#202020] text-white"
                 />
-                <SearchRadiusPicker valueKm={alwaysOnRadiusKm} onChange={setAlwaysOnRadiusKm} />
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-[#888]">Search radius</p>
+                  <SearchRadiusPicker valueKm={alwaysOnRadiusKm} onChange={setAlwaysOnRadiusKm} />
+                </div>
                 <Button
                   onClick={() => saveAlwaysOn.mutate()}
                   disabled={!alwaysOnLocation.city.trim() || !alwaysOnLocation.country.trim() || saveAlwaysOn.isPending}
@@ -604,19 +605,17 @@ export default function Signal() {
               <div className="space-y-2">
                 {alwaysOnCities.map(city => (
                   <div key={city.id} className="flex items-center gap-3 rounded-xl bg-[#222] p-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#ff6fae]/10">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#ff6fae]/10">
                       <MapPin className="h-4 w-4 text-[#ff8fbd]" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-white">{city.label || "Home"}</p>
-                      <p className="text-xs text-[#777]">{city.city}, {city.country} · {formatRadius(city.radiusKm ?? DEFAULT_RADIUS_KM, unit)}</p>
-                      <SearchRadiusPicker
-                        compact
-                        className="mt-2"
-                        valueKm={city.radiusKm ?? DEFAULT_RADIUS_KM}
-                        onChange={radiusKm => updateRadius.mutate({ plan: city, radiusKm })}
-                      />
+                      <p className="text-xs text-[#777]">{city.city}, {city.country}</p>
                     </div>
+                    <SearchRadiusPicker
+                      valueKm={city.radiusKm ?? DEFAULT_RADIUS_KM}
+                      onChange={radiusKm => updateRadius.mutate({ plan: city, radiusKm })}
+                    />
                     <button onClick={() => removeTrip.mutate(city.id)} className="rounded-lg p-1.5 text-[#666] hover:text-rose-400">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -643,7 +642,10 @@ export default function Signal() {
             {showTripForm && (
               <div className="mb-4 space-y-2 rounded-xl border border-[#333] bg-[#111] p-3">
                 <GoogleCityAutocomplete value={tripLocation} onChange={setTripLocation} />
-                <SearchRadiusPicker valueKm={tripRadiusKm} onChange={setTripRadiusKm} />
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-[#888]">Search radius</p>
+                  <SearchRadiusPicker valueKm={tripRadiusKm} onChange={setTripRadiusKm} />
+                </div>
                 <div className="flex gap-2">
                   {(["dates", "calendar"] as const).map(mode => (
                     <button
@@ -705,8 +707,12 @@ export default function Signal() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-white">{trip.city}, {trip.country}</p>
-                        <p className="mt-0.5 text-xs text-[#777]">{tripDates(trip)} · {formatRadius(trip.radiusKm ?? DEFAULT_RADIUS_KM, unit)}</p>
+                        <p className="mt-0.5 text-xs text-[#777]">{tripDates(trip)}</p>
                       </div>
+                      <SearchRadiusPicker
+                        valueKm={trip.radiusKm ?? DEFAULT_RADIUS_KM}
+                        onChange={radiusKm => updateRadius.mutate({ plan: trip, radiusKm })}
+                      />
                       <button onClick={() => editTrip(trip)} className="rounded-lg p-1.5 text-[#777] hover:bg-white/5 hover:text-white" aria-label={`Edit trip to ${trip.city}`}>
                         <Pencil className="h-3.5 w-3.5" />
                       </button>

@@ -1,3 +1,5 @@
+import { ChevronDown, MapPin } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useDistanceUnit } from "@/hooks/useDistanceUnit";
 import {
@@ -13,10 +15,18 @@ interface Props {
   valueKm: number;
   onChange: (radiusKm: number) => void;
   className?: string;
+  /** Signup hometown keeps the full inline picker. Everywhere else uses a compact popover. */
+  variant?: "inline" | "popover";
   compact?: boolean;
 }
 
-export default function SearchRadiusPicker({ valueKm, onChange, className, compact }: Props) {
+function RadiusOptions({
+  valueKm,
+  onChange,
+}: {
+  valueKm: number;
+  onChange: (radiusKm: number) => void;
+}) {
   const { unit, setUnit } = useDistanceUnit();
   const safeKm = clampRadiusKm(valueKm);
   const presets = unit === "mi" ? RADIUS_MI_PRESETS : RADIUS_KM_PRESETS;
@@ -25,10 +35,10 @@ export default function SearchRadiusPicker({ valueKm, onChange, className, compa
     : nearestPreset(safeKm, RADIUS_KM_PRESETS);
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#666]">
-          {compact ? formatRadius(safeKm, unit) : "Search radius"}
+          Search radius
         </p>
         <div className="flex rounded-full bg-[#202020] p-0.5">
           {(["km", "mi"] as const).map(option => (
@@ -61,6 +71,52 @@ export default function SearchRadiusPicker({ valueKm, onChange, className, compa
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+export default function SearchRadiusPicker({
+  valueKm,
+  onChange,
+  className,
+  variant,
+  compact,
+}: Props) {
+  const { unit } = useDistanceUnit();
+  const safeKm = clampRadiusKm(valueKm);
+  const mode = variant ?? (compact === false ? "inline" : "popover");
+
+  if (mode === "inline") {
+    return (
+      <div className={cn("space-y-2", className)}>
+        <RadiusOptions valueKm={valueKm} onChange={onChange} />
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn("flex items-center justify-end", className)}>
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-full border border-[#333] bg-[#1b1b1b] px-2.5 py-1 text-[11px] font-semibold text-[#c2f970] hover:border-[#c2f970]/40"
+            aria-label={`Search radius ${formatRadius(safeKm, unit)}. Change radius`}
+          >
+            <MapPin className="h-3 w-3" />
+            {formatRadius(safeKm, unit)}
+            <ChevronDown className="h-3 w-3 text-[#888]" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          side="bottom"
+          sideOffset={6}
+          className="w-64 border-[#333] bg-[#161616] p-3 text-white shadow-xl"
+        >
+          <RadiusOptions valueKm={valueKm} onChange={onChange} />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
