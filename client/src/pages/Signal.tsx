@@ -60,12 +60,15 @@ function tripDates(trip: UserTravelPlan) {
   return `${formatDate(`${trip.startDate}T12:00:00`)} – ${formatDate(`${trip.endDate}T12:00:00`)}`;
 }
 
+const ARTIST_WISHLIST_PREVIEW_COUNT = 4;
+
 export default function Signal() {
   const { user } = useAuth();
   const { toast } = useToast();
   const userId = user?.id;
 
   const [showArtistForm, setShowArtistForm] = useState(false);
+  const [showAllArtists, setShowAllArtists] = useState(false);
   const [artistInput, setArtistInput] = useState("");
   const [artistQuery, setArtistQuery] = useState("");
   const [artistImage, setArtistImage] = useState<string | null>(null);
@@ -358,10 +361,15 @@ export default function Signal() {
     startDate &&
     (!endDate || endDate >= startDate);
 
+  const artistsOverflow = artists.length > ARTIST_WISHLIST_PREVIEW_COUNT;
+  const visibleArtists = showAllArtists || !artistsOverflow
+    ? artists
+    : artists.slice(0, ARTIST_WISHLIST_PREVIEW_COUNT);
+
   return (
     <div className="min-h-screen bg-[#121212] pb-32">
       <Header />
-      <main className="mx-auto max-w-2xl px-4 pb-8 pt-5">
+      <main className="mx-auto w-full max-w-2xl overflow-x-hidden px-4 pb-8 pt-5">
         <div className="mb-5">
           <div className="mb-1 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -396,9 +404,9 @@ export default function Signal() {
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-64 w-full rounded-[24px]" />
-            <div className="grid grid-cols-2 gap-3">
-              <Skeleton className="h-32 rounded-2xl" />
-              <Skeleton className="h-32 rounded-2xl" />
+            <div className="space-y-3">
+              <Skeleton className="h-32 w-full rounded-2xl" />
+              <Skeleton className="h-32 w-full rounded-2xl" />
             </div>
           </div>
         ) : featuredMatch ? (
@@ -466,8 +474,8 @@ export default function Signal() {
           </section>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <section className="rounded-2xl border border-[#292929] bg-[#181818] p-4">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+          <section className="min-w-0 w-full max-w-full overflow-hidden rounded-2xl border border-[#292929] bg-[#181818] p-4">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff83ba]">Tracking</p>
@@ -534,8 +542,8 @@ export default function Signal() {
               </button>
             ) : (
               <div className="space-y-2">
-                {artists.map(artist => (
-                  <div key={artist.id} className="flex items-center gap-3 rounded-xl bg-[#222] p-2.5">
+                {visibleArtists.map(artist => (
+                  <div key={artist.id} className="flex min-w-0 items-center gap-2 rounded-xl bg-[#222] p-2.5 sm:gap-3">
                     {artist.spotifyImageUrl ? (
                       <img src={artist.spotifyImageUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
                     ) : (
@@ -559,11 +567,22 @@ export default function Signal() {
                     </button>
                   </div>
                 ))}
+                {artistsOverflow && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllArtists(expanded => !expanded)}
+                    className="w-full rounded-xl border border-[#333] bg-[#1a1a1a] py-2.5 text-sm font-semibold text-[#ff83ba] hover:bg-[#222]"
+                  >
+                    {showAllArtists
+                      ? "Show less"
+                      : `See more (${artists.length - ARTIST_WISHLIST_PREVIEW_COUNT} more)`}
+                  </button>
+                )}
               </div>
             )}
           </section>
 
-          <section className="rounded-2xl border border-[#292929] bg-[#181818] p-4">
+          <section className="min-w-0 w-full max-w-full overflow-hidden rounded-2xl border border-[#292929] bg-[#181818] p-4">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff8fbd]">Always on</p>
@@ -604,7 +623,7 @@ export default function Signal() {
             ) : (
               <div className="space-y-2">
                 {alwaysOnCities.map(city => (
-                  <div key={city.id} className="flex items-center gap-3 rounded-xl bg-[#222] p-3">
+                  <div key={city.id} className="flex min-w-0 items-center gap-2 rounded-xl bg-[#222] p-3 sm:gap-3">
                     <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#ff6fae]/10">
                       <MapPin className="h-4 w-4 text-[#ff8fbd]" />
                     </div>
@@ -613,6 +632,7 @@ export default function Signal() {
                       <p className="text-xs text-[#777]">{city.city}, {city.country}</p>
                     </div>
                     <SearchRadiusPicker
+                      className="shrink-0"
                       valueKm={city.radiusKm ?? DEFAULT_RADIUS_KM}
                       onChange={radiusKm => updateRadius.mutate({ plan: city, radiusKm })}
                     />
@@ -625,7 +645,7 @@ export default function Signal() {
             )}
           </section>
 
-          <section className="rounded-2xl border border-[#292929] bg-[#181818] p-4">
+          <section className="min-w-0 w-full max-w-full overflow-hidden rounded-2xl border border-[#292929] bg-[#181818] p-4 lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#c2f970]">Travel windows</p>
@@ -700,8 +720,8 @@ export default function Signal() {
             ) : (
               <div className="space-y-2">
                 {datedTrips.map(trip => (
-                  <div key={trip.id} className="rounded-xl bg-[#222] p-3">
-                    <div className="flex items-start gap-3">
+                  <div key={trip.id} className="min-w-0 overflow-hidden rounded-xl bg-[#222] p-3">
+                    <div className="flex min-w-0 items-start gap-2 sm:gap-3">
                       <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#c2f970]/10">
                         <Plane className="h-4 w-4 text-[#c2f970]" />
                       </div>
@@ -710,6 +730,7 @@ export default function Signal() {
                         <p className="mt-0.5 text-xs text-[#777]">{tripDates(trip)}</p>
                       </div>
                       <SearchRadiusPicker
+                        className="shrink-0"
                         valueKm={trip.radiusKm ?? DEFAULT_RADIUS_KM}
                         onChange={radiusKm => updateRadius.mutate({ plan: trip, radiusKm })}
                       />
